@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orientation & Recommandations | PROA & PORA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="orientation.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans">
+
+    <!-- Page Loader -->
+    <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center transition-all duration-500">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-blue-600 font-medium">Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-compass text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Orientation PROA</h1>
+                        <p class="text-sm text-slate-600">Découvrez votre voie avec intelligence</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-slate-900">Recommandations PORA</p>
+                        <p class="text-xs text-slate-500">Classement personnalisé</p>
+                    </div>
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-trophy text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Progress Indicator -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center space-x-4">
+                <div id="step-1" class="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white font-bold transition-all duration-300">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="w-16 h-1 bg-slate-200 rounded transition-all duration-300" id="progress-1"></div>
+                <div id="step-2" class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-200 text-slate-600 font-bold transition-all duration-300">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="w-16 h-1 bg-slate-200 rounded transition-all duration-300" id="progress-2"></div>
+                <div id="step-3" class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-200 text-slate-600 font-bold transition-all duration-300">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p id="step-progress-text" class="text-sm text-slate-600">Étape 1: Évaluation de vos préférences</p>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz-section" class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-gamepad mr-3"></i>
+                    Quiz d'Orientation Gamifié
+                </h2>
+                <p class="text-blue-100 mt-2">Répondez aux questions pour découvrir votre voie idéale</p>
+            </div>
+
+            <div class="p-8">
+                <!-- Progress Indicator -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-slate-600">Progression</span>
+                        <span id="quiz-progress-text" class="text-sm font-medium text-slate-600">Question 1/12</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div id="progress-bar" class="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- User ID Input -->
+                <div class="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+                    <label for="user-id" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fas fa-user mr-2"></i>Votre identifiant utilisateur
+                    </label>
+                    <input type="text" id="user-id" placeholder="Ex: user_123 ou votre email"
+                           class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    <p class="text-xs text-slate-500 mt-2">Cet identifiant sera utilisé pour sauvegarder vos résultats</p>
+                </div>
+
+                <!-- Current Question -->
+                <div id="question-container" class="mb-8">
+                    <div class="text-center mb-6">
+                        <h3 id="question-text" class="text-xl font-semibold text-slate-900 mb-2">Chargement de la question...</h3>
+                        <p class="text-sm text-slate-500">Sélectionnez la réponse qui vous correspond le mieux</p>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Options will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Navigation (hidden in gamified mode) -->
+                <div class="hidden text-center">
+                    <button id="next-question" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Question suivante
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="hidden bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mt-8">
+            <div class="bg-gradient-to-r from-green-600 to-teal-600 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Votre Profil d'Orientation
+                </h2>
+                <p class="text-green-100 mt-2">Analyse de vos réponses et recommandations personnalisées</p>
+            </div>
+
+            <div class="p-8">
+                <!-- Profile Visualization -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-slate-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <i class="fas fa-chart-pie mr-2 text-blue-600"></i>
+                            Répartition de vos intérêts
+                        </h3>
+                        <div id="profile-chart" class="h-64 flex items-center justify-center">
+                            <div class="text-center text-slate-500">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Analyse en cours...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                            <i class="fas fa-star mr-2 text-yellow-600"></i>
+                            Vos forces principales
+                        </h3>
+                        <div id="strengths-list" class="space-y-3">
+                            <!-- Strengths will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations Button -->
+                <div class="text-center">
+                    <button id="get-recommendations" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-trophy mr-2"></i>
+                        Voir mes recommandations PORA
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div id="recommendations-section" class="hidden mt-8">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-trophy mr-3"></i>
+                        Classement Personnalisé PORA
+                    </h2>
+                    <p class="text-purple-100 mt-2">Universités et centres adaptés à votre profil</p>
+                </div>
+
+                <div class="p-8">
+                    <div id="recommendations-list" class="space-y-4">
+                        <!-- Recommendations will be loaded here -->
+                    </div>
+
+                    <div class="text-center mt-8">
+                        <button id="retake-quiz" class="bg-slate-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-700 transition-colors">
+                            <i class="fas fa-redo mr-2"></i>
+                            Refaire le questionnaire
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-compass text-white"></i>
+                        </div>
+                        <span class="font-bold text-lg">PROA & PORA</span>
+                    </div>
+                    <p class="text-slate-400 text-sm">
+                        Système d'orientation intelligent basé sur l'analyse de vos préférences et l'agrégation de données réelles.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-white mb-4">Technologies</h3>
+                    <ul class="space-y-2 text-slate-400 text-sm">
+                        <li><i class="fas fa-brain mr-2 text-blue-400"></i>Intelligence Artificielle</li>
+                        <li><i class="fas fa-chart-line mr-2 text-green-400"></i>Analyse de données</li>
+                        <li><i class="fas fa-users mr-2 text-purple-400"></i>Réseaux sociaux</li>
+                        <li><i class="fas fa-graduation-cap mr-2 text-yellow-400"></i>Éducation</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-white mb-4">Contact</h3>
+                    <div class="space-y-2 text-slate-400 text-sm">
+                        <p><i class="fas fa-envelope mr-2"></i>support@universearch.com</p>
+                        <p><i class="fas fa-phone mr-2"></i>+225 XX XX XX XX</p>
+                        <p><i class="fas fa-map-marker-alt mr-2"></i>Côte d'Ivoire</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 mt-8 pt-8 text-center">
+                <p class="text-slate-500 text-sm">
+                    © 2026 Universearch. Tous droits réservés. Powered by PROA & PORA.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script src="orientation.js"></script>
+
+</body>
+</html>

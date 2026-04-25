@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres Institutionnels | Universearh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="univ-eco.css">
+    <link rel="stylesheet" href="univ.css">
+</head>
+<body>
+
+    <!-- Main Content -->
+    <div id="main-content">
+
+    <div class="app-container">
+        
+        <aside class="sidebar">
+            <div class="sidebar-content-top">
+                <div class="sidebar-header">
+                    <i class="fa-solid fa-graduation-cap logo-icon"></i>
+                    <h1 class="logo-text">universearh</h1>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <a href="Univ.html" class="nav-link">
+                        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+                    </a>
+
+                    <div class="nav-item-dropdown open">
+                        <div class="nav-link dropdown-toggle">
+                            <div class="nav-link-content">
+                                <i class="fa-solid fa-gears"></i> 
+                                <span>Paramètres</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        </div>
+
+                        <ul class="submenu">
+                            <li class="submenu-item active" data-target="section-profil">
+                                <i class="fa-solid fa-school-flag"></i> Profil École
+                            </li>
+                            <li class="submenu-item" data-target="section-compte">
+                                <i class="fa-solid fa-user-shield"></i> Gestion Compte
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="messagerie.html" class="nav-link chat-link">
+                        <div class="link-content"><i class="fa-solid fa-comments"></i> <span>Messagerie</span></div>
+                       
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="logout-link">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Déconnexion</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="settings-content-wrapper">
+                
+                <section id="section-profil" class="settings-pane active">
+                    <header class="pane-header">
+                        <div class="header-text">
+                            <h2>Profil de l'Établissement</h2>
+                            <p>Gérez l'identité visuelle et les informations officielles de votre institution.</p>
+                        </div>
+                        <button class="btn-save-pro save-trigger" id="global-save">Enregistrer les modifications</button>
+                    </header>
+
+                    <div class="config-card">
+                        <div class="profile-upload-group">
+                            <div class="avatar-wrapper school-avatar">
+                                <img src="default-logo.png" id="school-logo-preview" alt="Logo">
+                                <label for="input-school-logo" class="edit-badge"><i class="fa-solid fa-camera"></i></label>
+                                <input type="file" id="input-school-logo" hidden accept="image/*">
+                            </div>
+                            <div class="avatar-info">
+                                <h3>Logo Institutionnel</h3>
+                                <p>Format recommandé : PNG ou JPG (min. 512x512px).</p>
+                            </div>
+                        </div>
+
+                        <div class="input-grid">
+                            <div class="input-box full">
+                                <label>Nom de l'Institution</label>
+                                <input type="text" id="school-name" placeholder="NOM DE L'ÉTABLISSEMENT">
+                            </div>
+                            <div class="input-box">
+                                <label>Sigle officiel</label>
+                                <input type="text" id="school-sigle" placeholder="SIGLE DE L'ÉTABLISSEMENT">
+                            </div>
+                            <div class="input-box">
+                                <label>Année de fondation</label>
+                                <input type="number" id="school-date" placeholder="2005">
+                            </div>
+                            <div class="input-box full">
+                                <label>Description</label>
+                                <textarea id="school-mission" rows="3" placeholder="L'excellence au service de la communauté. On s'engage à fournir une éducation supérieure de qualité."></textarea>
+                            </div>
+                            <div class="input-box">
+                                <label>Site Web (lien_site)</label>
+                                <input type="url" id="school-lien" placeholder="https://www.universite-exemple.tld">
+                            </div>
+                            <div class="input-box">
+                                <label>Contacts (contacts)</label>
+                                <input type="text" id="school-contacts" placeholder="téléphone">
+                            </div>
+                            <div class="input-box full" style="display:flex; align-items:center; gap:12px;">
+                                <button id="btn-my-fields" class="btn-save-pro" style="background:#0ea5e9;">Mes filières</button>
+                                <button id="btn-budget" class="btn-save-pro" style="background:#8b5cf6;"> Budget Frais</button>
+                            </div>
+                        </div>
+
+                        <div class="bde-creation-zone" id="bde-init-box" style="margin-top: 30px; padding: 20px; border: 2px dashed #e2e8f0; border-radius: 15px; text-align: center;">
+                            <button type="button" id="btn-show-bde-form" class="btn-save-pro" style="background: #2563eb; float: none;">
+                                <i class="fa-solid fa-plus-circle"></i> Création du BDE
+                            </button>
+                            <p style="margin-top: 10px; font-size: 13px; color: #64748b;">Cliquez pour configurer le bureau des étudiants et ses membres.</p>
+                        </div>
+
+                        <div id="bde-dynamic-form" style="display: none; margin-top: 30px; border-top: 1px solid #eee; pt: 20px;">
+                            <h4 class="sub-divider" style="margin-top: 20px;">Informations du Président (BDE)</h4>
+                            <div class="input-grid">
+                                <div class="input-box">
+                                    <label>Nom</label>
+                                    <input type="text" id="pres-lastname" placeholder="Ex: MILLONGO">
+                                </div>
+                                <div class="input-box">
+                                    <label>Prénom</label>
+                                    <input type="text" id="pres-firstname" placeholder="Ex: Annabel">
+                                </div>
+                                <div class="input-box">
+                                    <label>Numéro de téléphone</label>
+                                    <input type="tel" id="pres-phone" placeholder="+242 06 ...">
+                                </div>
+                                    <div class="input-box">
+                                        <label>Email</label>
+                                        <input type="email" id="pres-email" placeholder="Ex: annabel@example.com">
+                                    </div>
+                            </div>
+
+                                <div style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+                                    <button id="btn-create-bde" class="btn-save-pro" style="background:#10b981;">Créer le compte BDE</button>
+                                    <button id="btn-cancel-bde" class="btn-save-pro">Annuler</button>
+                                </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-compte" class="settings-pane">
+                    <header class="pane-header">
+                        <div class="header-text">
+                            <h2>Sécurité & Accès</h2>
+                            <p id="security-subtitle">Protégez vos accès et gérez les identifiants de votre établissement.</p>
+                        </div>
+                        <button class="btn-save-pro save-trigger" id="security-update-btn">Mettre à jour</button>
+                    </header>
+
+                    <div class="config-card">
+                        <div class="input-grid">
+                            <div class="input-box full">
+                                <label id="security-email-label">Email Administratif</label>
+                                <input type="email" id="security-email" placeholder="direction@etablissement.com">
+                            </div>
+                            <div class="input-box full">
+                                <label>Mot de passe actuel</label>
+                                <input type="password" id="security-current-password" placeholder="••••••••••••">
+                            </div>
+                            <div class="input-box">
+                                <label>Nouveau mot de passe</label>
+                                <input type="password" id="security-new-password" placeholder="Min. 8 caractères">
+                            </div>
+                            <div class="input-box">
+                                <label>Confirmation</label>
+                                <input type="password" id="security-confirm-password" placeholder="Répétez le mot de passe">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div> 
+        </main>
+    </div>
+
+    </div> <!-- End of main-content -->
+
+    <script src="univ-eco.js"></script>
+   
+</body>
+</html>

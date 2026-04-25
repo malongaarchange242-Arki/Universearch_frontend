@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universearh - Administration Universitaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="univ.css">
+    <link rel="stylesheet" href="univ-eco.css">
+    <style>
+        /* Profile completion modal styles */
+        .profile-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.35); z-index: 1400; }
+        .profile-card { width: 96%; max-width: 500px; background: #fff; border-radius: 12px; box-shadow: 0 12px 30px rgba(2,6,23,0.12); padding: 22px; text-align: center; }
+        .profile-icon { width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#e6f0ff,#eef7ff);margin:0 auto 10px auto }
+        .profile-title { margin:0;font-size:20px;font-weight:800;color:#0f172a }
+        .profile-body { color:#334155;text-align:justify;line-height:1.5;margin-top:12px }
+        .profile-actions { display:flex;gap:12px;justify-content:center;margin-top:18px }
+        .profile-primary { background:#2563eb;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer }
+        .profile-secondary { background:transparent;color:#334155;border:1px solid #e6eefc;padding:10px 16px;border-radius:8px;cursor:pointer }
+        @media (max-width:480px){ .profile-card{padding:16px} .profile-body{font-size:14px} }
+        /* Blur background when modal is open */
+        body.modal-open .app-container { filter: blur(6px) saturate(0.95); transition: filter 200ms ease; pointer-events: none; user-select: none; }
+
+        /* Compact Facebook-like feed */
+        .content-body { padding: 24px 32px; }
+        .media-filter-bar,
+        .cards-scroller { width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .cards-scroller { gap: 16px; }
+        .project-card { max-width: 680px; margin: 0 auto; border-radius: 18px; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06); }
+        .card-image-placeholder { aspect-ratio: 16 / 9; height: auto; }
+        .pc-content { padding: 12px 14px 8px; }
+        .pc-content h5 { font-size: 15px; line-height: 1.35; margin-bottom: 4px; color: #1c1e21; letter-spacing: 0; }
+        .pc-content .pc-meta { font-size: 12px; color: #65676b; margin-bottom: 6px; font-weight: 500; }
+        .pc-content .card-desc { font-size: 14px; line-height: 1.45; color: #1c1e21; font-weight: 400; }
+        .pc-engagement { padding: 10px 14px 12px; border-top: 1px solid #e4e6eb; display: flex; gap: 18px; align-items: center; color: #65676b; font-size: 14px; }
+        .pc-engagement span { display: inline-flex; align-items: center; gap: 6px; }
+        .pc-engagement i { font-size: 15px; }
+        .delete-btn { position: absolute; top: 8px; right: 8px; z-index: 10; background: rgba(17, 24, 39, 0.72); color: white; border: none; border-radius: 999px; cursor: pointer; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+        .card-video-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 22px; text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4); }
+        .card-empty-state { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; background: #f1f5f9; font-size: 13px; font-weight: 500; }
+        .card-media-count { position: absolute; bottom: 8px; right: 8px; background: rgba(17, 24, 39, 0.72); color: white; padding: 3px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        @media (max-width: 900px) {
+            .content-body { padding: 18px 14px; }
+            .media-filter-bar,
+            .cards-scroller,
+            .project-card { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-graduation-cap logo-icon"></i>
+                <h1 class="logo-text">universearh</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="Univ.html" class="nav-link active">
+                    <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+                </a>
+                
+                <div class="nav-link dropdown-toggle">
+                    <a href="univ-eco.html" class="nav-link-content" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 15px;">
+                        <i class="fa-solid fa-gears"></i> 
+                        <span>Paramètres</span>
+                    </a>
+                </div>
+
+                <a href="messagerie.html" class="nav-link chat-link">
+                    <div class="link-content"><i class="fa-solid fa-comments"></i> <span>Messagerie</span></div>
+                    <span class="status-indicator"></span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="logout-link">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Déconnexion</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="fixed-header">
+                <div class="header-card student-office">
+                    <div class="card-icon"><i class="fa-solid fa-hands-holding-child"></i></div>
+                    <div class="card-details">
+                        <h3>BUREAU DES ETUDIANTS</h3>
+                        <div class="info-row"><small>PRESIDENT(e):</small> <strong id="dash-pres-name">...</strong></div>
+                    </div>
+                </div>
+
+                <div class="header-card school-banner">
+                    <div class="school-logo"><span id="dash-school-sigle">...</span></div>
+                    <div class="banner-text">
+                        <h2 id="dash-school-name">NOM DE L'ÉTABLISSEMENT</h2>
+                        
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <section class="dashboard-widgets">
+                    <div class="stats-grid">
+                        <div class="stat-card-pro">
+                            <div class="stat-card-header">
+                                <span class="stat-icon">
+                                    <i class="fa-regular fa-eye"></i>
+                                </span>
+                                <small>Vues Totales</small>
+                            </div>
+                            <div class="value" id="stat-total-views">0</div>
+                        </div>
+                        <div class="stat-card-pro blue">
+                            <div class="stat-card-header">
+                                <span class="stat-icon subscribers">
+                                    <i class="fa-solid fa-user-group"></i>
+                                </span>
+                                <small>Nombre d'Abonnes</small>
+                            </div>
+                            <div class="value" id="stat-subscribers">0</div>
+                        </div>
+                    </div>
+
+                    <div class="widget-actions">
+                        <button class="btn-add" id="open-add-modal" title="Ajouter un contenu">+</button>
+                        <button class="btn-analytics">Analytique</button>
+                    </div>
+                </section>
+
+                <section class="description-area">
+                    <div class="description-container">
+                        <h4 style="margin-bottom:10px;">DESCRIPTION</h4>
+                        <div id="school-mission-container">
+                            <p id="school-description">Interface d'administration officielle. Gérez vos publications et suivez l'engagement.</p>
+                            <button id="toggle-description" style="display:none; margin-top:8px; background:transparent; border:none; color:#2563eb; cursor:pointer; font-weight:700;">Voir plus</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider" style="height: 1px; background: #e0e0e0; margin: 20px 0;"></div>
+
+                <section class="cards-scroller" id="cards-container">
+                    </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="add-content-modal" class="modal-overlay">
+        <div class="fb-modal">
+            <div class="fb-modal-header">
+                NOUVELLE PUBLICATION
+                <button id="close-add-modal" class="fb-close">&times;</button>
+            </div>
+            <div class="fb-modal-body">
+                <input type="text" id="new-title" class="fb-input-title" placeholder="Titre de l'annonce...">
+                <textarea id="new-details" class="fb-textarea" placeholder="Détails complets..."></textarea>
+                
+                <div class="fb-dropzone" onclick="document.getElementById('new-image-file').click()">
+                    <div id="preview-gallery" class="preview-gallery"></div>
+                    <div id="dropzone-prompt">
+                        <div class="drop-icon"><i class="fa-solid fa-photo-film"></i></div>
+                        <p style="margin: 0; font-weight: bold;">Ajouter des photos/vidéos</p>
+                    </div>
+                    <input type="file" id="new-image-file" accept="image/*,video/*" multiple hidden>
+                </div>
+                <button id="submit-new-content" class="fb-submit-btn">PUBLIER MAINTENANT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="publication-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-left">
+                <div id="media-viewer" class="media-viewer">
+                    </div>
+                <div id="slider-nav" class="slider-controls"></div>
+                <div id="image-counter" class="image-badge"></div>
+            </div>
+
+            <div class="modal-right">
+                <button id="close-modal" class="modal-close-x">&times;</button>
+                
+                <div class="modal-header-info">
+                    <h2 id="modal-display-title" class="pub-title"></h2>
+                    <div class="modal-meta">
+                        <span><i class="fa-regular fa-calendar"></i> <span id="pub-date">Aujourd'hui</span></span>
+                    </div>
+                </div>
+
+                <div id="modal-display-details" class="pub-desc"></div>
+
+                <div class="modal-actions-bar">
+                    <div class="action-item like-btn" id="modal-like-action">
+                        <i class="fa-regular fa-heart"></i>
+                        <span id="modal-like-count">1.2k</span>
+                    </div>
+                    <div class="action-item">
+                        <i class="fa-regular fa-comment"></i>
+                        <span id="comment-count-text">0 commentaires</span>
+                    </div>
+                    <div class="action-item">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </div>
+                </div>
+
+                <div class="modal-comments-section">
+                    <h4 class="comment-separator">DISCUSSION</h4>
+                    <div id="comments-container" class="comments-scroll-area">
+                        </div>
+                </div>
+
+                <div class="comment-input-area">
+                    <input type="text" placeholder="Écrivez un commentaire..." id="input-comment">
+                    <button id="send-comment"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bde-profile-modal" class="modal-overlay">
+        <div class="bde-modal-card">
+            <button id="close-bde-modal" class="modal-close-x">&times;</button>
+            
+            <div class="bde-modal-header">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h3>MEMBRES DU BUREAU</h3>
+            </div>
+    
+            <div class="bde-profiles-container">
+                <div class="profile-item">
+                    <div class="profile-avatar-wrapper">
+                        <img id="modal-pres-img" src="default-avatar.png" alt="Président">
+                        <div class="profile-badge">Président</div>
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="modal-pres-name">NOM DU PRÉSIDENT</h4>
+                        <p class="profile-class"><i class="fa-solid fa-graduation-cap"></i> <span id="modal-pres-class">Classe non définie</span></p>
+                        <div class="profile-contact">
+                            <span><i class="fa-solid fa-phone"></i> <span id="modal-pres-phone">Contact</span></span>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="profile-divider"></div>
+    
+                <div class="profile-item" id="modal-vp-section">
+                    <div class="profile-avatar-wrapper">
+                        <img id="modal-vp-img" src="default-avatar.png" alt="Vice-Président">
+                        <div class="profile-badge vp">Vice-Président</div>
+                    </div>
+                    <div class="profile-info">
+                        <h4 id="modal-vp-name">NOM DU VP</h4>
+                        <div class="profile-contact">
+                            <span>Élu par l'assemblée des étudiants</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="bde-modal-footer">
+                <h5>NOS MISSIONS</h5>
+                <p id="modal-bde-missions">Aucune mission renseignée pour le moment.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="univ.js"></script>
+    <!-- Profile completion modal -->
+    <div id="profile-modal" class="profile-overlay" style="display:none;">
+        <div class="profile-card" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+            <div class="profile-icon"><i class="fa-solid fa-university" style="color:#2563eb;font-size:28px"></i></div>
+            <h3 id="profile-title" class="profile-title">Votre profil n’est pas encore complet</h3>
+            <div class="profile-body">
+                <p style="margin:0 0 8px 0;">Un profil complété augmente votre visibilité auprès des étudiants et améliore votre classement sur la plateforme.</p>
+                <p style="margin:0 0 8px 0;">Ajoutez dès maintenant vos informations officielles pour optimiser votre présence.</p>
+                <p style="margin:0;">Accédez aux paramètres pour finaliser votre profil.</p>
+            </div>
+            <div class="profile-actions">
+                <button id="profile-go" class="profile-primary">Accéder aux paramètres</button>
+                <button id="profile-later" class="profile-secondary">Plus tard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="univ-eco.js"></script>
+    <script>
+        // Show the profile modal once when landing from registration or when forced via query param
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const session = localStorage.getItem('softura_session');
+                const shown = localStorage.getItem('softura_profile_prompt_shown');
+                const urlParams = new URLSearchParams(window.location.search);
+                const forceShow = urlParams.get('showProfile') === '1';
+
+                if (session && (!shown || forceShow)) {
+                    const modal = document.getElementById('profile-modal');
+                    modal.style.display = 'flex';
+                    document.body.classList.add('modal-open');
+                    document.body.style.overflow = 'hidden';
+                    document.getElementById('profile-go').focus();
+
+                    document.getElementById('profile-go').addEventListener('click', () => {
+                        localStorage.setItem('softura_profile_prompt_shown', '1');
+                        modal.style.display = 'none';
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        window.location.href = 'univ-eco.html';
+                    });
+
+                    document.getElementById('profile-later').addEventListener('click', () => {
+                        localStorage.setItem('softura_profile_prompt_shown', '1');
+                        modal.style.display = 'none';
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                    });
+                }
+            } catch (err) {
+                console.warn('profile modal init failed', err);
+            }
+        });
+    </script>
+</body>
+</html>

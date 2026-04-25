@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orientation - UniverSearch</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.container{
+width:360px;
+background:#1e293b;
+border-radius:20px;
+padding:25px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+}
+
+header h1{
+font-size:20px;
+}
+
+.stats{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:20px;
+}
+
+.stat{
+background:#f97316;
+padding:15px;
+border-radius:10px;
+text-align:center;
+}
+
+.stat h2{
+font-size:18px;
+}
+
+.card{
+background:#334155;
+padding:15px;
+border-radius:10px;
+margin-bottom:10px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.card:hover{
+background:#475569;
+}
+
+.card span{
+font-size:15px;
+}
+
+.start-btn{
+width:100%;
+background:#f97316;
+border:none;
+padding:15px;
+border-radius:12px;
+font-size:16px;
+font-weight:bold;
+margin-top:15px;
+cursor:pointer;
+}
+
+.start-btn:hover{
+background:#ea580c;
+}
+
+.footer{
+text-align:center;
+font-size:12px;
+margin-top:15px;
+opacity:0.6;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+<h1>Orientation</h1>
+<div>👤</div>
+</header>
+
+<div class="stats">
+<div class="stat">
+<p>Questions</p>
+<h2>30</h2>
+</div>
+
+<div class="stat">
+<p>Durée</p>
+<h2>5 min</h2>
+</div>
+</div>
+
+<h3 style="margin-bottom:15px;">Choisis ton profil</h3>
+
+<div class="card">
+<span>🎒 Élève</span>
+</div>
+
+<div class="card">
+<span>🎓 Bachelier</span>
+</div>
+
+<div class="card">
+<span>📚 Étudiant</span>
+</div>
+
+<div class="card">
+<span>👨‍👩‍👧 Parent</span>
+</div>
+
+<button class="start-btn">
+Commencer le test
+</button>
+
+<div class="footer">
+UniverSearch Orientation
+</div>
+
+</div>
+
+</body>
+</html>

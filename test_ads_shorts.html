@@ -1,0 +1,650 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Ads Shorts</title>
+  <style>
+    :root {
+      --bg: #05070b;
+      --panel: rgba(8, 13, 22, 0.76);
+      --text: #f7f8fa;
+      --muted: rgba(255, 255, 255, 0.72);
+      --accent: #00d1ff;
+      --danger: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .title-block p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tab {
+      color: rgba(255, 255, 255, 0.55);
+      position: relative;
+    }
+
+    .tab.active {
+      color: white;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -8px;
+      height: 3px;
+      border-radius: 999px;
+      background: white;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+    }
+
+    .status {
+      position: fixed;
+      top: 84px;
+      left: 20px;
+      z-index: 20;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--panel);
+      color: white;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+    }
+
+    .status.error {
+      color: #fff;
+      background: rgba(160, 24, 24, 0.88);
+    }
+
+    .feed {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+    }
+
+    .feed::-webkit-scrollbar {
+      display: none;
+    }
+
+    .short-card {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: start;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .short-card video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #000;
+    }
+
+    .play-indicator {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .play-indicator.visible {
+      opacity: 1;
+    }
+
+    .play-indicator span {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(8px);
+      font-size: 34px;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.18) 0%,
+        rgba(0, 0, 0, 0.02) 35%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+      pointer-events: none;
+    }
+
+    .info {
+      position: absolute;
+      left: 18px;
+      right: 88px;
+      bottom: 26px;
+      z-index: 5;
+    }
+
+    .info h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .info p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.66);
+      word-break: break-word;
+    }
+
+    .side-actions {
+      position: absolute;
+      right: 14px;
+      bottom: 28px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .pill {
+      width: 56px;
+      min-height: 56px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .pill.icon {
+      width: 60px;
+      min-height: 60px;
+      border-radius: 30px;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .pill.icon strong {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .json-drawer {
+      position: fixed;
+      left: 20px;
+      right: 20px;
+      bottom: 18px;
+      max-height: 28vh;
+      overflow: auto;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(7, 10, 16, 0.9);
+      color: #dce9f7;
+      font-size: 12px;
+      backdrop-filter: blur(12px);
+      z-index: 30;
+      display: none;
+    }
+
+    .json-drawer.open {
+      display: block;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title-block">
+      <h1>Test Shorts</h1>
+      <p>Flux vertical des contenus video ads, universites et centres.</p>
+      <div class="tabs">
+        <span class="tab active">Pour toi</span>
+        <span class="tab">Abonnements</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="reload">Recharger</button>
+      <button id="toggle-json">JSON</button>
+    </div>
+  </div>
+
+  <div id="status" class="status">Chargement...</div>
+  <div id="feed" class="feed"></div>
+  <div id="raw-drawer" class="json-drawer">
+    <pre id="raw"></pre>
+  </div>
+
+  <script>
+    const adsEndpoint = 'https://universearch-ads-service.onrender.com/ads/shorts?all=true';
+    const adsViewsEndpoint = 'https://universearch-ads-service.onrender.com/ads';
+    const postsEndpoint = 'https://universearch-content-service.onrender.com/posts?limit=1000';
+    const postsViewsEndpoint = 'https://universearch-content-service.onrender.com/posts';
+    const recordedViews = new Set();
+
+    function normalizeUrl(rawUrl) {
+      const value = String(rawUrl || '').trim();
+      if (!value) return '';
+      if (value.startsWith('http://') || value.startsWith('https://')) return value;
+      if (value.startsWith('/')) return `https://universearch-ads-service.onrender.com${value}`;
+      return `https://universearch-ads-service.onrender.com/${value}`;
+    }
+
+    function extractPayload(jsonData) {
+      if (Array.isArray(jsonData)) return jsonData;
+      if (jsonData && typeof jsonData === 'object') {
+        const raw = jsonData.data || jsonData.ads || jsonData.shorts || [];
+        return Array.isArray(raw) ? raw : [];
+      }
+      return [];
+    }
+
+    function extractPostsPayload(jsonData) {
+      if (Array.isArray(jsonData)) return jsonData;
+      if (jsonData && typeof jsonData === 'object') {
+        const raw = jsonData.data || jsonData.posts || [];
+        return Array.isArray(raw) ? raw : [];
+      }
+      return [];
+    }
+
+    function sortByNewest(items) {
+      return [...items].sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+    }
+
+    function setStatus(text, isError = false) {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = isError ? 'status error' : 'status';
+    }
+
+    function getViewSessionKey(item) {
+      return `${item.source || 'unknown'}:${item.id || ''}`;
+    }
+
+    function updateCardViewsCount(card, nextViews) {
+      if (!card || !Number.isFinite(Number(nextViews))) {
+        return;
+      }
+
+      const viewsCountEl = card.querySelector('[data-role="views-count"]');
+      if (viewsCountEl) {
+        viewsCountEl.textContent = String(Number(nextViews));
+      }
+
+      const item = JSON.parse(card.dataset.item || '{}');
+      item.viewsCount = Number(nextViews);
+      card.dataset.item = JSON.stringify(item);
+    }
+
+    async function recordPostView(postId, duration = 8) {
+      const response = await fetch(`${postsViewsEndpoint}/${encodeURIComponent(postId)}/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          view_duration: duration,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      return payload;
+    }
+
+    async function recordAdView(adId, duration = 8) {
+      const response = await fetch(`${adsViewsEndpoint}/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          adId,
+          view_duration: duration,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      return payload;
+    }
+
+    function buildShortCard(item) {
+      const article = document.createElement('article');
+      article.className = 'short-card';
+      article.innerHTML = `
+        <video src="${item.url}" playsinline muted loop preload="metadata"></video>
+        <div class="overlay"></div>
+        <div class="play-indicator visible"><span>▶</span></div>
+        <div class="info">
+          <h2>${item.title || 'Sans titre'}</h2>
+          <p>${item.description || ''}</p>
+          <div class="meta">
+            <div>source: ${item.source || '(vide)'}</div>
+            <div>id: ${item.id || '(vide)'}</div>
+            <div>auteur: ${item.authorType || '(vide)'}</div>
+            <div>created_at: ${item.createdAt || '(vide)'}</div>
+            <div>media_type: ${item.mediaType || '(vide)'}</div>
+            <div>destination: ${item.destination || '(vide)'}</div>
+            <div>url: ${item.url}</div>
+          </div>
+        </div>
+        <div class="side-actions">
+          <div class="pill icon"><strong>▶</strong><span>${item.source === 'ads' ? 'ADS' : 'POST'}</span></div>
+          <div class="pill icon"><strong>★</strong><span>${item.authorType || 'Feed'}</span></div>
+          <div class="pill icon"><strong data-role="views-count">${item.viewsCount || 0}</strong><span>Vues</span></div>
+          <div class="pill">${item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Date'}</div>
+          ${item.clickUrl ? `<a class="pill icon" href="${item.clickUrl}" target="_blank" rel="noopener noreferrer"><strong>↗</strong><span>Lien</span></a>` : ''}
+        </div>
+      `;
+
+      const video = article.querySelector('video');
+      const playIndicator = article.querySelector('.play-indicator');
+      video.addEventListener('loadeddata', () => {
+        console.log('Video OK:', item.url);
+      });
+      video.addEventListener('error', () => {
+        console.error('Video KO:', item.url);
+        article.style.outline = '2px solid #ff6b6b';
+      });
+      video.addEventListener('click', () => {
+        if (video.paused) {
+          video.play().catch(() => {});
+          playIndicator.classList.remove('visible');
+        } else {
+          video.pause();
+          playIndicator.classList.add('visible');
+        }
+      });
+
+      return article;
+    }
+
+    function setupAutoplay() {
+      const videos = Array.from(document.querySelectorAll('.short-card video'));
+      if (!videos.length) return;
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          const indicator = video.parentElement.querySelector('.play-indicator');
+          const card = video.closest('.short-card');
+          const item = card ? JSON.parse(card.dataset.item || '{}') : null;
+
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+            video.play().then(() => {
+              indicator.classList.remove('visible');
+            }).catch(() => {
+              indicator.classList.add('visible');
+            });
+
+            if (
+              item &&
+              item.id &&
+              !recordedViews.has(getViewSessionKey(item))
+            ) {
+              const sessionKey = getViewSessionKey(item);
+              const recordAction = item.source === 'ads'
+                ? recordAdView(item.id, 8)
+                : recordPostView(item.id, 8);
+
+              recordedViews.add(sessionKey);
+              recordAction
+                .then(result => {
+                  const nextViews = Number(result.views_count);
+                  updateCardViewsCount(
+                    card,
+                    Number.isFinite(nextViews)
+                      ? nextViews
+                      : Number(item.viewsCount || 0) + 1,
+                  );
+                  console.log('Vue enregistree:', sessionKey, result);
+                })
+                .catch(error => {
+                  console.error('Erreur enregistrement vue:', sessionKey, error);
+                  recordedViews.delete(sessionKey);
+                });
+            }
+          } else {
+            video.pause();
+            indicator.classList.add('visible');
+          }
+        });
+      }, {
+        threshold: [0.35, 0.65, 0.9],
+      });
+
+      videos.forEach(video => observer.observe(video));
+    }
+
+    async function loadShorts() {
+      const feed = document.getElementById('feed');
+      const raw = document.getElementById('raw');
+      recordedViews.clear();
+      feed.innerHTML = '';
+      raw.textContent = '';
+      setStatus('Chargement...');
+
+      try {
+        const [adsResponse, postsResponse] = await Promise.all([
+          fetch(adsEndpoint),
+          fetch(postsEndpoint),
+        ]);
+
+        const [adsText, postsText] = await Promise.all([
+          adsResponse.text(),
+          postsResponse.text(),
+        ]);
+
+        raw.textContent = JSON.stringify(
+          {
+            ads: adsText ? JSON.parse(adsText) : [],
+            posts: postsText ? JSON.parse(postsText) : [],
+          },
+          null,
+          2,
+        );
+
+        if (!adsResponse.ok) {
+          throw new Error(`Ads HTTP ${adsResponse.status}`);
+        }
+
+        if (!postsResponse.ok) {
+          throw new Error(`Posts HTTP ${postsResponse.status}`);
+        }
+
+        const adsJson = adsText ? JSON.parse(adsText) : [];
+        const postsJson = postsText ? JSON.parse(postsText) : [];
+
+        const adVideos = extractPayload(adsJson)
+          .map(item => ({
+            id: item.id || '',
+            title: item.title || '',
+            description: item.description || '',
+            url: normalizeUrl(
+              item.mediaUrl ||
+              item.media_url ||
+              item.video ||
+              item.video_url ||
+              item.media
+            ),
+            createdAt: item.createdAt || item.created_at || '',
+            destination: item.destination || 'shorts',
+            mediaType: item.mediaType || item.media_type || 'video',
+            clickUrl: item.clickUrl || item.click_url || '',
+            viewsCount: Number(item.views_count ?? item.views ?? 0) || 0,
+            source: 'ads',
+            authorType: 'ads',
+          }))
+          .filter(item => String(item.destination).toLowerCase() === 'shorts')
+          .filter(item => String(item.mediaType).toLowerCase() === 'video')
+          .filter(item => item.url);
+
+        const postVideos = extractPostsPayload(postsJson)
+          .map(item => ({
+            id: item.id || '',
+            title: item.titre || item.title || '',
+            description: item.description || item.contenu || '',
+            url: normalizeUrl(item.media_url || item.mediaUrl),
+            createdAt: item.date_creation || item.created_at || '',
+            destination: 'posts',
+            mediaType: item.media_type || item.mediaType || '',
+            clickUrl: '',
+            viewsCount: Number(item.views_count ?? item.views ?? 0) || 0,
+            source: 'posts',
+            authorType: item.author_type || '',
+          }))
+          .filter(item => String(item.mediaType).toLowerCase() === 'video')
+          .filter(item =>
+            ['universite', 'centre', 'centre_formation'].includes(
+              String(item.authorType).toLowerCase(),
+            ),
+          )
+          .filter(item => item.url);
+
+        const videos = sortByNewest([...adVideos, ...postVideos]);
+
+        if (videos.length === 0) {
+          feed.innerHTML = '<div class="empty">Aucune vidÃ©o shorts exploitable trouvÃ©e.</div>';
+          setStatus('Aucune vidÃ©o shorts exploitable trouvÃ©e.', true);
+          return;
+        }
+
+        setStatus(`${videos.length} vidÃ©o(s) shorts trouvÃ©e(s). Les ads et posts vidÃ©o enregistrent une vue automatique.`);
+        videos.forEach(item => {
+          const card = buildShortCard(item);
+          card.dataset.item = JSON.stringify({
+            id: item.id || '',
+            source: item.source || '',
+            viewsCount: Number(item.viewsCount || 0),
+          });
+          feed.appendChild(card);
+        });
+        setupAutoplay();
+      } catch (error) {
+        feed.innerHTML = `<div class="empty">Erreur: ${error.message}</div>`;
+        setStatus(`Erreur: ${error.message}`, true);
+        console.error('Erreur test shorts:', error);
+      }
+    }
+
+    document.getElementById('reload').addEventListener('click', loadShorts);
+    document.getElementById('toggle-json').addEventListener('click', () => {
+      document.getElementById('raw-drawer').classList.toggle('open');
+    });
+    loadShorts();
+  </script>
+</body>
+</html>

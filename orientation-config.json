@@ -1,0 +1,80 @@
+# Configuration de la page d'orientation PROA & PORA
+
+# URLs des services
+PROA_SERVICE_URL=http://localhost:8000
+PORA_SERVICE_URL=http://localhost:8080
+
+# Configuration du quiz
+QUIZ_QUESTIONS_COUNT=12
+QUIZ_CATEGORIES=["logic", "technical", "creativity", "social"]
+QUIZ_QUESTIONS_PER_CATEGORY=3
+
+# Délais et timeouts (en millisecondes)
+API_TIMEOUT=10000
+ANIMATION_DURATION=300
+QUIZ_TRANSITION_DELAY=500
+
+# Seuils de recommandation
+RECOMMENDATION_THRESHOLD_HIGH=85
+RECOMMENDATION_THRESHOLD_MEDIUM=70
+RECOMMENDATION_THRESHOLD_LOW=50
+
+# Configuration UI
+ENABLE_ANIMATIONS=true
+ENABLE_TOAST_NOTIFICATIONS=true
+ENABLE_PROGRESS_INDICATOR=true
+ENABLE_RESPONSIVE_DESIGN=true
+
+# Messages utilisateur
+LOADING_MESSAGE="Analyse en cours..."
+ERROR_MESSAGE="Une erreur s'est produite. Veuillez réessayer."
+SUCCESS_MESSAGE="Analyse terminée avec succès!"
+
+# Catégories de profil
+PROFILE_CATEGORIES:
+  logic: "Logique & Analytique"
+  technical: "Technique & Scientifique"
+  creativity: "Créativité & Artistique"
+  social: "Social & Humain"
+
+# Niveaux de compétence
+SKILL_LEVELS:
+  1: "Débutant"
+  2: "Intermédiaire"
+  3: "Avancé"
+  4: "Expert"
+  5: "Maître"
+
+# Types de recommandations
+RECOMMENDATION_TYPES:
+  university: "Université"
+  program: "Programme"
+  career: "Carrière"
+  course: "Cours"
+
+# Configuration des graphiques
+CHART_COLORS:
+  logic: "#3b82f6"
+  technical: "#10b981"
+  creativity: "#f59e0b"
+  social: "#ef4444"
+
+# Paramètres de validation
+VALIDATION:
+  MIN_QUESTIONS_ANSWERED: 12
+  MAX_RESPONSE_TIME: 300000  # 5 minutes
+  ALLOW_SKIPPING: false
+
+# Configuration d'accessibilité
+ACCESSIBILITY:
+  ENABLE_KEYBOARD_NAVIGATION: true
+  ENABLE_SCREEN_READER: true
+  HIGH_CONTRAST_MODE: false
+  REDUCED_MOTION: false
+
+# Paramètres de débogage (development only)
+DEBUG:
+  ENABLE_CONSOLE_LOGGING: true
+  SHOW_API_RESPONSES: true
+  MOCK_API_RESPONSES: false
+  SIMULATE_SLOW_CONNECTIONS: false

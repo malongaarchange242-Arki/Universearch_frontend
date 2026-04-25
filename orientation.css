@@ -1,0 +1,399 @@
+/* Orientation PROA & PORA - Styles personnalisés */
+
+/* Animation pour les barres de progression */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.question-item {
+    animation: slideIn 0.5s ease-out forwards;
+}
+
+.question-item:nth-child(1) { animation-delay: 0.1s; }
+.question-item:nth-child(2) { animation-delay: 0.2s; }
+.question-item:nth-child(3) { animation-delay: 0.3s; }
+.question-item:nth-child(4) { animation-delay: 0.4s; }
+.question-item:nth-child(5) { animation-delay: 0.5s; }
+.question-item:nth-child(6) { animation-delay: 0.6s; }
+.question-item:nth-child(7) { animation-delay: 0.7s; }
+.question-item:nth-child(8) { animation-delay: 0.8s; }
+.question-item:nth-child(9) { animation-delay: 0.9s; }
+.question-item:nth-child(10) { animation-delay: 1.0s; }
+.question-item:nth-child(11) { animation-delay: 1.1s; }
+.question-item:nth-child(12) { animation-delay: 1.2s; }
+
+/* Style pour les boutons radio personnalisés */
+.rating-scale input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%;
+    background: white;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rating-scale input[type="radio"]:checked {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.rating-scale input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Gamified Quiz Styles */
+.quiz-option {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.quiz-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.quiz-option:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
+.quiz-option:hover::before {
+    opacity: 1;
+}
+/* 🎯 NEW: Strategic badge styles */
+.strategic-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+/* 🎯 Enhanced match badge styles */
+.match-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.match-badge small {
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 0.9;
+    display: block;
+    margin-top: 4px;
+}
+.quiz-option.selected {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #1d4ed8;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+}
+
+.quiz-option.selected::before {
+    opacity: 0;
+}
+
+.quiz-option .option-letter {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.quiz-option.selected .option-letter {
+    color: white;
+}
+
+.quiz-option .option-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #374151;
+    transition: color 0.3s ease;
+}
+
+.quiz-option.selected .option-text {
+    color: white;
+}
+
+.quiz-option.correct {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #059669;
+    animation: correctPulse 0.6s ease-out;
+}
+
+.quiz-option.incorrect {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: #dc2626;
+    animation: incorrectShake 0.6s ease-out;
+}
+
+@keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes incorrectShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Question transition animations */
+.question-enter {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: questionEnter 0.5s ease-out forwards;
+}
+
+.question-exit {
+    opacity: 1;
+    transform: translateY(0);
+    animation: questionExit 0.3s ease-in forwards;
+}
+
+@keyframes questionEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes questionExit {
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Progress bar animation */
+.progress-fill {
+    animation: progressFill 0.5s ease-out;
+}
+
+@keyframes progressFill {
+    from { width: 0%; }
+    to { width: var(--progress-width); }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .quiz-option {
+        padding: 1rem;
+    }
+
+    .quiz-option .option-letter {
+        font-size: 1.25rem;
+    }
+
+    .quiz-option .option-text {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation pour les cartes de recommandation */
+.recommendation-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Style pour les indicateurs de progression */
+.progress-step {
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    transform: scale(1.1);
+}
+
+.progress-step.completed {
+    background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+/* Animation pour les toasts */
+.toast-enter {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.toast-exit {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-exit-active {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+/* Styles pour les graphiques */
+.profile-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: inherit;
+    animation: fillBar 1.5s ease-out forwards;
+}
+
+@keyframes fillBar {
+    from {
+        width: 0%;
+    }
+    to {
+        width: var(--fill-width, 0%);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rating-scale {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .rating-scale .flex {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .question-item {
+        padding: 1rem;
+    }
+
+    .recommendation-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Dark mode support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+    .bg-slate-50 {
+        background-color: #1e293b;
+    }
+
+    .text-slate-900 {
+        color: #f1f5f9;
+    }
+
+    .text-slate-600 {
+        color: #94a3b8;
+    }
+
+    .border-slate-200 {
+        border-color: #334155;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles for keyboard navigation */
+.rating-scale input[type="radio"]:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+button:focus,
+input:focus,
+textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

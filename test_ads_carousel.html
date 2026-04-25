@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Carousel Ads</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #16324f;
+      --muted: #6b7a8c;
+      --border: #dbe4ef;
+      --accent: #1976d2;
+      --danger: #c62828;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #eef5ff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    p {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 20px rgba(20, 44, 74, 0.05);
+    }
+
+    .status {
+      font-weight: 700;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .card img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      display: block;
+      background: #edf2f7;
+    }
+
+    .card .content {
+      padding: 14px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      color: #24384c;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Test Carousel Ads</h1>
+    <p>Cette page appelle directement <code>https://universearch-ads-service.onrender.com/ads/carousel</code>.</p>
+
+    <div class="actions">
+      <button id="reload">Recharger</button>
+    </div>
+
+    <div class="panel">
+      <div id="status" class="status">Chargement...</div>
+    </div>
+
+    <div class="panel">
+      <h2>Image Supabase de reference</h2>
+      <div class="card" style="max-width: 420px;">
+        <img
+          id="reference-image"
+          src="https://wsdkieldyvehoqtukyis.supabase.co/storage/v1/object/public/ads-media/images/e62a17a9-8532-49bd-add1-fb5394fbe27d.jpg"
+          alt="Image Supabase de test"
+        >
+        <div class="content">
+          <strong>Test direct Supabase</strong>
+          <div class="meta">
+            <div id="reference-status">Chargement...</div>
+            <div>
+              URL:
+              https://wsdkieldyvehoqtukyis.supabase.co/storage/v1/object/public/ads-media/images/e62a17a9-8532-49bd-add1-fb5394fbe27d.jpg
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Images chargees</h2>
+      <div id="cards" class="grid"></div>
+    </div>
+
+    <div class="panel">
+      <h2>JSON brut</h2>
+      <pre id="raw"></pre>
+    </div>
+  </div>
+
+  <script>
+    const endpoint = 'https://universearch-ads-service.onrender.com/ads/carousel';
+
+    function normalizeUrl(rawUrl) {
+      const value = String(rawUrl || '').trim();
+      if (!value) return '';
+      if (value.startsWith('http://') || value.startsWith('https://')) return value;
+      if (value.startsWith('/')) return `https://universearch-ads-service.onrender.com${value}`;
+      return `https://universearch-ads-service.onrender.com/${value}`;
+    }
+
+    function extractPayload(jsonData) {
+      if (Array.isArray(jsonData)) return jsonData;
+      if (jsonData && typeof jsonData === 'object') {
+        const raw = jsonData.data || jsonData.ads || jsonData.carousel || [];
+        return Array.isArray(raw) ? raw : [];
+      }
+      return [];
+    }
+
+    function sortByNewest(items) {
+      return [...items].sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+    }
+
+    function setStatus(text, isError = false) {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = isError ? 'status error' : 'status';
+    }
+
+    async function loadAds() {
+      const cards = document.getElementById('cards');
+      const raw = document.getElementById('raw');
+      cards.innerHTML = '';
+      raw.textContent = '';
+      setStatus('Chargement...');
+
+      try {
+        const response = await fetch(endpoint);
+        const text = await response.text();
+        raw.textContent = text;
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const json = JSON.parse(text);
+        const payload = extractPayload(json);
+
+        const filtered = payload
+          .map(item => ({
+            title: item.title || '',
+            description: item.description || '',
+            url: normalizeUrl(
+              item.mediaUrl ||
+              item.media_url ||
+              item.image ||
+              item.imageUrl ||
+              item.image_url ||
+              item.banner ||
+              item.bannerUrl
+            ),
+            createdAt: item.createdAt || item.created_at || '',
+            destination: item.destination || 'carousel',
+            mediaType: item.mediaType || item.media_type || 'image'
+          }))
+          .filter(item => String(item.destination).toLowerCase() === 'carousel')
+          .filter(item => String(item.mediaType).toLowerCase() === 'image')
+          .filter(item => item.url);
+
+        const visibleItems = sortByNewest(filtered).slice(0, 3);
+
+        if (visibleItems.length === 0) {
+          setStatus('Aucune image carousel exploitable trouvee.', true);
+          return;
+        }
+
+        setStatus(`${visibleItems.length} image(s) carousel trouvee(s).`);
+
+        visibleItems.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <img src="${item.url}" alt="${item.title || 'ad'}">
+            <div class="content">
+              <strong>${item.title || 'Sans titre'}</strong>
+              <div>${item.description || ''}</div>
+              <div class="meta">
+                <div>URL: ${item.url}</div>
+                <div>destination: ${item.destination || '(vide)'}</div>
+                <div>media_type: ${item.mediaType || '(vide)'}</div>
+                <div>created_at: ${item.createdAt || '(vide)'}</div>
+              </div>
+            </div>
+          `;
+
+          const img = card.querySelector('img');
+          img.addEventListener('load', () => {
+            console.log('Image OK:', item.url);
+          });
+          img.addEventListener('error', () => {
+            console.error('Image KO:', item.url);
+            img.alt = 'Erreur image';
+            img.style.border = '2px solid #c62828';
+          });
+
+          cards.appendChild(card);
+        });
+      } catch (error) {
+        setStatus(`Erreur: ${error.message}`, true);
+        console.error('Erreur test carousel:', error);
+      }
+    }
+
+    const referenceImage = document.getElementById('reference-image');
+    const referenceStatus = document.getElementById('reference-status');
+
+    referenceImage.addEventListener('load', () => {
+      referenceStatus.textContent = 'Image Supabase chargee avec succes.';
+      console.log('Reference image OK:', referenceImage.src);
+    });
+
+    referenceImage.addEventListener('error', () => {
+      referenceStatus.textContent = 'Echec de chargement de l image Supabase.';
+      referenceStatus.style.color = '#c62828';
+      console.error('Reference image KO:', referenceImage.src);
+    });
+
+    document.getElementById('reload').addEventListener('click', loadAds);
+    loadAds();
+  </script>
+</body>
+</html>

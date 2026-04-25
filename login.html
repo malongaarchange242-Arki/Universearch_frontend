@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universearch| Portails Privé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F8FAFC; }
+        .saas-gradient { background: radial-gradient(circle at top right, #EEF2FF 0%, #F8FAFC 50%, #F1F5F9 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); }
+        .input-focus { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-focus:focus { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.15); }
+        .step-transition { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hidden-step { opacity: 0; transform: translateY(20px); pointer-events: none; position: absolute; width: 100%; }
+        .visible-step { opacity: 1; transform: translateY(0); pointer-events: all; position: relative; }
+    </style>
+</head>
+<body class="saas-gradient min-h-screen flex items-center justify-center p-6">
+
+    <div class="w-full max-w-[440px] animate-fade-in">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-2xl shadow-indigo-200 mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <h1 class="text-2xl font-800 text-slate-900 tracking-tight uppercase">Univer<span class="text-indigo-600">search</span></h1>
+            <p id="hint-text" class="text-slate-500 text-sm mt-2 font-medium">Système de gestion intégré</p>
+        </div>
+
+        <div class="glass-card p-10 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] relative overflow-hidden">
+            <div id="loader-line" class="absolute top-0 left-0 h-[3px] bg-indigo-600 transition-all duration-1000 ease-out" style="width: 0%"></div>
+
+            <form id="auth-flow" class="relative">
+                <div id="step-email" class="step-transition visible-step">
+                    <div class="mb-8">
+                        <h2 class="text-xl font-700 text-slate-800">Identifiant</h2>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Étape 01/02</p>
+                    </div>
+                    
+                    <div class="group relative">
+                        <input type="email" id="email" 
+                            class="w-full px-6 py-5 bg-white border border-slate-100 rounded-2xl outline-none input-focus text-slate-900 font-medium placeholder:text-slate-300"
+                            placeholder="nom@gmail.com" required>
+                        <div id="email-check" class="absolute right-5 top-1/2 -translate-y-1/2 hidden text-indigo-600">
+                            <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                        <p id="email-error" class="text-red-500 text-xs mt-2 hidden">Identifiants invalides</p>
+                    </div>
+                </div>
+
+                <div id="step-password" class="step-transition hidden-step">
+                    <div class="mb-8">
+                        <h2 class="text-xl font-700 text-slate-800">Sécurité</h2>
+                        <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mt-1">Étape 02/02</p>
+                    </div>
+
+                    <div class="relative">
+                        <input type="password" id="password" 
+                            class="w-full px-6 py-5 bg-white border border-indigo-100 rounded-2xl outline-none input-focus text-slate-900 font-medium"
+                            placeholder="••••••••">
+                    </div>
+                    <div class="mt-6 flex justify-center">
+                        <span class="text-[10px] font-800 text-slate-400 uppercase tracking-tighter">Validation automatique via "Entrée"</span>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button type="submit" id="continue-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-semibold">Continuer</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-10 flex items-center justify-between px-4">
+            <span class="flex items-center gap-2 text-[11px] font-700 text-slate-400 uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Serveur Actif
+            </span>
+            <a href="#" class="text-[11px] font-700 text-slate-400 hover:text-indigo-600 uppercase transition-colors">Assistance</a>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

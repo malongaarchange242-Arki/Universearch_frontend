@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messagerie | Universearh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="univ.css">
+    <style>
+        .messaging-shell {
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .messaging-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .messaging-title {
+            margin: 0 0 6px;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .messaging-subtitle {
+            margin: 0;
+            color: #64748b;
+            max-width: 760px;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+
+        .messaging-card {
+            background: #ffffff;
+            overflow: hidden;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .conversation-panel {
+            display: none;
+        }
+
+        .conversation-panel-header {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .conversation-panel-title {
+            margin: 0 0 14px;
+            color: #0f172a;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .conversation-search {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 13px;
+            outline: none;
+            background: #f1f5f9;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+
+        .conversation-search:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .conversation-search::placeholder {
+            color: #94a3b8;
+        }
+
+        .conversation-list {
+            display: grid;
+            gap: 0;
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .conversation-item {
+            border: none;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 0;
+            padding: 12px 12px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .conversation-item:hover {
+            background: #f1f5f9;
+        }
+
+        .conversation-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #2563eb;
+            padding-left: 9px;
+        }
+
+        .conversation-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .conversation-avatar.online::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 2px solid white;
+        }
+
+        .conversation-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+
+        .conversation-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-time {
+            font-size: 12px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .conversation-preview {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0;
+        }
+
+        .conversation-preview.unread {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .conversation-unread {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #2563eb;
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 0 6px;
+        }
+
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            background: #ffffff;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 22px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .chat-identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .chat-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .chat-avatar.online::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 2px solid white;
+        }
+
+        .chat-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .chat-name {
+            margin: 0 0 2px;
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .chat-status {
+            color: #64748b;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-action-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .chat-action-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        .chat-thread {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 22px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .date-divider {
+            align-self: center;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0;
+            padding: 12px 0 0 0;
+            font-size: 12px;
+            font-weight: 600;
+            position: relative;
+            margin: 8px 0;
+        }
+
+        .date-divider::before {
+            content: attr(data-date);
+            position: absolute;
+            left: 50%;
+            top: -10px;
+            transform: translateX(-50%);
+            background: #ffffff;
+            padding: 0 10px;
+        }
+
+        .message-row {
+            display: flex !important;
+            gap: 8px;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .message-row.outgoing {
+            justify-content: flex-start !important;
+        }
+        
+        .message-row.incoming {
+            justify-content: flex-end !important;
+        }
+
+        .message-row.outgoing .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .message-row.incoming .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            max-width: 540px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            box-shadow: none;
+            border: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-row.incoming .message-bubble {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-row.outgoing .message-bubble {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-author {
+            display: none;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message-meta {
+            margin-top: 4px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .message-row.incoming .message-meta {
+            justify-content: flex-start;
+        }
+
+        .chat-composer {
+            padding: 16px 22px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .composer-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            background: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            box-shadow: none;
+        }
+
+        .composer-input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .composer-textarea {
+            width: 100%;
+            max-height: 100px;
+            min-height: 40px;
+            resize: none;
+            border: none;
+            outline: none;
+            font: inherit;
+            color: #0f172a;
+            background: transparent;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .composer-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .composer-hint {
+            color: #94a3b8;
+            font-size: 11px;
+            display: none;
+        }
+
+        .composer-icons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .composer-icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .composer-icon-btn:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+
+        .composer-send {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            padding: 0;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .composer-send:hover:not(:disabled) {
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .composer-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-chat {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+
+        .empty-chat i {
+            display: block;
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        .empty-chat-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .empty-chat-hint {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 1080px) {
+            .messaging-card {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .conversation-panel {
+                border-right: 1px solid #e2e8f0;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .messaging-card {
+                grid-template-columns: 1fr;
+            }
+
+            .conversation-panel {
+                display: none;
+            }
+
+            .messaging-shell {
+                padding: 0;
+            }
+
+            .messaging-header {
+                padding: 14px 16px;
+            }
+
+            .messaging-title {
+                font-size: 18px;
+            }
+
+            .messaging-subtitle {
+                font-size: 12px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .chat-header {
+                padding: 12px 14px;
+            }
+
+            .chat-composer {
+                padding: 12px 14px 16px;
+            }
+
+            .composer-box {
+                padding: 10px 12px;
+            }
+
+            .chat-thread {
+                padding: 14px 16px;
+            }
+        }
+
+        /* Scrollbar styling */
+        .conversation-list::-webkit-scrollbar,
+        .chat-thread::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .conversation-list::-webkit-scrollbar-track,
+        .chat-thread::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb,
+        .chat-thread::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb:hover,
+        .chat-thread::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+            z-index: 1000;
+            margin-bottom: 8px;
+        }
+
+        .emoji-picker.active {
+            display: grid;
+        }
+
+        .emoji-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-btn:hover {
+            background: #e0e7ff;
+            transform: scale(1.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .attachment-preview {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border-left: 3px solid #2563eb;
+            font-size: 12px;
+            color: #0f172a;
+        }
+
+        .attachment-preview.show {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attachment-preview-icon {
+            font-size: 16px;
+        }
+
+        .attachment-preview-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .attachment-preview-remove {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .attachment-preview-remove:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-graduation-cap logo-icon"></i>
+                <h1 class="logo-text">universearh</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="Univ.html" class="nav-link">
+                    <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+                </a>
+                <div class="nav-link dropdown-toggle">
+                    <a href="univ-eco.html" class="nav-link-content" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 15px;">
+                        <i class="fa-solid fa-gears"></i>
+                        <span>Parametres</span>
+                    </a>
+                </div>
+                <a href="messagerie.html" class="nav-link active chat-link">
+                    <div class="link-content"><i class="fa-solid fa-comments"></i> <span>Messagerie</span></div>
+                    <span class="status-indicator"></span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="logout-link">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Deconnexion</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="messaging-shell">
+                <section class="messaging-header">
+                    <h2 class="messaging-title">Messagerie institutionnelle</h2>
+                    <p class="messaging-subtitle">
+                        Discutez directement avec l'administration centrale. Consultez et gérez vos demandes, signalez des problèmes, et recevez des mises à jour importantes.
+                    </p>
+                </section>
+
+                <section class="messaging-card">
+                    <aside class="conversation-panel">
+                        <div class="conversation-panel-header">
+                            <h3 class="conversation-panel-title">Discussions</h3>
+                            <input id="conversation-search" class="conversation-search" type="search" placeholder="Rechercher...">
+                        </div>
+                        <div id="conversation-list" class="conversation-list"></div>
+                    </aside>
+
+                    <section class="chat-panel">
+                        <header class="chat-header">
+                            <div class="chat-identity">
+                                <div id="chat-avatar" class="chat-avatar online">AD</div>
+                                <div class="chat-info">
+                                    <h3 id="chat-name" class="chat-name">Sélectionnez une conversation</h3>
+                                    <p id="chat-status" class="chat-status">Aucune conversation ouverte</p>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="chat-action-btn" title="Informations">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                </button>
+                                <button class="chat-action-btn" title="Options">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                            </div>
+                        </header>
+
+                        <div id="chat-thread" class="chat-thread">
+                            <div class="empty-chat" id="chat-empty">
+                                <div>
+                                    <i class="fa-regular fa-comments"></i>
+                                    <div class="empty-chat-text">Aucune conversation sélectionnée</div>
+                                    <div class="empty-chat-hint">Choisissez une discussion à gauche pour commencer</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <footer class="chat-composer">
+                            <div class="composer-box">
+                                <div class="composer-input-wrapper">
+                                    <textarea id="message-input" class="composer-textarea" placeholder="Écrivez votre message..."></textarea>
+                                    <div class="attachment-preview" id="attachment-preview">
+                                        <span class="attachment-preview-icon">📎</span>
+                                        <span class="attachment-preview-name" id="attachment-name"></span>
+                                        <button class="attachment-preview-remove" id="remove-attachment" type="button">✕</button>
+                                    </div>
+                                    <div class="composer-actions">
+                                        <div class="composer-icons">
+                                            <div class="file-input-wrapper">
+                                                <button class="composer-icon-btn" id="attach-file-btn" type="button" title="Joindre un fichier">
+                                                    <i class="fa-solid fa-paperclip"></i>
+                                                </button>
+                                                <input id="file-input" type="file" />
+                                            </div>
+                                            <div style="position: relative;">
+                                                <button class="composer-icon-btn" id="emoji-btn" type="button" title="Émoticônes">
+                                                    <i class="fa-regular fa-face-smile"></i>
+                                                </button>
+                                                <div class="emoji-picker" id="emoji-picker">
+                                                    <button class="emoji-btn" type="button">😀</button>
+                                                    <button class="emoji-btn" type="button">😂</button>
+                                                    <button class="emoji-btn" type="button">😍</button>
+                                                    <button class="emoji-btn" type="button">🤔</button>
+                                                    <button class="emoji-btn" type="button">😎</button>
+                                                    <button class="emoji-btn" type="button">👍</button>
+                                                    <button class="emoji-btn" type="button">❤️</button>
+                                                    <button class="emoji-btn" type="button">🎉</button>
+                                                    <button class="emoji-btn" type="button">🚀</button>
+                                                    <button class="emoji-btn" type="button">💯</button>
+                                                    <button class="emoji-btn" type="button">✨</button>
+                                                    <button class="emoji-btn" type="button">🔥</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button id="send-message" class="composer-send" type="button" title="Envoyer">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </footer>
+                    </section>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="messagerie.js"></script>
+</body>
+</html>

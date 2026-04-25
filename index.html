@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès Sécurisé | Universearh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Palette Softura : Bleu Corporate et Gris Profond */
+            --primary-color: #1e293b; /* Gris anthracite très pro */
+            --accent-color: #2563eb;  /* Bleu roi pour l'action */
+            --brand-color: #0f172a;   /* Identité marque */
+            --text-main: #334155;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
+            --border-color: #cbd5e1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            height: 100vh;
+            display: flex;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        /* --- COLONNE GAUCHE : IDENTITÉ VISUELLE --- */
+        .brand-section {
+            flex: 1;
+            /* Image de fond "Architecture/Campus moderne" */
+            background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 58, 138, 0.9)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 80px;
+            color: white;
+            position: relative;
+        }
+
+        .brand-logo { 
+            font-size: 28px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+        
+        .brand-logo span { color: #60a5fa; } /* Touche de couleur sur le logo */
+
+        .brand-quote { position: relative; z-index: 2; }
+        .brand-quote h2 { font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 25px; letter-spacing: -1px; }
+        .brand-quote p { font-size: 18px; opacity: 0.85; line-height: 1.6; max-width: 550px; font-weight: 300; }
+
+        .brand-footer { font-size: 13px; opacity: 0.6; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; display: flex; justify-content: space-between; }
+
+        /* --- COLONNE DROITE : INTERFACE --- */
+        .form-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            position: relative;
+            max-width: 650px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 50px;
+            animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            /* Allow vertical scroll when the form is taller than the viewport (registration on small screens) */
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Success modal styles */
+        .success-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.35); z-index: 1200; }
+        .success-card { width: 100%; max-width: 720px; background: #ffffff; border: 1px solid #cbe4ff; border-radius: 12px; box-shadow: 0 10px 30px rgba(2,6,23,0.08); padding: 28px; }
+        .success-icon { width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#ecfdf5,#f0fdf4);margin:0 auto 8px auto }
+        .success-title { margin:0;font-size:22px;font-weight:800;color:#0f172a;text-align:center }
+        .success-body { color:#334155;text-align:justify;line-height:1.5;max-height:48vh;overflow:auto;padding:6px 4px;margin-top:8px }
+        .success-close { display:block;margin:18px auto 0 auto;background:#0f172a;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-weight:700;cursor:pointer }
+
+        /* When modal is open, blur the background content */
+        body.modal-open .brand-section,
+        body.modal-open .form-section {
+            filter: blur(6px) saturate(0.95);
+            transition: filter 200ms ease;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* En-tête du formulaire */
+        .header-text { margin-bottom: 40px; }
+        .header-text h3 { font-size: 26px; font-weight: 800; color: var(--brand-color); margin-bottom: 10px; }
+        .header-text p { color: var(--text-light); font-size: 15px; line-height: 1.5; }
+
+        /* Inputs Pro */
+        .input-group { margin-bottom: 24px; position: relative; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        
+        .input-wrapper { position: relative; overflow: visible; }
+        .input-wrapper i { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; transition: 0.3s; z-index: 2; }
+        
+        .input-wrapper input {
+            width: 100%;
+            padding: 16px 64px 16px 48px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--primary-color);
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        .input-wrapper input:focus + i { color: var(--accent-color); }
+        .input-wrapper .password-toggle { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #94a3b8; font-size: 16px; padding: 6px; display:flex; align-items:center; justify-content:center; z-index: 4; }
+
+        /* Bouton Action */
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: var(--brand-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-submit:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+
+        /* Liens */
+        .toggle-link { text-align: center; margin-top: 35px; font-size: 14px; color: var(--text-light); }
+        .toggle-link span { color: var(--accent-color); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .toggle-link span:hover { color: var(--brand-color); text-decoration: underline; }
+
+        /* --- UTILITAIRES --- */
+        .hidden { display: none; }
+        
+        /* Responsive */
+        @media (max-width: 950px) {
+            .brand-section { display: none; }
+            .form-section { max-width: 100%; background: var(--bg-light); }
+            .form-container { background: white; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
+            /* On narrow screens increase available height for the form and keep it scrollable */
+            .form-container { max-height: calc(100vh - 80px); overflow-y: auto; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <script>
+        // Supabase client config for client-side uploads.
+        // Replace these values with your Supabase project URL and anon key.
+        window.SUPABASE_URL = window.SUPABASE_URL || 'https://wsdkieldyvehoqtukyis.supabase.co';
+        window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzZGtpZWxkeXZlaG9xdHVreWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1MTY0OTcsImV4cCI6MjA4NTA5MjQ5N30.Wjnj7p6MRPFqtpvXLvoiMCYl5PFbaHwvRE_JU-EJbyI';
+        // Default public bucket name; change if your bucket is different.
+        window.SUPABASE_BUCKETS = {
+            images: 'images',
+            videos: 'videos'
+        };
+    </script>
+    <!-- Supabase JS (UMD) for browser uploads -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+    <script>
+        try {
+            if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase === undefined) {
+                window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized');
+            } else if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+                console.warn('SUPABASE_URL or SUPABASE_ANON_KEY is not set — client uploads disabled');
+            }
+        } catch (e) {
+            console.error('Failed to initialize Supabase client', e);
+        }
+    </script>
+</head>
+<body>
+
+    <div class="brand-section">
+        <div class="brand-logo">
+            <i class="fa-solid fa-layer-group"></i> Universeach<span>.</span>
+        </div>
+        <div class="brand-quote">
+            <h2>Gestion Universitaire<br>Nouvelle Génération.</h2>
+            <p>Optimisez l'administration de votre établissement avec une suite d'outils unifiée, sécurisée et performante.</p>
+        </div>
+        <div class="brand-footer">
+            <span>Product by Softura</span>
+            <span>© 2026 Universeach.</span>
+        </div>
+    </div>
+
+    <div class="form-section">
+        
+        <div id="login-container" class="form-container">
+            <div class="header-text">
+                <h3>Portail Administration</h3>
+                <p>Identifiez-vous pour accéder à l'interface de gestion Universearh.</p>
+            </div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Identifiant Professionnel</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="login-email" placeholder="admin@universearh.com" required>
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="login-pass" placeholder="••••••••••••" required>
+                        <button type="button" id="toggle-login-pass" class="password-toggle" aria-label="Afficher le mot de passe"><i class="fa-regular fa-eye"></i></button>
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <label style="display: flex; align-items: center; font-size: 13px; color: var(--text-light); font-weight: 400; cursor: pointer;">
+                        <input type="checkbox" style="margin-right: 8px;"> Se souvenir de moi
+                    </label>
+                    <a href="#" style="font-size: 13px; color: var(--accent-color); text-decoration: none; font-weight: 500;">Accès perdu ?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Accéder à l'espace
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </form>
+
+            <div class="toggle-link">
+                Nouvel établissement ? <span onclick="toggleForms()">Créer un compte</span>
+            </div>
+        </div>
+
+        <div id="register-container" class="form-container hidden">
+            <div class="header-text">
+                <h3>Affiliation Établissement</h3>
+                <p>Enregistrez votre université pour déployer la solution Universeach.</p>
+            </div>
+
+            <form id="register-form">
+                <div class="input-group">
+                    <label>Nom du Gestionnaire</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="reg-name" placeholder="Nom & Prénom" required>
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Type d'établissement</label>
+                    <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
+                        <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="universite" checked style="margin-right:8px;"> Université</label>
+                        <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="centre_formation" style="margin-right:8px;"> Centre de formation</label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Email Institutionnel</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="reg-email" placeholder="direction@universite.com" required>
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Ligne Directe</label>
+                    <div class="input-wrapper">
+                        <input type="tel" id="reg-phone" placeholder="+242 05 ..." required>
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Définir un mot de passe</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="reg-pass" placeholder="Sécurisé (8 car. min)" required>
+                        <button type="button" id="toggle-reg-pass" class="password-toggle" aria-label="Afficher le mot de passe"><i class="fa-regular fa-eye"></i></button>
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Initialiser le compte
+                </button>
+            </form>
+
+            <div class="toggle-link">
+                Déjà partenaire ? <span onclick="toggleForms()">Retour à la connexion</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Success modal inserted at end of body -->
+    <div id="success-modal" class="hidden success-overlay" role="dialog" aria-modal="true" aria-labelledby="success-title">
+        <div class="success-card">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 20px;">
+                <div class="success-icon">
+                    <i class="fa-solid fa-circle-check" style="color:#059669;font-size:34px;"></i>
+                </div>
+                <h2 id="success-title" class="success-title">Bienvenue sur Universearch !</h2>
+                <div class="success-body">
+                    <p>Nous sommes ravis de vous accueillir au sein de notre réseau d’universités et de centres de formation.</p>
+                    <p>Votre établissement fait désormais partie d’un écosystème dédié à la promotion de l’excellence académique et à l’accompagnement des apprenants dans leurs choix d’orientation.</p>
+                    <p>Vous pouvez dès maintenant compléter votre profil, publier du contenu et interagir avec les étudiants afin de valoriser vos offres de formation.</p>
+                    <p>Nous vous remercions pour votre confiance et nous nous réjouissons de collaborer avec votre institution.</p>
+                </div>
+                <button id="success-close" class="success-close">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIQUE DE BASCULEMENT ---
+        const loginContainer = document.getElementById('login-container');
+        const registerContainer = document.getElementById('register-container');
+
+        function toggleForms() {
+            if (loginContainer.classList.contains('hidden')) {
+                registerContainer.classList.add('hidden');
+                loginContainer.classList.remove('hidden');
+            } else {
+                loginContainer.classList.add('hidden');
+                registerContainer.classList.remove('hidden');
+            }
+        }
+
+        // --- INSCRIPTION : utiliser exclusivement /auth/register ---
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const password = document.getElementById('reg-pass').value;
+            const checkedOrg = document.querySelector('input[name="orgType"]:checked');
+            const typeValue = checkedOrg ? checkedOrg.value : 'universite';
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enregistrement...';
+            btn.style.opacity = '0.8';
+
+            try {
+                const res = await fetch('https://universearch-9qle.onrender.com/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nom: name,
+                        email,
+                        telephone: phone,
+                        password,
+                        profileType: typeValue
+                    })
+                });
+
+                const json = await res.json().catch(() => ({}));
+                console.log("Login response JSON:", json);
+
+                if (!res.ok) throw new Error(json?.error || json?.message || 'Erreur serveur');
+
+                // Extract token if returned in various shapes
+                const token = json?.token
+                    || json?.data?.token
+                    || json?.access_token
+                    || json?.data?.access_token
+                    || json?.data?.session?.access_token
+                    || json?.session?.access_token
+                    || json?.data?.access?.token
+                    || json?.auth?.access_token
+                    || null;
+
+                if (token) {
+                    localStorage.setItem('softura_token', token);
+                    const serverUser = json?.user || json?.data?.user || {};
+                    const forcedRole = typeValue === 'universite' ? 'UNIVERSITE' : 'CENTRE';
+                    localStorage.setItem('softura_session', JSON.stringify({ name: serverUser.name || name, email: serverUser.email || email, role: forcedRole }));
+                }
+
+                // Show confirmation modal after successful registration
+                const modal = document.getElementById('success-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    document.body.classList.add('modal-open');
+                    document.body.style.overflow = 'hidden';
+                    const closeBtn = document.getElementById('success-close');
+                    closeBtn?.focus();
+                    closeBtn?.addEventListener('click', () => {
+                        modal.classList.add('hidden');
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        setTimeout(() => window.location.href = 'Univ.html?showProfile=1', 120);
+                    }, { once: true });
+                } else {
+                    window.location.href = 'Univ.html?showProfile=1';
+                }
+            } catch (err) {
+                alert('Enregistrement échoué: ' + (err.message || err));
+            } finally {
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+        });
+
+        // --- CONNEXION RÉELLE ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-shield-halved fa-flip"></i> Authentification...';
+
+            try {
+                const res = await fetch('https://universearch-9qle.onrender.com/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(json?.error || json?.message || 'Authentification échouée');
+
+                const token = json?.token
+                    || json?.data?.token
+                    || json?.access_token
+                    || json?.data?.access_token
+                    || json?.data?.session?.access_token
+                    || json?.session?.access_token
+                    || json?.data?.access?.token
+                    || json?.auth?.access_token
+                    || null;
+
+                if (!token) {
+                    console.warn('Login response contained no token:', json);
+                    throw new Error('Jeton manquant dans la réponse');
+                }
+
+                // Persist token and user info in several keys for backward compatibility
+                localStorage.setItem('softura_token', token);
+                localStorage.setItem('token', token);
+
+                const session = json?.user || json?.data?.user || {};
+                const userId = session.id || session.user_id || json?.data?.id || json?.id || null;
+                const roleRaw = session.role
+                    || session.profile_type
+                    || session.profileType
+                    || session.userType
+                    || json?.profile_type
+                    || json?.data?.profile_type
+                    || '';
+                const role = (roleRaw || '').toString().toLowerCase();
+
+                // store both camel/simple keys and the previous session blob
+                localStorage.setItem('userId', userId || '');
+                localStorage.setItem('role', role || '');
+
+                localStorage.setItem('softura_session', JSON.stringify({
+                    name: session.name || '',
+                    email: session.email || email,
+                    id: userId || '',
+                    userId: userId || '',
+                    role: role || '',
+                    profile_type: session.profile_type || role || '',
+                    profileType: session.profile_type || role || '',
+                    jwt_token: token
+                }));
+
+                // redirect to dashboard
+                window.location.href = 'Univ.html';
+            } catch (err) {
+                alert('Accès refusé : ' + (err.message || 'Identifiants invalides'));
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // Password visibility toggle for login
+        try {
+            const loginPass = document.getElementById('login-pass');
+            const toggleLoginPass = document.getElementById('toggle-login-pass');
+            if (loginPass && toggleLoginPass) {
+                toggleLoginPass.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    const isPwd = loginPass.type === 'password';
+                    loginPass.type = isPwd ? 'text' : 'password';
+                    const icon = toggleLoginPass.querySelector('i');
+                    if (icon) icon.className = isPwd ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+                });
+            }
+        } catch (e) { /* ignore */ }
+
+        // Password visibility toggle for registration
+        try {
+            const regPass = document.getElementById('reg-pass');
+            const toggleRegPass = document.getElementById('toggle-reg-pass');
+            if (regPass && toggleRegPass) {
+                toggleRegPass.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    const isPwd = regPass.type === 'password';
+                    regPass.type = isPwd ? 'text' : 'password';
+                    const icon = toggleRegPass.querySelector('i');
+                    if (icon) icon.className = isPwd ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+                });
+            }
+        } catch (e) { /* ignore */ }
+    </script>
+</body>
+</html>

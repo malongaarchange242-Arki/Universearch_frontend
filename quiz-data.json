@@ -1,0 +1,93 @@
+{
+  "student": [
+    {
+      "q": "Ton super-pouvoir caché ?",
+      "o": [
+        { "t": "Résoudre des bugs", "v": "TECH" },
+        { "t": "Imaginer des mondes", "v": "CREA" },
+        { "t": "Convaincre n'importe qui", "v": "BIZ" },
+        { "t": "Sauver des vies", "v": "MED" }
+      ]
+    },
+    {
+      "q": "Tu préfères passer 5h sur quoi ?",
+      "o": [
+        { "t": "Un jeu vidéo/Appli", "v": "TECH" },
+        { "t": "Un dessin/Montage", "v": "CREA" },
+        { "t": "Un projet de vente", "v": "BIZ" },
+        { "t": "Un docu scientifique", "v": "MED" }
+      ]
+    },
+    {
+      "q": "Ton environnement idéal ?",
+      "o": [
+        { "t": "Un setup futuriste", "v": "TECH" },
+        { "t": "Un studio d'artiste", "v": "CREA" },
+        { "t": "Un gratte-ciel", "v": "BIZ" },
+        { "t": "Un labo ultra-propre", "v": "MED" }
+      ]
+    },
+    {
+      "q": "Face à un problème, tu...",
+      "o": [
+        { "t": "Cherches la logique", "v": "TECH" },
+        { "t": "Inventes une solution", "v": "CREA" },
+        { "t": "Négocies", "v": "BIZ" },
+        { "t": "Analyses les faits", "v": "MED" }
+      ]
+    },
+    {
+      "q": "Ton type d'app préférée ?",
+      "o": [
+        { "t": "GitHub / ChatGPT", "v": "TECH" },
+        { "t": "Instagram / TikTok", "v": "CREA" },
+        { "t": "LinkedIn / Bourse", "v": "BIZ" },
+        { "t": "Health App", "v": "MED" }
+      ]
+    }
+  ],
+  "parent": [
+    {
+      "q": "Quel avenir souhaitez-vous en priorité ?",
+      "o": [
+        { "t": "La sécurité de l'emploi", "v": "MED" },
+        { "t": "De hauts revenus", "v": "BIZ" },
+        { "t": "L'innovation", "v": "TECH" },
+        { "t": "L'épanouissement personnel", "v": "CREA" }
+      ]
+    },
+    {
+      "q": "Budget pour les études ?",
+      "o": [
+        { "t": "Budget Public (0-1k€)", "v": "LOW" },
+        { "t": "Budget Moyen (2-5k€)", "v": "MID" },
+        { "t": "Budget Confort (5k€+)", "v": "HIGH" }
+      ]
+    },
+    {
+      "q": "Mobilité de l'enfant ?",
+      "o": [
+        { "t": "Près du domicile", "v": "LOCAL" },
+        { "t": "Partout dans le monde", "v": "GLOBAL" }
+      ]
+    }
+  ],
+  "results": {
+    "TECH": {
+      "t": "Ingénieur Digital & IA",
+      "d": "Le monde de demain t'appartient. Développeur, Data Scientist ou expert Cybersécurité."
+    },
+    "CREA": {
+      "t": "Designer & Stratège Créatif",
+      "d": "Ton imagination est ta plus grande force. Publicité, UX Design ou Cinéma d'animation."
+    },
+    "BIZ": {
+      "t": "Business & Entrepreneuriat",
+      "d": "Tu as l'âme d'un leader. Management international, Marketing ou Finance."
+    },
+    "MED": {
+      "t": "Sciences de la Santé",
+      "d": "Dédié aux autres. Médecine, Pharmacie ou Recherche en Biotechnologies."
+    }
+  }
+}

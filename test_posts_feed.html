@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Posts Feed</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #16324f;
+      --muted: #6b7a8c;
+      --border: #dbe4ef;
+      --accent: #1976d2;
+      --danger: #c62828;
+      --success: #1b8a5a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #eef5ff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    p {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    input {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 140px;
+      background: white;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 20px rgba(20, 44, 74, 0.05);
+    }
+
+    .status {
+      font-weight: 700;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .summary {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .summary .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .media {
+      width: 100%;
+      height: 220px;
+      background: #edf2f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .media img,
+    .media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #edf2f7;
+    }
+
+    .fallback {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .content {
+      padding: 14px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: var(--text);
+    }
+
+    .badge.success {
+      background: #e8f7ef;
+      color: var(--success);
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .view-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .view-actions .secondary {
+      background: #0f766e;
+    }
+
+    .view-feedback {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .notif-header {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .notif-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .notif-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfdff;
+    }
+
+    .notif-item.unread {
+      border-color: #bfd5ee;
+      background: #f1f7ff;
+    }
+
+    .notif-message {
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .notif-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .notif-actions button {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      color: #24384c;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Test Feed Posts</h1>
+    <p>Cette page appelle directement <code>https://universearch-content-service.onrender.com/posts</code>.</p>
+
+    <div class="actions">
+      <input id="limit" type="number" min="1" value="50">
+      <button id="reload">Recharger</button>
+    </div>
+
+    <div class="panel">
+      <div id="status" class="status">Chargement...</div>
+    </div>
+
+    <div class="panel">
+      <div id="summary" class="summary"></div>
+    </div>
+
+    <div class="panel">
+      <div class="notif-header">
+        <h2>Notification Service</h2>
+        <div class="actions" style="margin: 0;">
+          <input id="notif-endpoint" type="text" value="http://localhost:4000" placeholder="http://localhost:4000">
+          <input id="notif-user-id" type="text" placeholder="user_id">
+          <button id="notif-load">Charger notifications</button>
+          <button id="notif-live">Temps reel</button>
+        </div>
+      </div>
+      <div id="notif-status" class="status">Notifications non initialisees.</div>
+      <div id="notif-summary" class="summary" style="margin-top: 14px;"></div>
+      <div id="notif-list" class="notif-list" style="margin-top: 14px;"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Contenus chargés</h2>
+      <div id="cards" class="grid"></div>
+    </div>
+
+    <div class="panel">
+      <h2>JSON brut</h2>
+      <pre id="raw"></pre>
+    </div>
+  </div>
+
+  <script>
+    const endpoint = 'https://universearch-content-service.onrender.com/posts';
+    const viewsBaseEndpoint = 'https://universearch-content-service.onrender.com/posts';
+    const notificationState = {
+      items: [],
+      unreadCount: 0,
+      liveConnected: false,
+      socket: null,
+      heartbeatId: null,
+      joinRef: 1,
+      ref: 2,
+    };
+
+    function decodeJwtPayload(token) {
+      try {
+        const parts = String(token || '').split('.');
+        if (parts.length < 2) return {};
+        const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(normalized));
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function getStoredToken() {
+      return localStorage.getItem('softura_token') || localStorage.getItem('token') || '';
+    }
+
+    function resolveStoredUserId() {
+      const session = JSON.parse(localStorage.getItem('softura_session') || '{}');
+      const payload = decodeJwtPayload(getStoredToken());
+
+      return String(
+        session.userId ||
+        session.id ||
+        localStorage.getItem('userId') ||
+        payload.id ||
+        payload.user_id ||
+        payload.sub ||
+        ''
+      ).trim();
+    }
+
+    function getNotificationBaseUrl() {
+      return document.getElementById('notif-endpoint').value.trim().replace(/\/$/, '');
+    }
+
+    function getNotificationUserId() {
+      return document.getElementById('notif-user-id').value.trim();
+    }
+
+    function setNotificationStatus(text, isError = false) {
+      const el = document.getElementById('notif-status');
+      el.textContent = text;
+      el.className = isError ? 'status error' : 'status';
+    }
+
+    function notificationHeaders() {
+      const token = getStoredToken();
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+
+    function formatDate(value) {
+      if (!value) return '(vide)';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? value : date.toLocaleString('fr-FR');
+    }
+
+    function renderNotificationSummary() {
+      const summary = document.getElementById('notif-summary');
+      const userId = getNotificationUserId();
+      const token = getStoredToken();
+
+      summary.innerHTML = `
+        <div class="chip">user_id: ${userId || '(vide)'}</div>
+        <div class="chip">token: ${token ? 'present' : 'absent'}</div>
+        <div class="chip">non lues: ${notificationState.unreadCount}</div>
+        <div class="chip">socket: ${notificationState.liveConnected ? 'connecte' : 'hors ligne'}</div>
+        <div class="chip">notifications: ${notificationState.items.length}</div>
+      `;
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+
+      if (!notificationState.items.length) {
+        list.innerHTML = '<div class="fallback">Aucune notification a afficher.</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+
+      notificationState.items.forEach(item => {
+        const card = document.createElement('div');
+        const isUnread = !item.read;
+        card.className = `notif-item ${isUnread ? 'unread' : ''}`;
+        card.innerHTML = `
+          <div class="badge-row">
+            <span class="badge">${item.type || 'inconnu'}</span>
+            <span class="badge ${isUnread ? 'success' : ''}">${isUnread ? 'non lue' : 'lue'}</span>
+          </div>
+          <div class="notif-message">${item.message || 'Sans message'}</div>
+          <div class="meta">
+            <div>id: ${item.id || '(vide)'}</div>
+            <div>created_at: ${formatDate(item.inserted_at || item.created_at)}</div>
+            <div>data: ${JSON.stringify(item.data || {})}</div>
+          </div>
+          <div class="notif-actions">
+            <button data-role="mark-read" ${isUnread ? '' : 'disabled'}>Marquer comme lue</button>
+          </div>
+        `;
+
+        card.querySelector('[data-role="mark-read"]').addEventListener('click', async () => {
+          try {
+            await markNotificationRead(item.id);
+          } catch (error) {
+            setNotificationStatus(`Erreur mark-read: ${error.message}`, true);
+          }
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    function upsertNotification(notification) {
+      const id = notification && notification.id;
+      if (!id) return;
+      const index = notificationState.items.findIndex(item => item.id === id);
+      if (index >= 0) {
+        notificationState.items[index] = { ...notificationState.items[index], ...notification };
+      } else {
+        notificationState.items.unshift(notification);
+      }
+    }
+
+    async function loadUnreadCount() {
+      const baseUrl = getNotificationBaseUrl();
+      const userId = getNotificationUserId();
+
+      if (!baseUrl || !userId) {
+        notificationState.unreadCount = 0;
+        renderNotificationSummary();
+        return;
+      }
+
+      const response = await fetch(`${baseUrl}/api/notifications/unread-count/${encodeURIComponent(userId)}`, {
+        headers: notificationHeaders(),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      notificationState.unreadCount = Number(payload.unread_count || 0);
+      renderNotificationSummary();
+    }
+
+    async function loadNotifications() {
+      const baseUrl = getNotificationBaseUrl();
+      const userId = getNotificationUserId();
+      const token = getStoredToken();
+
+      if (!baseUrl) {
+        setNotificationStatus('Renseigne l URL du notification-service.', true);
+        return;
+      }
+
+      if (!userId) {
+        setNotificationStatus('Renseigne un user_id pour charger les notifications.', true);
+        return;
+      }
+
+      if (!token) {
+        setNotificationStatus('Token absent. Connecte-toi pour appeler le notification-service securise.', true);
+        notificationState.items = [];
+        notificationState.unreadCount = 0;
+        renderNotificationSummary();
+        renderNotifications();
+        return;
+      }
+
+      setNotificationStatus('Chargement des notifications...');
+
+      const response = await fetch(`${baseUrl}/api/notifications?user_id=${encodeURIComponent(userId)}`, {
+        headers: notificationHeaders(),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      notificationState.items = Array.isArray(payload.notifications) ? payload.notifications : [];
+      await loadUnreadCount();
+      renderNotifications();
+      setNotificationStatus(`${notificationState.items.length} notification(s) chargee(s).`);
+    }
+
+    async function markNotificationRead(notificationId) {
+      const baseUrl = getNotificationBaseUrl();
+      const response = await fetch(`${baseUrl}/api/notifications/${encodeURIComponent(notificationId)}/mark-read`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...notificationHeaders(),
+        },
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      upsertNotification(payload.notification || {});
+      await loadUnreadCount();
+      renderNotifications();
+      setNotificationStatus('Notification marquee comme lue.');
+    }
+
+    function disconnectLiveNotifications() {
+      if (notificationState.heartbeatId) {
+        clearInterval(notificationState.heartbeatId);
+        notificationState.heartbeatId = null;
+      }
+
+      if (notificationState.socket) {
+        notificationState.socket.close();
+        notificationState.socket = null;
+      }
+
+      notificationState.liveConnected = false;
+      renderNotificationSummary();
+    }
+
+    function nextSocketRef() {
+      notificationState.ref += 1;
+      return String(notificationState.ref);
+    }
+
+    function connectLiveNotifications() {
+      const baseUrl = getNotificationBaseUrl();
+      const userId = getNotificationUserId();
+      const token = getStoredToken();
+
+      if (!baseUrl || !userId || !token) {
+        setNotificationStatus('Temps reel impossible: endpoint, user_id et token sont requis.', true);
+        return;
+      }
+
+      disconnectLiveNotifications();
+
+      const wsBase = baseUrl.replace(/^http:/i, 'ws:').replace(/^https:/i, 'wss:');
+      const socketUrl = `${wsBase}/socket/websocket?vsn=2.0.0&token=${encodeURIComponent(token)}`;
+      const socket = new WebSocket(socketUrl);
+      notificationState.socket = socket;
+      notificationState.joinRef += 1;
+      const joinRef = String(notificationState.joinRef);
+
+      socket.addEventListener('open', () => {
+        socket.send(JSON.stringify([joinRef, nextSocketRef(), `notifications:${userId}`, 'phx_join', {}]));
+        notificationState.heartbeatId = window.setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify([null, nextSocketRef(), 'phoenix', 'heartbeat', {}]));
+          }
+        }, 30000);
+      });
+
+      socket.addEventListener('message', async event => {
+        const message = JSON.parse(event.data);
+        const topic = message[2];
+        const eventName = message[3];
+        const payload = message[4] || {};
+
+        if (topic === `notifications:${userId}` && eventName === 'phx_reply' && payload.status === 'ok') {
+          notificationState.liveConnected = true;
+          renderNotificationSummary();
+          setNotificationStatus('Socket notifications connecte.');
+          return;
+        }
+
+        if (topic === `notifications:${userId}` && eventName === 'new_notification') {
+          upsertNotification(payload.notification || {});
+          notificationState.unreadCount = Number(payload.unread_count || notificationState.unreadCount || 0);
+          renderNotificationSummary();
+          renderNotifications();
+          setNotificationStatus('Nouvelle notification recue en temps reel.');
+          return;
+        }
+
+        if (topic === `notifications:${userId}` && eventName === 'notification_read') {
+          upsertNotification(payload.notification || {});
+          await loadUnreadCount().catch(() => {});
+          renderNotifications();
+          setNotificationStatus('Etat de lecture synchronise en temps reel.');
+        }
+      });
+
+      socket.addEventListener('close', () => {
+        disconnectLiveNotifications();
+        setNotificationStatus('Socket notifications ferme.', true);
+      });
+
+      socket.addEventListener('error', () => {
+        setNotificationStatus('Erreur de connexion temps reel.', true);
+      });
+    }
+
+    function normalizeUrl(rawUrl) {
+      const value = String(rawUrl || '').trim();
+      return value;
+    }
+
+    function extractPayload(jsonData) {
+      if (Array.isArray(jsonData)) return jsonData;
+      if (jsonData && typeof jsonData === 'object') {
+        const raw = jsonData.data || jsonData.posts || [];
+        return Array.isArray(raw) ? raw : [];
+      }
+      return [];
+    }
+
+    function setStatus(text, isError = false) {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = isError ? 'status error' : 'status';
+    }
+
+    function renderSummary(posts) {
+      const summary = document.getElementById('summary');
+      const videos = posts.filter(item => String(item.mediaType).toLowerCase() === 'video').length;
+      const images = posts.filter(item => String(item.mediaType).toLowerCase() === 'image').length;
+      const universities = posts.filter(item => String(item.authorType).toLowerCase() === 'universite').length;
+      const centers = posts.filter(item =>
+        ['centre', 'centre_formation'].includes(String(item.authorType).toLowerCase())
+      ).length;
+
+      summary.innerHTML = `
+        <div class="chip">Total: ${posts.length}</div>
+        <div class="chip">Images: ${images}</div>
+        <div class="chip">Vidéos: ${videos}</div>
+        <div class="chip">Universités: ${universities}</div>
+        <div class="chip">Centres: ${centers}</div>
+      `;
+    }
+
+    function buildMedia(post) {
+      if (!post.mediaUrl) {
+        return '<div class="fallback">Aucun média</div>';
+      }
+
+      if (String(post.mediaType).toLowerCase() === 'video') {
+        return `<video src="${post.mediaUrl}" controls preload="metadata"></video>`;
+      }
+
+      return `<img src="${post.mediaUrl}" alt="${post.title || 'post'}">`;
+    }
+
+    async function recordView(postId, duration = 5) {
+      const response = await fetch(`${viewsBaseEndpoint}/${encodeURIComponent(postId)}/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          view_duration: duration,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      return payload;
+    }
+
+    async function loadViews(postId) {
+      const response = await fetch(`${viewsBaseEndpoint}/${encodeURIComponent(postId)}/views?limit=5`);
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+
+      return payload;
+    }
+
+    async function loadPosts() {
+      const cards = document.getElementById('cards');
+      const raw = document.getElementById('raw');
+      const limit = document.getElementById('limit').value || '50';
+
+      cards.innerHTML = '';
+      raw.textContent = '';
+      setStatus('Chargement...');
+
+      try {
+        const response = await fetch(`${endpoint}?limit=${encodeURIComponent(limit)}`);
+        const text = await response.text();
+        raw.textContent = text;
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const json = JSON.parse(text);
+        const posts = extractPayload(json)
+          .map(item => ({
+            id: item.id || '',
+            title: item.titre || item.title || '',
+            description: item.description || item.contenu || '',
+            mediaUrl: normalizeUrl(item.media_url || item.mediaUrl || ''),
+            mediaType: item.media_type || item.mediaType || '',
+            authorId: item.author_id || '',
+            authorType: item.author_type || '',
+            statut: item.statut || '',
+            createdAt: item.date_creation || item.created_at || '',
+            viewsCount: Number(item.views_count ?? item.views ?? 0) || 0
+          }));
+
+        if (posts.length === 0) {
+          setStatus('Aucun contenu trouvé.', true);
+          renderSummary([]);
+          return;
+        }
+
+        setStatus(`${posts.length} contenu(s) trouvé(s).`);
+        renderSummary(posts);
+
+        posts.forEach(post => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="media">
+              ${buildMedia(post)}
+            </div>
+            <div class="content">
+              <div class="badge-row">
+                <span class="badge">${post.authorType || 'inconnu'}</span>
+                <span class="badge">${post.mediaType || 'sans media'}</span>
+                <span class="badge success">${post.statut || 'sans statut'}</span>
+              </div>
+              <strong>${post.title || 'Sans titre'}</strong>
+              <div>${post.description || ''}</div>
+              <div class="meta">
+                <div>id: ${post.id}</div>
+                <div>author_id: ${post.authorId || '(vide)'}</div>
+                <div>created_at: ${post.createdAt || '(vide)'}</div>
+                <div>media_url: ${post.mediaUrl || '(vide)'}</div>
+                <div>views_count: <span data-role="views-count">${post.viewsCount}</span></div>
+              </div>
+              <div class="view-actions">
+                <button class="secondary" data-role="record-view">Tester vue</button>
+                <button data-role="load-views">Voir les vues</button>
+                <span class="view-feedback" data-role="view-feedback">Aucun test lancé.</span>
+              </div>
+            </div>
+          `;
+
+          const feedback = card.querySelector('[data-role="view-feedback"]');
+          const viewsCountEl = card.querySelector('[data-role="views-count"]');
+          const recordButton = card.querySelector('[data-role="record-view"]');
+          const loadButton = card.querySelector('[data-role="load-views"]');
+
+          recordButton.addEventListener('click', async () => {
+            feedback.textContent = 'Enregistrement de la vue...';
+            try {
+              const result = await recordView(post.id, post.mediaType === 'video' ? 12 : 5);
+              const nextViews = Number(result.views_count);
+              post.viewsCount = Number.isFinite(nextViews) ? nextViews : post.viewsCount + 1;
+              viewsCountEl.textContent = String(post.viewsCount);
+              feedback.textContent = `Vue enregistrée: ${result.data?.date_view || 'OK'}`;
+              feedback.textContent = `Vue enregistree. Total affiche: ${post.viewsCount}.`;
+            } catch (error) {
+              feedback.textContent = `Erreur vue: ${error.message}`;
+            }
+          });
+
+          loadButton.addEventListener('click', async () => {
+            feedback.textContent = 'Chargement des vues...';
+            try {
+              const result = await loadViews(post.id);
+              const nextViews = Number(result.views_count);
+              post.viewsCount = Number.isFinite(nextViews) ? nextViews : post.viewsCount;
+              viewsCountEl.textContent = String(post.viewsCount);
+              feedback.textContent = `${result.views_count || 0} vue(s), ${result.data?.length || 0} entrée(s) chargée(s).`;
+            } catch (error) {
+              feedback.textContent = `Erreur lecture: ${error.message}`;
+            }
+          });
+
+          cards.appendChild(card);
+        });
+      } catch (error) {
+        setStatus(`Erreur: ${error.message}`, true);
+        renderSummary([]);
+        console.error('Erreur test posts:', error);
+      }
+    }
+
+    document.getElementById('reload').addEventListener('click', loadPosts);
+    document.getElementById('notif-load').addEventListener('click', () => {
+      loadNotifications().catch(error => {
+        setNotificationStatus(`Erreur notifications: ${error.message}`, true);
+      });
+    });
+    document.getElementById('notif-live').addEventListener('click', () => {
+      if (notificationState.liveConnected || notificationState.socket) {
+        disconnectLiveNotifications();
+        setNotificationStatus('Temps reel desactive.');
+        return;
+      }
+
+      connectLiveNotifications();
+    });
+
+    const defaultNotificationBaseUrl = 'http://localhost:4000';
+    document.getElementById('notif-endpoint').value =
+      localStorage.getItem('notification_service_url') || defaultNotificationBaseUrl;
+    document.getElementById('notif-user-id').value = resolveStoredUserId();
+    document.getElementById('notif-endpoint').addEventListener('change', event => {
+      localStorage.setItem('notification_service_url', event.target.value.trim());
+    });
+
+    renderNotificationSummary();
+    renderNotifications();
+    loadPosts();
+  </script>
+</body>
+</html>

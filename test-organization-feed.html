@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Feed Organization - Isolation Universités</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #667eea;
+      font-size: 16px;
+      display: none;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #c33;
+    }
+
+    .error.active {
+      display: block;
+    }
+
+    .success {
+      background: #efe;
+      color: #3c3;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #3c3;
+    }
+
+    .success.active {
+      display: block;
+    }
+
+    .posts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .post-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .post-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .post-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 48px;
+      overflow: hidden;
+    }
+
+    .post-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .post-image video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .post-content {
+      padding: 20px;
+    }
+
+    .post-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .post-author {
+      font-size: 12px;
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .post-description {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .post-meta {
+      display: flex;
+      gap: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 13px;
+      color: #999;
+    }
+
+    .post-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .post-meta-item strong {
+      color: #333;
+    }
+
+    .post-date {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .status-published {
+      background: #efe;
+      color: #3c3;
+    }
+
+    .status-draft {
+      background: #ffd;
+      color: #cc0;
+    }
+
+    .pagination {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      min-width: 40px;
+    }
+
+    .pagination .info {
+      padding: 8px 16px;
+      background: white;
+      border-radius: 6px;
+      color: #333;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .api-info {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #333;
+      overflow-x: auto;
+    }
+
+    .api-info code {
+      display: block;
+      padding: 10px;
+      background: white;
+      border-radius: 4px;
+      margin-top: 10px;
+      border-left: 3px solid #667eea;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .posts-container {
+        grid-template-columns: 1fr;
+      }
+
+      .control-row {
+        grid-template-columns: 1fr;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎓 Test Isolation Posts par Université</h1>
+      <p>
+        Testez le nouvel endpoint <code>/feed/organization</code> pour vérifier que chaque université ne voit que ses propres posts.
+      </p>
+    </div>
+
+    <div class="controls">
+      <div class="error" id="error"></div>
+      <div class="success" id="success"></div>
+
+      <div class="control-row">
+        <div class="control-group">
+          <label for="baseUrl">Base URL du service</label>
+          <input 
+            type="text" 
+            id="baseUrl" 
+            value="http://localhost:3002"
+            placeholder="http://localhost:3002"
+          >
+        </div>
+        <div class="control-group">
+          <label for="orgType">Type d'organisation</label>
+          <select id="orgType">
+            <option value="universite">Université</option>
+            <option value="centre">Centre de Formation</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="orgId">ID de l'organisation (UUID)</label>
+        <input 
+          type="text" 
+          id="orgId" 
+          placeholder="ex: 550e8400-e29b-41d4-a716-446655440000"
+        >
+      </div>
+
+      <div class="control-row">
+        <div class="control-group">
+          <label for="page">Page</label>
+          <input 
+            type="number" 
+            id="page" 
+            value="1"
+            min="1"
+          >
+        </div>
+        <div class="control-group">
+          <label for="limit">Posts par page</label>
+          <input 
+            type="number" 
+            id="limit" 
+            value="10"
+            min="1"
+            max="50"
+          >
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" onclick="fetchPosts()">
+          📥 Charger les posts
+        </button>
+        <button class="btn-secondary" onclick="loadExamples()">
+          📋 Charger exemples
+        </button>
+      </div>
+
+      <div class="api-info">
+        <strong>URL API générée :</strong>
+        <code id="apiUrl">http://localhost:3002/feed/organization?organization_id=...&organization_type=universite&page=1&limit=10</code>
+      </div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      Chargement des posts...
+    </div>
+
+    <div id="content"></div>
+  </div>
+
+  <script>
+    // Mettre à jour l'URL API affichée
+    function updateApiUrl() {
+      const baseUrl = document.getElementById('baseUrl').value || 'http://localhost:3002';
+      const orgId = document.getElementById('orgId').value || 'organization_id';
+      const orgType = document.getElementById('orgType').value;
+      const page = document.getElementById('page').value;
+      const limit = document.getElementById('limit').value;
+
+      const url = `${baseUrl}/feed/organization?organization_id=${orgId}&organization_type=${orgType}&page=${page}&limit=${limit}`;
+      document.getElementById('apiUrl').textContent = url;
+    }
+
+    document.getElementById('baseUrl').addEventListener('change', updateApiUrl);
+    document.getElementById('orgId').addEventListener('change', updateApiUrl);
+    document.getElementById('orgType').addEventListener('change', updateApiUrl);
+    document.getElementById('page').addEventListener('change', updateApiUrl);
+    document.getElementById('limit').addEventListener('change', updateApiUrl);
+
+    // Charger les exemples
+    function loadExamples() {
+      const examples = [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'Université 1 (Demo)'
+        },
+        {
+          id: '660e8400-e29b-41d4-a716-446655440001',
+          name: 'Université 2 (Demo)'
+        },
+        {
+          id: '770e8400-e29b-41d4-a716-446655440002',
+          name: 'Centre de Formation 1 (Demo)'
+        }
+      ];
+
+      const listHTML = examples.map(ex => 
+        `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+          <button class="btn-secondary" style="text-align: left; padding: 10px; margin: 5px 0;" 
+            onclick="loadExample('${ex.id}')">
+            ${ex.name}<br>
+            <small style="color: #999;">${ex.id}</small>
+          </button>
+        </div>`
+      ).join('');
+
+      const content = document.getElementById('content');
+      content.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
+          <h2 style="margin-bottom: 20px; color: #333;">Exemples de test</h2>
+          <p style="color: #666; margin-bottom: 20px;">Cliquez sur une université pour charger ses posts :</p>
+          ${listHTML}
+        </div>
+      `;
+    }
+
+    function loadExample(orgId) {
+      document.getElementById('orgId').value = orgId;
+      document.getElementById('page').value = 1;
+      updateApiUrl();
+      fetchPosts();
+    }
+
+    // Récupérer les posts
+    async function fetchPosts() {
+      const baseUrl = document.getElementById('baseUrl').value;
+      const orgId = document.getElementById('orgId').value;
+      const orgType = document.getElementById('orgType').value;
+      const page = document.getElementById('page').value;
+      const limit = document.getElementById('limit').value;
+
+      // Validation
+      if (!orgId.trim()) {
+        showError('L\'ID d\'organisation est requis !');
+        return;
+      }
+
+      const url = `${baseUrl}/feed/organization?organization_id=${orgId}&organization_type=${orgType}&page=${page}&limit=${limit}`;
+
+      document.getElementById('loading').classList.add('active');
+      document.getElementById('error').classList.remove('active');
+      document.getElementById('success').classList.remove('active');
+      document.getElementById('content').innerHTML = '';
+
+      try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        document.getElementById('loading').classList.remove('active');
+
+        if (!data.success) {
+          throw new Error(data.error || 'Erreur inconnue');
+        }
+
+        displayPosts(data);
+        showSuccess(`${data.data.length} post(s) chargé(s) avec succès !`);
+      } catch (error) {
+        document.getElementById('loading').classList.remove('active');
+        showError(`Erreur : ${error.message}`);
+      }
+    }
+
+    function displayPosts(data) {
+      const posts = data.data || [];
+      const pagination = data.pagination || { page: 1, limit: 10, total: 0 };
+
+      if (posts.length === 0) {
+        document.getElementById('content').innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m0 0h6m0-6h-6m0 0H0" />
+            </svg>
+            <p><strong>Aucun post trouvé</strong></p>
+            <p style="font-size: 14px;">Cette organisation n'a pas encore de posts</p>
+          </div>
+        `;
+        return;
+      }
+
+      const postsHTML = posts.map(post => `
+        <div class="post-card">
+          ${post.media_url ? `
+            <div class="post-image">
+              ${post.media_type === 'video' ? `
+                <video width="100%" height="200" controls style="width: 100%; height: 200px; object-fit: cover;">
+                  <source src="${post.media_url}" type="video/mp4">
+                  <source src="${post.media_url}" type="video/webm">
+                  <source src="${post.media_url}" type="video/quicktime">
+                  Votre navigateur ne supporte pas la balise vidéo.
+                </video>
+              ` : `
+                <img src="${post.media_url}" alt="${post.titre}" style="width: 100%; height: 200px; object-fit: cover;" onerror="this.parentElement.innerHTML='<div style=\\"display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0;\\">🖼️ Image</div>'">
+              `}
+            </div>
+          ` : `
+            <div class="post-image">📝</div>
+          `}
+          <div class="post-content">
+            <div class="post-author">${post.author_type === 'universite' ? '🎓' : '📚'} ${post.author_type}</div>
+            ${post.statut ? `<span class="status-badge status-${post.statut.toLowerCase()}">${post.statut}</span>` : ''}
+            <div class="post-title">${post.titre || 'Sans titre'}</div>
+            <div class="post-date">${new Date(post.date_creation).toLocaleDateString('fr-FR', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</div>
+            <div class="post-description">${post.description || post.contenu || 'Pas de description'}</div>
+            <div class="post-meta">
+              <div class="post-meta-item">
+                <span>👍</span>
+                <strong>${post.likes_count || 0}</strong>
+              </div>
+              <div class="post-meta-item">
+                <span>💬</span>
+                <strong>${post.comments_count || 0}</strong>
+              </div>
+              <div class="post-meta-item">
+                <span>📤</span>
+                <strong>${post.shares_count || 0}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const maxPages = Math.ceil(pagination.total / pagination.limit);
+
+      const paginationHTML = `
+        <div class="pagination">
+          ${pagination.page > 1 ? `
+            <button class="btn-secondary" onclick="changePage(${pagination.page - 1})">← Précédent</button>
+          ` : ''}
+          <div class="info">
+            Page ${pagination.page} sur ${maxPages || 1} (${pagination.total} post(s) total)
+          </div>
+          ${pagination.page < maxPages ? `
+            <button class="btn-secondary" onclick="changePage(${pagination.page + 1})">Suivant →</button>
+          ` : ''}
+        </div>
+      `;
+
+      document.getElementById('content').innerHTML = `
+        <div class="posts-container">
+          ${postsHTML}
+        </div>
+        ${pagination.total > pagination.limit ? paginationHTML : ''}
+      `;
+    }
+
+    function changePage(newPage) {
+      document.getElementById('page').value = newPage;
+      updateApiUrl();
+      fetchPosts();
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error');
+      el.textContent = message;
+      el.classList.add('active');
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById('success');
+      el.textContent = message;
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 5000);
+    }
+
+    // Initialiser
+    updateApiUrl();
+  </script>
+</body>
+</html>

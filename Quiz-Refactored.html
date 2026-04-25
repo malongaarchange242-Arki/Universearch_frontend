@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orienta : Ton Avenir, Ton Jeu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #f43f5e;
+            --bg: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Mobile Wrapper */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Barre de progression style "Game" */
+        .game-header { margin-bottom: 30px; display: none; }
+        .game-header.active { display: block; }
+        
+        .level-badge {
+            background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(139,92,246,0.95));
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: inline-block;
+            box-shadow: 0 12px 30px rgba(99,102,241,0.22);
+        }
+
+        .progress-track {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            box-shadow: 0 0 15px var(--primary);
+            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Ecrans */
+        .screen { display: none; flex-direction: column; animation: slideIn 0.4s ease-out; }
+        .screen.active { display: flex; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Menu Principal */
+        .hero-title { font-size: 2.5rem; font-weight: 800; margin-top: 40px; line-height: 1.1; }
+        .hero-sub { color: #94a3b8; margin: 15px 0 40px 0; }
+
+        .role-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass);
+            padding: 25px;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .role-card:active { transform: scale(0.96); background: var(--glass); }
+        .role-icon { font-size: 2.5rem; }
+
+        .bac-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .bac-card {
+            width: 100%;
+            display: block;
+            text-align: left;
+            color: var(--text);
+            font: inherit;
+        }
+
+        .bac-code {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .bac-desc {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+        }
+
+        .bac-note {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            color: #fecdd3;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Questions */
+        .question-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+            backdrop-filter: blur(14px);
+        }
+        .question-text { font-size: 1.45rem; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 16px;
+            border-radius: 14px;
+            color: white;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.25s;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.3s ease;
+        }
+        .option-btn:hover {
+            background: rgba(99,102,241,0.15);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .option-btn:active { transform: scale(0.99); }
+        .option-btn.selected {
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            border-color: transparent;
+            transform: scale(1.02);
+            box-shadow: 0 18px 35px rgba(99,102,241,0.3);
+        }
+        .option-emoji {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.08);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .option-label {
+            font-weight: 600;
+            line-height: 1.35;
+        }
+        .option-btn.selected .option-emoji {
+            background: rgba(255,255,255,0.18);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loader */
+        #loaderSpinner {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(99, 102, 241, 0.2);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        #errorMessage {
+            display: none;
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid var(--accent);
+            padding: 15px;
+            border-radius: 12px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        #retryButton {
+            display: none;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Résultats */
+        .result-box {
+            background: linear-gradient(145deg, var(--primary), #4338ca);
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(99,102,241,0.3); }
+            to { box-shadow: 0 0 25px rgba(99,102,241,0.7); }
+        }
+        
+        #recommendationsContainer {
+            margin-top: 30px;
+        }
+        
+        #recommendationsContainer h3 {
+            color: var(--accent);
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .restart-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            margin-top: 20px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .restart-btn:hover {
+            background: #f1f5f9;
+        }
+
+        /* Recommandations styling */
+        #parentAddon {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 🔥 NEW CLEAN RECOMMENDATION CARDS */
+        .rec-card.clean {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+        .rec-card.clean:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .rec-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .rec-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            background: rgba(99,102,241,0.15);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* 🔥 MATCH BADGE */
+        .match-badge {
+            background: rgba(244,63,94,0.1);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            border: 1px solid rgba(244,63,94,0.2);
+        }
+
+        /* 🔥 TOP FIELDS SECTION */
+        .top-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .top-field-tag {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+        }
+
+        .top-field-tag small {
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="game-header" id="gameHeader">
+        <div class="level-badge" id="levelName">Quête : Orientation</div>
+        <div class="progress-track"><div id="progress-fill"></div></div>
+    </div>
+
+    <div id="welcomeScreen" class="screen active">
+        <h1 class="hero-title">Trouve ta <span style="color:var(--primary)">voie</span>.</h1>
+        <p class="hero-sub">Le bachelier joue, le parent guide. Choisissez votre profil pour commencer.</p>
+        
+        <div class="role-card" data-role="student">
+            <div class="role-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div>
+                <h3>Mode Bachelier</h3>
+                <p style="font-size: 0.8rem; color: #94a3b8;">10 questions pour débloquer ton futur.</p>
+            </div>
+        </div>
+
+        <div class="role-card" data-role="parent">
+            <div class="role-icon"><i class="fas fa-users"></i></div>
+            <div>
+                <h3>Mode Parent</h3>
+                <p style="font-size: 0.8rem; color: #94a3b8;">5 questions stratégiques pour l'enfant.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="bacScreen" class="screen">
+        <h1 class="hero-title" style="font-size: 2rem; margin-top: 20px;">Quel est ton type de bac ?</h1>
+        <p class="hero-sub">Cette information est obligatoire pour renforcer la coherence academique de l'orientation.</p>
+
+        <div class="bac-grid">
+            <button class="role-card bac-card" type="button" data-bac-value="A">
+                <div class="bac-code">Bac A</div>
+                <div class="bac-desc">Filieres litteraires, droit, communication et sciences humaines.</div>
+            </button>
+
+            <button class="role-card bac-card" type="button" data-bac-value="C/D">
+                <div class="bac-code">Bac C/D</div>
+                <div class="bac-desc">Maths, informatique, ingenierie, medecine et autres filieres scientifiques.</div>
+            </button>
+
+            <button class="role-card bac-card" type="button" data-bac-value="E/F">
+                <div class="bac-code">Bac E/F</div>
+                <div class="bac-desc">Genie electrique, mecanique, industrie et techniques industrielles.</div>
+            </button>
+
+            <button class="role-card bac-card" type="button" data-bac-value="H">
+                <div class="bac-code">Bac H</div>
+                <div class="bac-desc">Informatique, telecoms, systemes, reseaux et data.</div>
+            </button>
+
+            <button class="role-card bac-card" type="button" data-bac-value="G/BG">
+                <div class="bac-code">Bac G/BG</div>
+                <div class="bac-desc">Comptabilite, management, commerce, ressources humaines et gestion.</div>
+            </button>
+
+            <button class="role-card bac-card" type="button" data-bac-value="P">
+                <div class="bac-code">Bac P</div>
+                <div class="bac-desc">Metiers pratiques, maintenance, BTP et filieres techniques professionnelles.</div>
+            </button>
+        </div>
+
+        <p class="bac-note">Selection obligatoire pour continuer. Sans type de bac, PROA bascule en mode de recommandations plus faibles.</p>
+    </div>
+
+    <div id="quizScreen" class="screen">
+        <h2 id="questionText" class="question-text">Question</h2>
+        <div id="optionsGrid" class="options-grid"></div>
+    </div>
+
+    <div id="resultScreen" class="screen">
+        <div id="loaderSpinner">
+            <div class="spinner"></div>
+            <div id="loaderText" style="text-align: center; color: #94a3b8;">Analyse en cours...</div>
+        </div>
+
+        <div id="errorMessage"></div>
+        <button id="retryButton" style="margin-bottom: 15px;">Réessayer</button>
+
+        <div class="result-box">
+            <div style="font-size: 4rem; margin-bottom: 10px;">🏆</div>
+            <p style="text-transform: uppercase; font-weight: 800; font-size: 0.8rem; opacity: 0.8;">Destinée Débloquée</p>
+            <h2 id="finalTitle" style="font-size: 1.8rem; margin: 10px 0;">Filière</h2>
+            <p id="finalDesc" style="font-size: 0.9rem; line-height: 1.5; opacity: 0.9;"></p>
+        </div>
+
+        <div id="parentAddon" style="margin-top:20px; padding: 15px; border-radius: 15px; background: rgba(255,255,255,0.05); font-size: 0.85rem; border-left: 4px solid var(--accent); display:none;"></div>
+
+        <div id="recommendationsContainer"></div>
+
+        <button class="restart-btn" data-action="restart">Recommencer l'aventure</button>
+    </div>
+</div>
+
+<!-- Environment Configuration - MUST be first! -->
+<script src="services/env.js"></script>
+
+<!-- Configuration File -->
+<script src="services/config.js"></script>
+
+<!-- Service Modules -->
+<script src="services/apiService.js?v=20260414"></script>
+<script src="services/quizService.js?v=20260414"></script>
+<script src="services/uiRenderer.js?v=20260414"></script>
+
+<!-- Main Application -->
+<script src="services/app.js?v=20260414"></script>
+
+<!-- Feature Flags & Debug -->
+<script>
+    // Make app accessible in console for debugging
+    window.addEventListener('load', () => {
+        console.log('%c🚀 Orientation App Loaded', 'font-size: 16px; font-weight: bold; color: #6366f1;');
+        console.log('App instance:', window.orientationApp);
+        console.log('Current state:', window.orientationApp?.getState());
+        console.log('\nAvailable commands:');
+        console.log('  window.orientationApp.getState()');
+        console.log('  window.CONFIG');
+    });
+</script>
+
+</body>
+</html>
