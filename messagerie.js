@@ -144,6 +144,13 @@ const validateUserHasInstitutionContext = (userContext) => {
     return false;
 };
 
+const isMessageFromCurrentUser = (msg) => {
+    const userContext = getMessagingUserContext();
+    const currentUserId = userContext.user_id || '';
+    if (!currentUserId || !msg.sender_id) return false;
+    return String(msg.sender_id) === String(currentUserId);
+};
+
 const setComposerEnabled = (enabled) => {
     const messageInput = document.getElementById('message-input');
     const sendMessageButton = document.getElementById('send-message');
@@ -464,6 +471,8 @@ const renderMessagesFromCache = () => {
     
     const fragments = [];
     let currentDate = null;
+    const userContext = getMessagingUserContext();
+    const currentUserIsInstitution = userContext.is_admin || userContext.role === 'universite' || userContext.role === 'centre_formation';
 
     cachedMessages.forEach((msg) => {
         const msgDate = new Date(msg.created_at);
@@ -483,11 +492,18 @@ const renderMessagesFromCache = () => {
             `);
         }
 
-        // Admin/institution messages go on LEFT (gray), user/app messages go on RIGHT (blue)
-        const isInstitutionMessage = msg.sender_type === 'admin' || msg.sender_type === 'universite' || msg.sender_type === 'centre_formation';
-        console.log(`[renderMessagesFromCache] Message: sender_type="${msg.sender_type}" → isInstitution=${isInstitutionMessage} → class="${isInstitutionMessage ? 'outgoing' : 'incoming'}"`);
+        // Determine message side by current user role and sender type.
+        // For institution users, institution messages are their own and appear on RIGHT.
+        // For students/users, non-institution messages are their own and appear on RIGHT.
+        const currentUserMessage = isMessageFromCurrentUser(msg);
+        const senderType = String(msg.sender_type || '').toLowerCase().trim();
+        const messageIsInstitution = ['admin', 'universite', 'centre_formation'].includes(senderType);
+        const shouldRenderRight = currentUserMessage ||
+            (currentUserIsInstitution && messageIsInstitution) ||
+            (!currentUserIsInstitution && !messageIsInstitution);
+        console.log(`[renderMessagesFromCache] sender_type="${senderType}" sender_id="${msg.sender_id}" currentUserMessage=${currentUserMessage} currentUserIsInstitution=${currentUserIsInstitution} messageIsInstitution=${messageIsInstitution} → side="${shouldRenderRight ? 'right' : 'left'}"`);
         
-        if (isInstitutionMessage) {
+        if (!shouldRenderRight) {
             // Institution message: LEFT side (gray)
             fragments.push(`
             <div class="message-row outgoing" style="display: flex; justify-content: flex-start;">
@@ -660,6 +676,8 @@ async function renderActiveConversation() {
 
     const fragments = [];
     let currentDate = null;
+    const userContext = getMessagingUserContext();
+    const currentUserIsInstitution = userContext.is_admin || userContext.role === 'universite' || userContext.role === 'centre_formation';
 
     messages.forEach((msg) => {
         const msgDate = new Date(msg.created_at);
@@ -679,11 +697,18 @@ async function renderActiveConversation() {
             `);
         }
 
-        // Admin/institution messages go on LEFT (gray), user/app messages go on RIGHT (blue)
-        const isInstitutionMessage = msg.sender_type === 'admin' || msg.sender_type === 'universite' || msg.sender_type === 'centre_formation';
-        console.log(`[renderActiveConversation] Message: sender_type="${msg.sender_type}" → isInstitution=${isInstitutionMessage} → class="${isInstitutionMessage ? 'outgoing' : 'incoming'}"`);
+        // Determine message side by current user role and sender type.
+        // For institution users, institution messages are their own and appear on RIGHT.
+        // For students/users, non-institution messages are their own and appear on RIGHT.
+        const currentUserMessage = isMessageFromCurrentUser(msg);
+        const senderType = String(msg.sender_type || '').toLowerCase().trim();
+        const messageIsInstitution = ['admin', 'universite', 'centre_formation'].includes(senderType);
+        const shouldRenderRight = currentUserMessage ||
+            (currentUserIsInstitution && messageIsInstitution) ||
+            (!currentUserIsInstitution && !messageIsInstitution);
+        console.log(`[renderActiveConversation] sender_type="${senderType}" sender_id="${msg.sender_id}" currentUserMessage=${currentUserMessage} currentUserIsInstitution=${currentUserIsInstitution} messageIsInstitution=${messageIsInstitution} → side="${shouldRenderRight ? 'right' : 'left'}"`);
         
-        if (isInstitutionMessage) {
+        if (!shouldRenderRight) {
             // Institution message: LEFT side (gray)
             fragments.push(`
             <div class="message-row outgoing" style="display: flex; justify-content: flex-start;">

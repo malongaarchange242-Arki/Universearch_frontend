@@ -8,8 +8,8 @@
 // ============================================================================
 
 const API_CONFIG = {
-    PROA_API: 'http://localhost:8000', // Local development
-    PORA_API: 'http://localhost:8080',
+    PROA_API: 'https://universearch-proa-service.onrender.com', // Local development
+    PORA_API: 'https://universearch-pora-service.onrender.com',
     IDENTITY_API: 'https://universearch-9qle.onrender.com',
     MAIL_API: 'https://universearch-mail.onrender.com',
 };

@@ -83,7 +83,7 @@ body { height: 100vh; overflow: hidden; display: flex; }
 .pc-engagement .views-stat i { color: #1565c0; }
 .card-tools { position: absolute; top: 10px; right: 10px; z-index: 5; }
 .tool { width: 28px; height: 28px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); color: white; display: flex; justify-content: center; align-items: center; border-radius: 6px; font-size: 12px; cursor: pointer; }
-.tool.red:hover { background: #d32f2f; }
+.tool.red:hover { background: #2c72e3; }
 
 /* --- MODAL ADD (NOUVELLE PUBLICATION) --- */
 .fb-modal { background: white; width: 520px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column; }
@@ -263,7 +263,7 @@ body { height: 100vh; overflow: hidden; display: flex; }
     display: flex;
     align-items: center;
     padding: 15px 25px;
-    color: #ff5252; /* Couleur rouge pour la déconnexion */
+    color: #1565c0; /* Couleur rouge pour la déconnexion */
     text-decoration: none;
     font-weight: bold;
     transition: 0.3s;

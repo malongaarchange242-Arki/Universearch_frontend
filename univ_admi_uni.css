@@ -83,3 +83,77 @@
     color: white;
     box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
 }
+
+@media (max-width: 1024px) {
+    .flex.h-screen {
+        flex-direction: column !important;
+        min-height: 100vh;
+    }
+
+    .w-72 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .h-screen {
+        min-height: 100vh !important;
+    }
+
+    .glass-header,
+    .h-20,
+    .p-10,
+    .px-10,
+    .py-10 {
+        padding: 1rem !important;
+    }
+
+    .overflow-hidden {
+        overflow: visible !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden !important;
+    }
+
+    aside {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    main {
+        width: 100% !important;
+        min-height: auto !important;
+    }
+
+    .nav-link {
+        padding: 0.75rem 0.85rem !important;
+        gap: 0.65rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .custom-scrollbar {
+        overflow-x: hidden !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav-link {
+        flex-wrap: wrap !important;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.85rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    .max-w-2xl,
+    .max-w-[1600px],
+    .max-w-[6xl] {
+        max-width: 100% !important;
+    }
+}
