@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Connectivité API - Universearch</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .test-card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .status.ok { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test Connectivité API - Universearch</h1>
+    <p>Cet outil teste la connectivité vers tous les services backend.</p>
+
+    <button onclick="testAllAPIs()">🚀 Tester Toutes les APIs</button>
+    <button onclick="clearResults()">🧹 Effacer Résultats</button>
+
+    <div id="results"></div>
+
+    <script>
+        const APIs = [
+            { name: 'PROA Service', url: 'https://universearch-proa-service.onrender.com/health' },
+            { name: 'PORA Service', url: 'https://universearch-pora-service.onrender.com/health' },
+            { name: 'Identity Service', url: 'https://universearch-9qle.onrender.com/health' },
+            { name: 'Mail Service', url: 'https://universearch-mail.onrender.com/health' }
+        ];
+
+        async function testAPI(api) {
+            const startTime = Date.now();
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch(api.url, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                clearTimeout(timeoutId);
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return {
+                        success: true,
+                        status: response.status,
+                        duration,
+                        data,
+                        error: null
+                    };
+                } else {
+                    return {
+                        success: false,
+                        status: response.status,
+                        duration,
+                        data: null,
+                        error: `HTTP ${response.status}: ${response.statusText}`
+                    };
+                }
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                return {
+                    success: false,
+                    status: null,
+                    duration,
+                    data: null,
+                    error: error.message
+                };
+            }
+        }
+
+        function createResultCard(api, result) {
+            const card = document.createElement('div');
+            card.className = `test-card ${result.success ? 'success' : 'error'}`;
+
+            const statusClass = result.success ? 'ok' : 'error';
+            const statusText = result.success ? 'OK' : 'ERROR';
+
+            card.innerHTML = `
+                <h3>${api.name}</h3>
+                <p><strong>URL:</strong> ${api.url}</p>
+                <p><strong>Status:</strong> <span class="status ${statusClass}">${statusText}</span></p>
+                <p><strong>Response Time:</strong> ${result.duration}ms</p>
+                <p><strong>HTTP Status:</strong> ${result.status || 'N/A'}</p>
+                ${result.data ? `<p><strong>Response:</strong></p><pre>${JSON.stringify(result.data, null, 2)}</pre>` : ''}
+                ${result.error ? `<p><strong>Error:</strong> ${result.error}</p>` : ''}
+            `;
+
+            return card;
+        }
+
+        async function testAllAPIs() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>🔄 Test en cours...</p>';
+
+            const results = [];
+
+            for (const api of APIs) {
+                console.log(`Testing ${api.name}...`);
+                const result = await testAPI(api);
+                results.push({ api, result });
+
+                // Afficher au fur et à mesure
+                const card = createResultCard(api, result);
+                resultsDiv.appendChild(card);
+            }
+
+            // Résumé final
+            const successCount = results.filter(r => r.result.success).length;
+            const summary = document.createElement('div');
+            summary.className = 'test-card warning';
+            summary.innerHTML = `
+                <h3>📊 Résumé Final</h3>
+                <p><strong>Services opérationnels:</strong> ${successCount}/${APIs.length}</p>
+                ${successCount === APIs.length ?
+                    '<p>✅ Tous les services sont accessibles !</p>' :
+                    '<p>⚠️ Certains services ne répondent pas. Vérifiez les bloqueurs de pubs.</p>'}
+            `;
+            resultsDiv.insertBefore(summary, resultsDiv.firstChild);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Test automatique au chargement
+        window.addEventListener('load', () => {
+            setTimeout(testAllAPIs, 1000);
+        });
+    </script>
+</body>
+</html></content>
+<parameter name="filePath">d:\UNIVERSEARCH BACKEND\Frontend\test-api-connectivity.html

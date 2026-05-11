@@ -4,6 +4,52 @@
  */
 
 // ============================================================================
+// FONCTIONS UTILITAIRES D'AFFICHAGE
+// ============================================================================
+
+function afficherToast(message, type = 'info', duration = 5000) {
+    // Créer un toast simple si aucune fonction externe n'est disponible
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#007bff'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 400px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+    `;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, duration);
+}
+
+function afficherMessageSysteme(html) {
+    // Créer un message système dans le conteneur principal
+    const container = document.querySelector('.container') || document.body;
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        margin: 20px 0;
+        padding: 20px;
+        border: 2px solid #007bff;
+        border-radius: 8px;
+        background: #f8f9fa;
+        font-family: Arial, sans-serif;
+    `;
+    messageDiv.innerHTML = html;
+    container.insertBefore(messageDiv, container.firstChild);
+}
+
+// ============================================================================
 // CONFIGURATION ET CONFIGURATION DE L'API
 // ============================================================================
 
@@ -113,22 +159,84 @@ async function chargerEtablissements() {
 
 async function checkAPIStatus() {
     try {
-        console.log('🔍 Vérification du statut de l\'API...');
+        console.log('🔍 Vérification du statut de l\'API PROA...');
+        console.log('🌐 URL appelée:', `${API_CONFIG.PROA_API}/health`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes timeout
+
         const response = await fetch(`${API_CONFIG.PROA_API}/health`, {
             method: 'GET',
-            timeout: 5000
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
         });
-        
+
+        clearTimeout(timeoutId);
+
         if (response.ok) {
-            console.log('✅ L\'API est saine');
+            console.log('✅ L\'API PROA est accessible');
             chargerCandidats();
         } else {
-            throw new Error(`L'API a retourné ${response.status}`);
+            throw new Error(`L'API a retourné ${response.status}: ${response.statusText}`);
         }
     } catch (error) {
-        console.error('❌ L\'API n\'est pas accessible:', error.message);
-        afficherToast(`❌ Impossible d'atteindre l'API à ${API_CONFIG.PROA_API}. Le service PROA est-il en cours d'exécution?`, 'error');
-        
+        console.error('❌ Erreur d\'accès à l\'API PROA:', error.message);
+
+        // Gestion spécifique des erreurs de blocage client
+        if (error.message.includes('ERR_BLOCKED_BY_CLIENT') ||
+            error.message.includes('blocked') ||
+            error.message.includes('CORS')) {
+
+            afficherToast(`
+                🚫 <strong>Connexion bloquée par le navigateur</strong><br>
+                <small>Causes possibles :</small><br>
+                • Bloqueur de publicités (uBlock, AdBlock, etc.)<br>
+                • Extension de sécurité<br>
+                • Politique réseau d'entreprise<br><br>
+                <strong>Solutions :</strong><br>
+                1. Désactivez temporairement votre bloqueur de pubs<br>
+                2. Essayez en navigation privée (Ctrl+Shift+N)<br>
+                3. Videz le cache du navigateur<br>
+                4. Contactez votre administrateur réseau
+            `, 'error', 15000); // Toast plus long pour les instructions
+
+            console.warn('💡 Conseils pour débloquer:');
+            console.warn('   1. Désactiver uBlock/AdBlock pour render.com');
+            console.warn('   2. Mode navigation privée');
+            console.warn('   3. Vider cache: Ctrl+Shift+R');
+            console.warn('   4. Extensions: vérifier NoScript/HTTPS Everywhere');
+
+        } else if (error.name === 'AbortError') {
+            afficherToast('⏱️ Timeout: L\'API PROA ne répond pas (délai dépassé)', 'warning');
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            afficherToast('🌐 Erreur réseau: Vérifiez votre connexion internet', 'error');
+        } else {
+            afficherToast(`❌ Erreur API: ${error.message}`, 'error');
+        }
+
+        // Afficher un message dans l'interface pour guider l'utilisateur
+        afficherMessageSysteme(`
+            <div style="text-align: center; padding: 20px;">
+                <h3>🔧 Problème de connexion détecté</h3>
+                <p>Le service de recommandations PROA n'est pas accessible depuis votre navigateur.</p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
+                    <strong>Actions recommandées :</strong>
+                    <ol style="margin: 10px 0;">
+                        <li>Désactivez votre bloqueur de publicités pour <code>render.com</code></li>
+                        <li>Essayez en navigation privée</li>
+                        <li>Videz le cache (Ctrl+F5)</li>
+                        <li>Vérifiez vos extensions de sécurité</li>
+                    </ol>
+                </div>
+                <button onclick="checkAPIStatus()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🔄 Réessayer la connexion
+                </button>
+            </div>
+        `);
+
         // Afficher l'interface de secours
         setTimeout(() => {
             console.log('Chargement des données simulées...');
