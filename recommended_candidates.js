@@ -1431,8 +1431,8 @@ async function confirmerEnvoiEmailsGlobal() {
                     user_id: candidat.id,
                     profile_id: null,
                     session_id: null,
-                    first_name: candidat.name?.split(' ')[0] || '',
-                    last_name: candidat.name?.split(' ').slice(1).join(' ') || '',
+                    first_name: candidat.name?.split(' ')[0] || null,
+                    last_name: candidat.name?.split(' ').slice(1).join(' ') || null,
                     full_name: candidat.name || '',
                     email: candidat.email || null,
                     telephone: candidat.telephone || null,
@@ -1447,7 +1447,11 @@ async function confirmerEnvoiEmailsGlobal() {
                     rank: e.rank,
                     confidence: e.confidence
                 })),
-                custom_message: messageOptional
+                custom_message: messageOptional,
+                requested_by: {
+                    admin_email: null,
+                    admin_name: null
+                }
             };
 
             const response = await fetch(`${API_CONFIG.MAIL_API}/api/mail/recommendations/send`, {
