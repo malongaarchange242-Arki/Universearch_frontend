@@ -1373,14 +1373,21 @@ function fermerModalEnvoiGlobal() {
     }
 }
 
+function getVisibleGlobalEtablissementCheckboxes() {
+    return Array.from(document.querySelectorAll('.global-etablissement-checkbox')).filter(checkbox => {
+        const label = checkbox.closest('label');
+        return !!label && label.offsetParent !== null && window.getComputedStyle(label).display !== 'none';
+    });
+}
+
 function basculerToutEtablissementGlobal(checked) {
-    document.querySelectorAll('.global-etablissement-checkbox:visible').forEach(checkbox => {
+    getVisibleGlobalEtablissementCheckboxes().forEach(checkbox => {
         checkbox.checked = checked;
     });
 }
 
 function synchroniserSelectionGlobal() {
-    const checkboxes = Array.from(document.querySelectorAll('.global-etablissement-checkbox:visible'));
+    const checkboxes = getVisibleGlobalEtablissementCheckboxes();
     const selectAll = document.getElementById('global-select-all');
     if (selectAll && checkboxes.length > 0) {
         selectAll.checked = checkboxes.every(cb => cb.checked);
