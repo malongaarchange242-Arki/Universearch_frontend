@@ -758,7 +758,12 @@ async function confirmerEnvoiMessage() {
 
         const result = await response.json();
 
-        if (!response.ok || result.success === false && (result.summary?.sent || 0) === 0) {
+        console.log('Status:', response.status);
+        console.log('Réponse backend:', result);
+        console.log('Backend results:', result.results);
+        console.log('Backend summary:', result.summary);
+
+        if (!response.ok || (result.success === false && (result.summary?.sent || 0) === 0)) {
             throw new Error(result.error || result.message || 'Echec lors de l envoi des emails');
         }
 
@@ -1478,6 +1483,8 @@ async function confirmerEnvoiEmailsGlobal() {
 
             console.log("Status:", response.status);
             console.log("Réponse backend:", data);
+            console.log("Backend results:", data.results);
+            console.log("Backend summary:", data.summary);
 
             if (response.ok) {
                 results.push({
