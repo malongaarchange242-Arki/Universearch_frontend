@@ -1442,14 +1442,23 @@ async function confirmerEnvoiEmailsGlobal() {
                     user_type: candidat.user_type || null,
                     reason: candidat.reason || null
                 },
-                institutions: etablissementsSelectionnés.map(e => ({
-                    target_id: String(e.target_id),
-                    target_name: String(e.target_name),
-                    target_type: String(e.target_type),
-                    score: typeof e.score === 'number' ? e.score : undefined,
-                    rank: typeof e.rank === 'number' ? e.rank : undefined,
-                    confidence: typeof e.confidence === 'number' ? e.confidence : undefined
-                })),
+                institutions: etablissementsSelectionnés.map(e => {
+                    const institution = {
+                        target_id: String(e.target_id),
+                        target_name: String(e.target_name),
+                        target_type: String(e.target_type)
+                    };
+                    if (typeof e.score === 'number' && !Number.isNaN(e.score)) {
+                        institution.score = e.score;
+                    }
+                    if (typeof e.rank === 'number' && e.rank > 0) {
+                        institution.rank = e.rank;
+                    }
+                    if (typeof e.confidence === 'number' && !Number.isNaN(e.confidence)) {
+                        institution.confidence = e.confidence;
+                    }
+                    return institution;
+                }),
                 custom_message: messageOptional,
                 requested_by: {
                     admin_email: null,
