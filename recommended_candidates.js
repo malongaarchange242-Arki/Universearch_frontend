@@ -1485,6 +1485,9 @@ async function confirmerEnvoiEmailsGlobal() {
             console.log("Réponse backend:", data);
             console.log("Backend results:", data.results);
             console.log("Backend summary:", data.summary);
+            if (Array.isArray(data.results) && data.results.length > 0) {
+              console.log('Backend result[0] message:', data.results[0].message);
+            }
 
             if (response.ok) {
                 results.push({
