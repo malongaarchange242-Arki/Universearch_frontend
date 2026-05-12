@@ -1426,14 +1426,15 @@ async function confirmerEnvoiEmailsGlobal() {
         // Envoyer un email par candidat
         const results = [];
         for (const candidat of candidatsAEnvoyer) {
+            const candidateName = candidat.name || `Candidat ${candidat.id}`;
             const payload = {
                 candidate: {
                     user_id: candidat.id,
                     profile_id: null,
                     session_id: null,
-                    first_name: candidat.name?.split(' ')[0] || null,
-                    last_name: candidat.name?.split(' ').slice(1).join(' ') || null,
-                    full_name: candidat.name || '',
+                    first_name: candidateName.split(' ')[0] || null,
+                    last_name: candidateName.split(' ').slice(1).join(' ') || null,
+                    full_name: candidateName,
                     email: candidat.email || null,
                     telephone: candidat.telephone || null,
                     user_type: candidat.user_type || null,
