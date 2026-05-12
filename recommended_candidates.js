@@ -1408,10 +1408,11 @@ async function confirmerEnvoiEmailsGlobal() {
     const etablissementsSelectionnés = Array.from(document.querySelectorAll('.global-etablissement-checkbox:checked'))
         .map(checkbox => checkbox.dataset.id)
         .map(id => tousEtablissements.find(e => e.target_id === id))
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter(e => e.target_id && e.target_name && ['universite', 'centre'].includes(e.target_type));
 
     if (etablissementsSelectionnés.length === 0) {
-        afficherToast('Veuillez sélectionner au moins un établissement', 'error');
+        afficherToast('Veuillez sélectionner au moins un établissement valide', 'error');
         return;
     }
 
@@ -1426,27 +1427,28 @@ async function confirmerEnvoiEmailsGlobal() {
         // Envoyer un email par candidat
         const results = [];
         for (const candidat of candidatsAEnvoyer) {
-            const candidateName = candidat.name || `Candidat ${candidat.id}`;
+            const candidateName = (candidat.name || `Candidat ${candidat.id || candidat.user_id || 'inconnu'}`).trim();
+            const emailValue = candidat.email && candidat.email.trim() !== '' ? candidat.email.trim() : null;
             const payload = {
                 candidate: {
-                    user_id: candidat.id,
-                    profile_id: null,
-                    session_id: null,
+                    user_id: candidat.id || candidat.user_id || emailValue || candidateName,
+                    profile_id: candidat.profile_id || null,
+                    session_id: candidat.session_id || null,
                     first_name: candidateName.split(' ')[0] || null,
                     last_name: candidateName.split(' ').slice(1).join(' ') || null,
                     full_name: candidateName,
-                    email: candidat.email || null,
-                    telephone: candidat.telephone || null,
+                    email: emailValue,
+                    telephone: candidat.telephone?.trim() || null,
                     user_type: candidat.user_type || null,
                     reason: candidat.reason || null
                 },
                 institutions: etablissementsSelectionnés.map(e => ({
-                    target_id: e.target_id,
-                    target_name: e.target_name,
-                    target_type: e.target_type,
-                    score: e.score,
-                    rank: e.rank,
-                    confidence: e.confidence
+                    target_id: String(e.target_id),
+                    target_name: String(e.target_name),
+                    target_type: String(e.target_type),
+                    score: typeof e.score === 'number' ? e.score : undefined,
+                    rank: typeof e.rank === 'number' ? e.rank : undefined,
+                    confidence: typeof e.confidence === 'number' ? e.confidence : undefined
                 })),
                 custom_message: messageOptional,
                 requested_by: {
@@ -1464,15 +1466,24 @@ async function confirmerEnvoiEmailsGlobal() {
             if (response.ok) {
                 const data = await response.json();
                 results.push({
-                    candidat: candidat.name,
+                    candidat: candidat.name || candidateName,
                     success: true,
                     summary: data.summary
                 });
             } else {
+                const errorText = await response.text();
+                let errorData = null;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch (err) {
+                    // ignore parse error
+                }
+                console.error('Mail API payload error:', payload, response.status, errorText);
                 results.push({
-                    candidat: candidat.name,
+                    candidat: candidat.name || candidateName,
                     success: false,
-                    error: `HTTP ${response.status}`
+                    error: `HTTP ${response.status}${errorData?.error ? ` - ${errorData.error}` : ''}`,
+                    details: errorData?.details || errorText
                 });
             }
         }
