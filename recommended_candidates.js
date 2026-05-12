@@ -1448,13 +1448,13 @@ async function confirmerEnvoiEmailsGlobal() {
                         target_name: String(e.target_name),
                         target_type: String(e.target_type)
                     };
-                    if (typeof e.score === 'number' && !Number.isNaN(e.score)) {
+                    if (typeof e.score === 'number' && !Number.isNaN(e.score) && e.score >= 0 && e.score <= 1) {
                         institution.score = e.score;
                     }
-                    if (typeof e.rank === 'number' && e.rank > 0) {
+                    if (typeof e.rank === 'number' && Number.isInteger(e.rank) && e.rank > 0) {
                         institution.rank = e.rank;
                     }
-                    if (typeof e.confidence === 'number' && !Number.isNaN(e.confidence)) {
+                    if (typeof e.confidence === 'number' && !Number.isNaN(e.confidence) && e.confidence >= 0 && e.confidence <= 1) {
                         institution.confidence = e.confidence;
                     }
                     return institution;
@@ -1466,14 +1466,20 @@ async function confirmerEnvoiEmailsGlobal() {
                 }
             };
 
+            console.log("Payload envoyé :", payload);
+
             const response = await fetch(`${API_CONFIG.MAIL_API}/api/mail/recommendations/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
+            const data = await response.json();
+
+            console.log("Status:", response.status);
+            console.log("Réponse backend:", data);
+
             if (response.ok) {
-                const data = await response.json();
                 results.push({
                     candidat: candidat.name || candidateName,
                     success: true,
