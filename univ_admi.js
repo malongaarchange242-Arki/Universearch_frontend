@@ -98,7 +98,7 @@ function animateCards() {
 }
 
 // --- Fetch and display stats from backend ---
-const API_BASE = 'https://universearch-9qle.onrender.com';
+const API_BASE = 'https://universearch-pwlf.onrender.com';
 
 function safeCountFromResponse(json) {
     if (Array.isArray(json)) return json.length;

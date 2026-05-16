@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const jwtRole = getJWTRole();
             if (jwtRole) {
                 const role = String(jwtRole).toLowerCase();
-                return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-9qle.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
+                return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-pwlf.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
             }
             
             // Fallback to session/localStorage
@@ -91,9 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleFromSession = (session.role || session.userType || session.profileType || '').toString().toLowerCase();
             const roleFromLS = (localStorage.getItem('role') || '').toString().toLowerCase();
             const role = roleFromSession || roleFromLS;
-            return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-9qle.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
+            return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-pwlf.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
         } catch (e) {
-            return 'https://universearch-9qle.onrender.com/universites';
+            return 'https://universearch-pwlf.onrender.com/universites';
         }
     };
 
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fetch BDE for the authenticated university using a stable backend route
             try {
                 const response = await fetch(
-                    'https://universearch-9qle.onrender.com/universites/me/bde',
+                    'https://universearch-pwlf.onrender.com/universites/me/bde',
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!bde) {
                     try {
-                        const universitiesRes = await fetch('https://universearch-9qle.onrender.com/universites', {
+                        const universitiesRes = await fetch('https://universearch-pwlf.onrender.com/universites', {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             if (matchedUniversity?.id) {
                                 const fallbackRes = await fetch(
-                                    `https://universearch-9qle.onrender.com/universites/${matchedUniversity.id}/bde`
+                                    `https://universearch-pwlf.onrender.com/universites/${matchedUniversity.id}/bde`
                                 );
                                 if (fallbackRes.ok) {
                                     const fallbackJson = await fallbackRes.json().catch(() => null);

@@ -1,5 +1,5 @@
 /**
- * EDUSAAS - Logique de Gestion des Universités
+ * EDUSAAS - Logique de Gestion des Centres
  */
 
 // Runtime registry populated from the PORA API. A small local fallback is used if the API is unavailable.
@@ -44,7 +44,7 @@ function initNavigation() {
     });
 }
 
-const PORA_API = window.PORA_API_BASE || 'https://universearch-9qle.onrender.com';
+const PORA_API = window.PORA_API_BASE || 'https://universearch-pwlf.onrender.com';
 
 async function fetchCentres() {
     try {
@@ -180,7 +180,7 @@ function showNotification(message, type = 'info') {
  * GESTION DE L'ACCÈS
  */
 async function toggleAccess(univId, isEnabled) {
-    const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-9qle.onrender.com';
+    const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-pwlf.onrender.com';
     const token = localStorage.getItem('softura_token');
 
     // update UI optimistically

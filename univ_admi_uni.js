@@ -46,7 +46,7 @@ function initNavigation() {
     });
 }
 
-const PORA_API = window.PORA_API_BASE || 'https://universearch-9qle.onrender.com';
+const PORA_API = window.PORA_API_BASE || 'https://universearch-pwlf.onrender.com';
 
 async function fetchUniversities() {
     try {
@@ -181,7 +181,7 @@ function showNotification(message, type = 'info') {
  * GESTION DE L'ACCÈS
  */
 async function toggleAccess(univId, isEnabled) {
-    const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-9qle.onrender.com';
+    const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-pwlf.onrender.com';
     const token = localStorage.getItem('softura_token');
 
     // Debug: log current user info
