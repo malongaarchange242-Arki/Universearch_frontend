@@ -4,7 +4,7 @@
 
 // API Base URL
 const apiBase = (() => {
-    const remoteBase = 'https://universearch-ads-service.onrender.com';
+    const remoteBase = 'https://universearch-ads-service-4nci.onrender.com';
 
     if (window.location.protocol === 'file:') {
         return remoteBase;
@@ -12,7 +12,7 @@ const apiBase = (() => {
 
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'https://universearch-ads-service.onrender.com';
+        return 'https://universearch-ads-service-4nci.onrender.com';
     }
 
     return remoteBase;

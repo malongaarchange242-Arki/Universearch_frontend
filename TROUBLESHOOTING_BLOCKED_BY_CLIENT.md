@@ -2,7 +2,7 @@
 
 ## 🚫 Problème
 
-Votre navigateur bloque les appels vers `https://universearch-proa-service.onrender.com/health` avec l'erreur:
+Votre navigateur bloque les appels vers `https://universearch-proa-service-weza.onrender.com/health` avec l'erreur:
 ```
 net::ERR_BLOCKED_BY_CLIENT
 ```
@@ -62,7 +62,7 @@ net::ERR_BLOCKED_BY_CLIENT
 
 Ouvrez la **Console développeur** (F12) et exécutez:
 ```javascript
-fetch('https://universearch-proa-service.onrender.com/health')
+fetch('https://universearch-proa-service-weza.onrender.com/health')
   .then(r => r.json())
   .then(d => console.log('✅ API accessible:', d))
   .catch(e => console.log('❌ Erreur:', e.message));
@@ -101,7 +101,7 @@ headers: {
 ## 🚀 Statut des Services
 
 **✅ CONFIRMÉ**: Tous les services fonctionnent correctement:
-- `https://universearch-proa-service.onrender.com/health` → `{"status":"ok"}`
+- `https://universearch-proa-service-weza.onrender.com/health` → `{"status":"ok"}`
 - `https://universearch-pora-service.onrender.com` → OK
 - `https://universearch-9qle.onrender.com` → OK
 

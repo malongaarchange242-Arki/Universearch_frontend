@@ -54,10 +54,10 @@ function afficherMessageSysteme(html) {
 // ============================================================================
 
 const API_CONFIG = {
-    PROA_API: 'https://universearch-proa-service.onrender.com', // Local development
-    PORA_API: 'https://universearch-pora-service.onrender.com',
-    IDENTITY_API: 'https://universearch-9qle.onrender.com',
-    MAIL_API: 'https://universearch-mail.onrender.com',
+    PROA_API: 'https://universearch-proa-service-weza.onrender.com', // Local development
+    PORA_API: 'https://universearch-pora-service-1.onrender.com',
+    IDENTITY_API: 'https://universearch-t126.onrender.com',
+    MAIL_API: 'https://universearch-mail-4c9k.onrender.com',
 };
 
 // ============================================================================

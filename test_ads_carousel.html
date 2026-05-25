@@ -235,7 +235,7 @@
           .filter(item => String(item.mediaType).toLowerCase() === 'image')
           .filter(item => item.url);
 
-        const visibleItems = sortByNewest(filtered).slice(0, 3);
+        const visibleItems = sortByNewest(filtered).slice(0, 7);
 
         if (visibleItems.length === 0) {
           setStatus('Aucune image carousel exploitable trouvee.', true);
