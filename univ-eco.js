@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (jwtRole) {
                 const role = String(jwtRole).toLowerCase();
                 return (role === 'centre' || role === 'centre_formation')
-                    ? 'https://universearch-9qle.onrender.com/centres'
-                    : 'https://universearch-9qle.onrender.com/universites';
+                    ? 'https://universearch-t126.onrender.com/centres'
+                    : 'https://universearch-t126.onrender.com/universites';
             }
             
             // Fallback to session
@@ -44,10 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleRaw = session.role || session.userType || '';
             const role = roleRaw.toLowerCase();
             return (role === 'centre' || role === 'centre_formation')
-                ? 'https://universearch-9qle.onrender.com/centres'
-                : 'https://universearch-9qle.onrender.com/universites';
+                ? 'https://universearch-t126.onrender.com/centres'
+                : 'https://universearch-t126.onrender.com/universites';
         } catch (e) {
-            return 'https://universearch-9qle.onrender.com/universites';
+            return 'https://universearch-t126.onrender.com/universites';
         }
     };
 
@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Also attempt to persist to backend if token is present
                             if (token) {
-                                const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-9qle.onrender.com/universites';
+                                const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-t126.onrender.com/universites';
 
                                 // � USE PROPER ENDPOINT: POST /universites/me/filieres
                                 // This is the dedicated endpoint for attaching filières to a university
@@ -812,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // If endpoint not found, try the alternative base (/universites <-> /centres)
                         if (res.status === 404) {
-                            const altBase = BASE_URL.includes('/centres') ? 'https://universearch-9qle.onrender.com/universites' : 'https://universearch-9qle.onrender.com/centres';
+                            const altBase = BASE_URL.includes('/centres') ? 'https://universearch-t126.onrender.com/universites' : 'https://universearch-t126.onrender.com/centres';
                             console.warn('Primary upload endpoint returned 404, retrying on', altBase);
                             const altRes = await fetch(`${altBase}/me/logo`, {
                                 method: 'POST',
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const token = localStorage.getItem('softura_token');
                 if (token) {
                     // Call logout endpoint
-                    const response = await fetch('https://universearch-9qle.onrender.com/universites/auth/logout', {
+                    const response = await fetch('https://universearch-t126.onrender.com/universites/auth/logout', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,

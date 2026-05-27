@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const jwtRole = getJWTRole();
             if (jwtRole) {
                 const role = String(jwtRole).toLowerCase();
-                return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-pwlf.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
+                return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-t126.onrender.com/centres' : 'https://universearch-t126.onrender.com/universites';
             }
             
             // Fallback to session/localStorage
@@ -91,9 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleFromSession = (session.role || session.userType || session.profileType || '').toString().toLowerCase();
             const roleFromLS = (localStorage.getItem('role') || '').toString().toLowerCase();
             const role = roleFromSession || roleFromLS;
-            return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-pwlf.onrender.com/centres' : 'https://universearch-9qle.onrender.com/universites';
+            return (role === 'centre' || role === 'centre_formation') ? 'https://universearch-t126.onrender.com/centres' : 'https://universearch-t126.onrender.com/universites';
         } catch (e) {
-            return 'https://universearch-pwlf.onrender.com/universites';
+            return 'https://universearch-t126.onrender.com/universites';
         }
     };
 
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Base URL for the content service (posts/comments/etc)
-    const CONTENT_API = 'https://universearch-content-service.onrender.com';
+    const CONTENT_API = 'https://universearch-content-service-k7kz.onrender.com';
 
     // Common auth headers helper
     const getAuthHeaders = () => {
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fetch BDE for the authenticated university using a stable backend route
             try {
                 const response = await fetch(
-                    'https://universearch-pwlf.onrender.com/universites/me/bde',
+                    'https://universearch-t126.onrender.com/universites/me/bde',
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!bde) {
                     try {
-                        const universitiesRes = await fetch('https://universearch-pwlf.onrender.com/universites', {
+                        const universitiesRes = await fetch('https://universearch-t126.onrender.com/universites', {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             if (matchedUniversity?.id) {
                                 const fallbackRes = await fetch(
-                                    `https://universearch-pwlf.onrender.com/universites/${matchedUniversity.id}/bde`
+                                    `https://universearch-t126.onrender.com/universites/${matchedUniversity.id}/bde`
                                 );
                                 if (fallbackRes.ok) {
                                     const fallbackJson = await fallbackRes.json().catch(() => null);
@@ -1005,8 +1005,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create media filter UI (Tous/Photos/Vidéos) above card container
     const createMediaFilterBar = () => {
         try {
+            // Check if filters exist in HTML (from description section)
+            const existingFilters = document.querySelectorAll('.filter-tabs .filter-btn');
+            if (existingFilters.length > 0) {
+                // Attach event listeners to existing HTML filters
+                existingFilters.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const filterType = btn.getAttribute('data-filter') || 'all';
+                        mediaFilter = filterType;
+                        
+                        // Update active state
+                        existingFilters.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        // Re-render posts
+                        renderPosts(postsCache);
+                    });
+                });
+                return;
+            }
+            
+            // Fallback: create dynamically if not found in HTML
             if (!cardContainer) return;
-            // avoid creating twice
             if (document.getElementById('media-filter-bar')) return;
             const bar = document.createElement('div');
             bar.id = 'media-filter-bar';
@@ -1018,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bar.style.width = '100%';
             bar.style.maxWidth = '680px';
 
-            const btnStyle = (active) => `padding:6px 12px; border-radius:18px; border: none; cursor:pointer; font-family:inherit; font-weight:600; ${active ? 'background:#1877f2; color:white;' : 'background:transparent; color:#050505; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08);'}`;
+            const btnStyle = (active) => `padding:6px 12px; border-radius:18px; border: none; cursor:pointer; font-family:inherit; font-weight:600; ${active ? 'background:#3b82f6; color:white;' : 'background:transparent; color:#65676b;'}`;
 
             const allBtn = document.createElement('button');
             allBtn.id = 'filter-all-btn';
@@ -1609,42 +1629,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstMedia = mediasArr.length ? mediasArr[0] : null;
         const mediaCount = mediasArr.length;
         const totalComments = countCommentsRecursive(post.comments);
-        const heartColor = post.isLiked ? 'red' : 'inherit';
+        const heartColor = post.isLiked ? '#e11d48' : '#6b7280';
         const postLikeCount = Number(post.likes_count ?? post.likes ?? 0);
         const postViewsCount = getPostViewsCount(post);
+        const postDate = formatRelativeDate(getPostTimestamp(post));
+
+        // Get organization name (try various keys)
+        const orgName = post.org_name || post.organization || post.author_org || 'UNIVERSITÉ';
 
         card.innerHTML = `
-            <div class="card-image-placeholder" style="position:relative; background:#000;">
-                <button class="delete-btn" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+            <div class="card-image-placeholder" style="position: relative; height: 200px; overflow: hidden;">
+                <div class="card-actions-overlay" title="Plus d'options">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </div>
                 ${firstMedia ? (firstMedia.type === 'video' 
-                    ? `<video src="${firstMedia.url}" style="width:100%; height:100%; object-fit:cover;"></video><i class="fa-solid fa-circle-play card-video-play"></i>` 
-                    : `<img src="${firstMedia.url}" style="width:100%; height:100%; object-fit:cover;">`) 
-                    : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; background:#f1f5f9;">Aucun média</div>`}
-                ${mediaCount > 1 ? `<span class="card-media-count">+${mediaCount-1}</span>` : ''}
+                    ? `<video src="${firstMedia.url}" style="width: 100%; height: 100%; object-fit: cover;"></video><i class="fa-solid fa-circle-play card-video-play"></i>` 
+                    : `<img src="${firstMedia.url}" style="width: 100%; height: 100%; object-fit: cover;" alt="${escapeHTML(safeText(post.title))}">`) 
+                    : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; background: #f3f4f6; font-size: 14px; font-weight: 500;">Pas de média</div>`}
+                ${mediaCount > 1 ? `<span class="card-media-count">${mediaCount}</span>` : ''}
             </div>
             <div class="pc-content">
-                <h5>${escapeHTML(safeText(post.title).toUpperCase())}</h5>
-                <p class="pc-meta">${formatExactTime(getPostTimestamp(post))}</p>
-                <p class="card-desc">${escapeHTML(safeText(post.desc).substring(0, 200))}</p>
+                <div class="card-meta">
+                    <span>${escapeHTML(safeText(orgName))}</span>
+                    <span>·</span>
+                    <span>${postDate}</span>
+                </div>
+                <h5>${escapeHTML(safeText(post.title))}</h5>
+                <p class="card-desc">${escapeHTML(safeText(post.desc).substring(0, 120))}</p>
             </div>
             <div class="pc-engagement">
-                <span class="views-stat"><i class="fa-regular fa-eye"></i> <span class="view-counter-card">${postViewsCount}</span></span>
-                <span><i class="fa-solid fa-heart" style="color:${heartColor}"></i> <span class="like-counter-card">${postLikeCount}</span></span>
-                <span><i class="fa-solid fa-comment"></i> <span class="comment-counter-card">${totalComments}</span></span>
+                <span><i class="fa-regular fa-heart"></i> ${postLikeCount}</span>
+                <span><i class="fa-regular fa-comment"></i> ${totalComments}</span>
+                <span><i class="fa-regular fa-eye"></i> ${postViewsCount}</span>
+                <span style="margin-left: auto;"><i class="fa-solid fa-share-nodes"></i></span>
             </div>
         `;
 
-        // ensure "Voir plus / Voir moins" on long descriptions (MODIFIED)
-        try {
-            const descEl = card.querySelector('.card-desc');
-            if (descEl) handleResizableText(descEl, 100);
-        } catch (e) {
-            console.warn('Failed to attach resizable text', e);
-        }
-
-        const deleteBtn = card.querySelector('.delete-btn');
-        if (deleteBtn) {
-            deleteBtn.onclick = (e) => {
+        // Attach menu action to ellipsis
+        const menuBtn = card.querySelector('.card-actions-overlay');
+        if (menuBtn) {
+            menuBtn.onclick = (e) => {
                 e.stopPropagation();
                 if (confirm("Supprimer cette publication ?")) {
                     try {
@@ -1656,6 +1680,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             };
+        }
+
+        // ensure "Voir plus / Voir moins" on long descriptions (MODIFIED)
+        try {
+            const descEl = card.querySelector('.card-desc');
+            if (descEl) handleResizableText(descEl, 100);
+        } catch (e) {
+            console.warn('Failed to attach resizable text', e);
         }
 
         // prepend for newest first
@@ -2458,7 +2490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const token = getToken();
                 if (token) {
                     // Call logout endpoint
-                    const response = await fetch('https://universearch-9qle.onrender.com/universites/auth/logout', {
+                    const response = await fetch('https://universearch-t126.onrender.com/universites/auth/logout', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,

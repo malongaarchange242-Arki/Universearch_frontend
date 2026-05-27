@@ -5,33 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramètres Institutionnels | Universearh</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="univ-eco.css">
     <link rel="stylesheet" href="univ.css">
+    <link rel="stylesheet" href="univ-modern.css">
 </head>
 <body>
+
+    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Ouvrir le menu" aria-controls="sidebar" aria-expanded="false">
+        <span class="hamburger-icon" aria-hidden="true"></span>
+    </button>
 
     <!-- Main Content -->
     <div id="main-content">
 
     <div class="app-container">
         
-        <aside class="sidebar">
+        <aside id="sidebar" class="sidebar">
             <div class="sidebar-content-top">
                 <div class="sidebar-header">
-                <img src="unee-removebg-preview.png" alt="Universearh logo" style="width:110px; height:110px; object-fit:contain;" />
-                <h1 class="logo-text">universearh</h1>
-            </div>
+                    <div class="sidebar-logo">
+                        <img src="unee-removebg-preview.png" alt="UNIVERSEARH logo" />
+                    </div>
+                    <h1 class="logo-text">UNIVERSEARH</h1>
+                    <button type="button" class="sidebar-close-btn" aria-label="Fermer le menu">&times;</button>
+                </div>
                 
                 <nav class="sidebar-nav">
-                    <a href="Univ.html" class="nav-link">
-                        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+                    <a href="Univ.html" class="nav-link active">
+                        <span class="nav-icon"><i class="fa-solid fa-table-cells"></i></span>
+                        <span>Dashboard</span>
                     </a>
 
                     <div class="nav-item-dropdown open">
                         <div class="nav-link dropdown-toggle">
                             <div class="nav-link-content">
-                                <i class="fa-solid fa-gears"></i> 
+                                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
                                 <span>Paramètres</span>
                             </div>
                             <i class="fa-solid fa-chevron-down arrow-icon"></i>
@@ -48,8 +57,9 @@
                     </div>
 
                     <a href="messagerie.html" class="nav-link chat-link">
-                        <div class="link-content"><i class="fa-solid fa-comments"></i> <span>Messagerie</span></div>
-                       
+                        <span class="nav-icon"><i class="fa-solid fa-comment-dots"></i></span>
+                        <span>Messagerie</span>
+                        <span class="status-indicator"></span>
                     </a>
                 </nav>
             </div>
@@ -192,6 +202,9 @@
     </div> <!-- End of main-content -->
 
     <script src="univ-eco.js"></script>
+    <script src="univ-responsive.js"></script>
+
+    <div id="mobile-drawer-overlay" class="mobile-drawer-overlay" aria-hidden="true"></div>
    
 </body>
 </html>

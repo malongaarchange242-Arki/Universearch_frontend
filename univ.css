@@ -9,8 +9,8 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
-body { height: 100vh; overflow: hidden; display: flex; }
-.app-container { display: flex; width: 100%; height: 100%; }
+body { min-height: 100vh; overflow-x: hidden; display: flex; }
+.app-container { display: flex; width: 100%; min-height: 100vh; }
 
 /* --- SIDEBAR --- */
 .sidebar { width: 260px; background: var(--bg-dark); display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; z-index: 20; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
@@ -119,26 +119,28 @@ body { height: 100vh; overflow: hidden; display: flex; }
 }
 
 /* Partie Gauche : Image */
-modal-left { 
-    flex: 1; 
-    background: #000; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+.modal-left {
+    flex: 1;
+    min-height: 280px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
     overflow: hidden;
 }
-.modal-img { width: 100%; height: 100%; object-fit: contain; }
+.modal-img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Partie Droite : Contenu + Commentaires */
-.modal-right { 
-    flex: 1; 
-    padding: 40px; 
-    display: flex; 
-    flex-direction: column; 
-    background: white; 
-    overflow-y: auto; 
+.modal-right {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    overflow-y: auto;
     position: relative;
+    min-height: 320px;
 }
 
 /* Bouton X Close */
@@ -155,6 +157,50 @@ modal-left {
     z-index: 10;
 }
 .modal-close-x:hover { color: #d32f2f; }
+
+@media (max-width: 900px) {
+    .modal-container {
+        flex-direction: column;
+        width: min(100%, 96vw);
+        max-width: 620px;
+        height: auto;
+        max-height: 95vh;
+        border-radius: 24px;
+        overflow: hidden;
+    }
+    .modal-left {
+        min-height: 220px;
+    }
+    .modal-right {
+        padding: 24px;
+        max-height: calc(95vh - 220px);
+    }
+    .modal-close-x {
+        top: 14px;
+        right: 14px;
+        font-size: 28px;
+    }
+    .modal-header-info h2 {
+        font-size: 20px;
+    }
+    .modal-meta {
+        font-size: 13px;
+    }
+    .modal-actions-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .comment-input-area {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .comment-input-area input {
+        width: 100%;
+    }
+    .modal-comments-section {
+        margin-top: 16px;
+    }
+}
 
 /* Titre & Description */
 .pub-title { 
