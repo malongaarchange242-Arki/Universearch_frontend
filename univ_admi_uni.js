@@ -1,5 +1,5 @@
 /**
- * EDUSAAS - Logique de Gestion des Universités
+ * UNIVERSEARCH - Logique de Gestion des Universités
  */
 
 // Runtime registry populated from the PORA API. A small local fallback is used if the API is unavailable.
@@ -46,7 +46,7 @@ function initNavigation() {
     });
 }
 
-const PORA_API = window.PORA_API_BASE || 'https://universearch-t126.onrender.com';
+const PORA_API = window.PORA_API_BASE || 'https://universearch-pwlf.onrender.com';
 
 async function fetchUniversities() {
     try {

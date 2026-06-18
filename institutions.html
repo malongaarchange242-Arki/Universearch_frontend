@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Universearch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .logo-upload, .file-upload { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+        .logo-preview { width:80px; height:80px; border-radius:50%; background: var(--bg-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; border:2px solid var(--border); transition: all 0.3s ease; }
+        .image-preview { width:100%; min-height:120px; border-radius:12px; background: var(--bg-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; border:2px dashed var(--border); transition: border-color 0.2s ease, background 0.2s ease; }
+        .logo-preview:hover, .image-preview:hover { border-color: var(--primary); }
+        .logo-preview img, .image-preview img { width:100%; height:100%; object-fit:cover; display:block; }
+        .logo-preview i, .image-preview i { color: var(--text-secondary); font-size:28px; }
+        #logoFilename, #flyerFilename { font-size:13px; color:var(--text-muted); }
+        .flyer-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: all 0.3s; cursor: pointer; background: var(--card-bg); color: var(--text-primary); display: flex; flex-direction: column; }
+        .flyer-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .flyer-image { width: 100%; height: 200px; overflow: hidden; background: var(--bg-secondary); }
+        .flyer-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .flyer-info { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .flyer-info h4 { font-size: 15px; font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary); }
+        .flyer-info p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+        .flyer-meta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; color: var(--text-muted); font-size: 13px; margin-top: 6px; }
+        .flyer-meta span { display: inline-flex; align-items: center; gap: 6px; }
+        .flyer-meta i { color: var(--accent-color); }
+        .page-count-badge { display: inline-flex; align-items: center; justify-content: center; margin-left: 10px; padding: 4px 10px; border-radius: 999px; font-size: 0.85rem; background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Univer<span class="logo-light">search</span></span>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-avatar" id="uniAvatarPreview">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="uni-info">
+                        <h4 id="sidebarUniName">Université</h4>
+                        <p><span class="status"></span> En ligne</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Tableau de bord</span>
+                </a>
+                
+                <div class="nav-group">
+                    <div class="nav-group-header" data-group="media">
+                        <i class="fas fa-photo-video"></i>
+                        <span>Contenus média</span>
+                        <i class="fas fa-chevron-down group-arrow"></i>
+                    </div>
+                    <div class="nav-group-items">
+                        <a class="nav-item nav-subitem" data-page="shorts">
+                            <i class="fas fa-video"></i>
+                            <span>Shorts vidéos</span>
+                            <span class="nav-badge" id="shortsCount">0</span>
+                        </a>
+                        <a class="nav-item nav-subitem" data-page="flyers">
+                            <i class="fas fa-images"></i>
+                            <span>Flyers & images</span>
+                            <span class="nav-badge" id="flyersCount">0</span>
+                        </a>
+                        <a class="nav-item nav-subitem" data-page="templates">
+                            <i class="fas fa-palette"></i>
+                            <span>Templates</span>
+                            <span class="nav-badge new-badge">NEW</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-group">
+                    <div class="nav-group-header" data-group="academic">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Offre académique</span>
+                        <i class="fas fa-chevron-down group-arrow"></i>
+                    </div>
+                    <div class="nav-group-items">
+                        <a class="nav-item nav-subitem" data-page="formations">
+                            <i class="fas fa-book-open"></i>
+                            <span>Formations</span>
+                        </a>
+                        <a class="nav-item nav-subitem" data-page="events">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Événements</span>
+                        </a>
+                        <a class="nav-item nav-subitem" data-page="testimonials">
+                            <i class="fas fa-quote-right"></i>
+                            <span>Témoignages</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-group">
+                    <div class="nav-group-header" data-group="comm">
+                        <i class="fas fa-comments"></i>
+                        <span>Communication</span>
+                        <i class="fas fa-chevron-down group-arrow"></i>
+                    </div>
+                    <div class="nav-group-items">
+                        <a class="nav-item nav-subitem" data-page="chat">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>Chat support</span>
+                            <span class="nav-badge" id="chatUnreadCount">0</span>
+                        </a>
+                        <a class="nav-item nav-subitem" data-page="analytics">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytiques</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Paramètres</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span>Mode sombre</span>
+                </button>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="top-header">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1 id="pageTitle">Tableau de bord</h1>
+                    <p id="pageSubtitle">Bienvenue dans votre espace de gestion</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" id="createContentBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>Nouveau contenu</span>
+                    </button>
+                    <div class="notifications">
+                        <i class="far fa-comment-dots"></i>
+                        <span class="notif-badge" id="headerChatBadge">0</span>
+                    </div>
+                    <div class="user-menu">
+                        <img src="https://ui-avatars.com/api/?background=6366f1&color=fff&rounded=true&bold=true&name=U" alt="Admin">
+                    </div>
+                </div>
+            </header>
+
+            <div class="pages-container">
+                <!-- Dashboard Page -->
+                <div class="page active" id="dashboardPage">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="statShorts">0</h3>
+                                <p class="stat-label">Shorts publiés</p>
+                                <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-icon success">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="statFlyers">0</h3>
+                                <p class="stat-label">Flyers actifs</p>
+                                <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-icon warning">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="statViews">0</h3>
+                                <p class="stat-label">Vues totales</p>
+                                <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 24%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card info">
+                            <div class="stat-icon info">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="statFollowers">0</h3>
+                                <p class="stat-label">Followers totaux</p>
+                                <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 18%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="stat-icon danger">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value" id="statMessages">0</h3>
+                                <p class="stat-label">Messages chat</p>
+                                <span class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Followers Section -->
+                    <div class="followers-section">
+                        <div class="followers-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-users"></i> Évolution des followers</h3>
+                                <span style="font-size:13px;color:var(--text-muted);">12 derniers mois</span>
+                            </div>
+                            <div class="followers-chart-container">
+                                <canvas id="followersChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="followers-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-user-check"></i> Top followers</h3>
+                            </div>
+                            <div class="followers-list" id="followersList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-bar"></i> Performance du contenu</h3>
+                                <span style="font-size:12px;color:var(--text-muted);">30 derniers jours</span>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="dashboardPerformanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-pie"></i> Répartition de l'engagement</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="engagementChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bolt"></i> Actions rapides</h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-action" onclick="window.navigateTo('shorts')">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Nouveau Short</span>
+                            </button>
+                            <button class="quick-action" onclick="window.navigateTo('flyers')">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Nouveau Flyer</span>
+                            </button>
+                            <button class="quick-action" onclick="window.openTemplateSelector()">
+                                <i class="fas fa-palette"></i>
+                                <span>Template</span>
+                            </button>
+                            <button class="quick-action" onclick="window.navigateTo('chat')">
+                                <i class="fas fa-comments"></i>
+                                <span>Messages</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Activité récente</h3>
+                        </div>
+                        <div id="recentActivity" class="activity-list"></div>
+                    </div>
+                </div>
+
+                <!-- Shorts Page -->
+                <div class="page" id="shortsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-video"></i> Shorts Vidéos <span id="shortsPageCount" class="page-count-badge">0</span></h2>
+                        <button class="btn-primary" onclick="window.openShortModal()">
+                            <i class="fas fa-plus"></i> Nouveau Short
+                        </button>
+                    </div>
+                    <div id="shortsList" class="media-grid"></div>
+                </div>
+
+                <!-- Flyers Page -->
+                <div class="page" id="flyersPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-images"></i> Flyers & Images <span id="flyersPageCount" class="page-count-badge">0</span></h2>
+                        <button class="btn-primary" onclick="window.openFlyerModal()">
+                            <i class="fas fa-plus"></i> Nouveau Flyer
+                        </button>
+                    </div>
+                    <div id="flyersList" class="media-grid"></div>
+                </div>
+
+                <!-- Templates Page -->
+                <div class="page" id="templatesPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-palette"></i> Galerie de templates</h2>
+                        <div class="template-tabs">
+                            <button class="template-tab active" data-type="all">Tous</button>
+                            <button class="template-tab" data-type="short">Shorts</button>
+                            <button class="template-tab" data-type="flyer">Flyers</button>
+                        </div>
+                    </div>
+                    <div id="templatesGallery" class="templates-grid"></div>
+                </div>
+
+                <!-- Formations Page -->
+                <div class="page" id="formationsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-book-open"></i> Formations</h2>
+                        <button class="btn-primary" onclick="window.openFormationModal()">
+                            <i class="fas fa-plus"></i> Ajouter formation
+                        </button>
+                    </div>
+                    <div id="formationsList" class="formations-grid"></div>
+                </div>
+
+                <!-- Events Page -->
+                <div class="page" id="eventsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Événements</h2>
+                        <button class="btn-primary" onclick="window.openEventModal()">
+                            <i class="fas fa-plus"></i> Créer événement
+                        </button>
+                    </div>
+                    <div id="eventsList" class="events-grid"></div>
+                </div>
+
+                <!-- Testimonials Page -->
+                <div class="page" id="testimonialsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-quote-right"></i> Témoignages</h2>
+                        <button class="btn-primary" onclick="window.openTestimonialModal()">
+                            <i class="fas fa-plus"></i> Ajouter témoignage
+                        </button>
+                    </div>
+                    <div id="testimonialsList" class="testimonials-grid"></div>
+                </div>
+
+                <!-- Chat Page -->
+                <div class="page" id="chatPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-comments"></i> Support admin</h2>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-sidebar">
+                            <div class="chat-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="chatSearch" placeholder="Rechercher une conversation...">
+                            </div>
+                            <div class="conversations-list" id="conversationsList"></div>
+                        </div>
+                        <div class="chat-main">
+                            <div class="chat-header">
+                                <div class="chat-user-info">
+                                    <div class="chat-user-avatar" style="background: var(--primary-gradient); width: 42px; height: 42px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fas fa-headset"></i>
+                                    </div>
+                                    <div>
+                                        <h4 id="chatActiveName">Administration Universearch</h4>
+                                        <span style="font-size:11px;color:var(--text-muted);">En ligne</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="chat-placeholder">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <p>Sélectionnez le support admin pour commencer</p>
+                                </div>
+                            </div>
+                            <div class="chat-input-area" id="chatInputArea" style="display:none;">
+                                <div class="input-wrapper">
+                                    <input type="text" id="chatInput" placeholder="Écrivez votre message à l'admin...">
+                                    <button class="send-btn" id="sendChatBtn">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Page -->
+                <div class="page" id="analyticsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-chart-line"></i> Analytiques — Recrutement</h2>
+                        <select id="analyticsPeriod" class="period-select">
+                            <option value="7">7 jours</option>
+                            <option value="30" selected>30 jours</option>
+                            <option value="90">90 jours</option>
+                        </select>
+                    </div>
+
+                    <!-- Section 1: KPI Cards (Candidats recommandés) -->
+                    <div class="analytics-kpi-grid recruitment-kpis" style="margin-bottom:18px; display:flex; gap:12px; flex-wrap:wrap;">
+                        <div class="analytics-kpi-card" style="flex:1; min-width:180px;">
+                            <div class="kpi-icon"><i class="fas fa-user"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="candidatesTotalKpi">0</span>
+                                <span class="kpi-label">Candidats recommandés</span>
+                            </div>
+                        </div>
+                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
+                            <div class="kpi-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="candidatesMonthKpi">0</span>
+                                <span class="kpi-label">Recommandations ce mois</span>
+                            </div>
+                        </div>
+                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
+                            <div class="kpi-icon"><i class="fas fa-fire"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="candidatesTodayKpi">0</span>
+                                <span class="kpi-label">Nouveaux aujourd'hui</span>
+                            </div>
+                        </div>
+                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
+                            <div class="kpi-icon"><i class="fas fa-phone"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="candidatesContactedKpi">0</span>
+                                <span class="kpi-label">Candidats contactés</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Charts (Growth + Type distribution) -->
+                    <div class="charts-grid" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+                        <div class="chart-card" style="flex:2; min-width:320px;">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-line"></i> Croissance des recommandations</h3>
+                                <span style="font-size:12px;color:var(--text-muted);">Sur la période sélectionnée</span>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="recommendationsGrowthChart" width="400" height="280"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card" style="flex:1; min-width:260px;">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-pie"></i> Répartition par type utilisateur</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="typeDistributionChart" width="300" height="280"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Conversion Funnel + Profile performance -->
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+                        <div class="card" style="flex:1; min-width:320px;">
+                            <div class="card-header">
+                                <h3><i class="fas fa-stream"></i> Taux de conversion</h3>
+                            </div>
+                            <div class="card-body" style="padding:14px;">
+                                <div id="conversionFunnel" style="display:flex; gap:12px; align-items:flex-end;">
+                                    <div style="flex:1; text-align:center;">
+                                        <div class="funnel-value" id="funnelRecommended" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
+                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Recommandés</div>
+                                    </div>
+                                    <div style="flex:1; text-align:center;">
+                                        <div class="funnel-value" id="funnelContacted" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
+                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Contactés</div>
+                                    </div>
+                                    <div style="flex:1; text-align:center;">
+                                        <div class="funnel-value" id="funnelInterview" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
+                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Entretien</div>
+                                    </div>
+                                    <div style="flex:1; text-align:center;">
+                                        <div class="funnel-value" id="funnelAccepted" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
+                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Acceptés</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="flex:1; min-width:320px;">
+                            <div class="card-header">
+                                <h3><i class="fas fa-university"></i> Performance du profil établissement</h3>
+                            </div>
+                            <div class="card-body" style="padding:14px;">
+                                <div style="display:flex; gap:12px; flex-direction:column;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Vues du profil</span><strong id="profileViews" style="color:var(--primary); font-size:18px;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Clics sur formations</span><strong id="profileClicks" style="color:var(--primary); font-size:18px;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Followers</span><strong id="profileFollowers" style="color:var(--primary); font-size:18px;">0</strong></div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;"><span style="color:var(--text-secondary);">Candidatures</span><strong id="profileApplications" style="color:var(--primary); font-size:18px;">0</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Top raisons de recommandation -->
+                    <div class="card" style="margin-bottom:18px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list-ol"></i> Top raisons de recommandation</h3>
+                        </div>
+                        <div class="card-body" style="padding:0; overflow:auto;">
+                            <table class="table" style="width:100%; border-collapse:collapse;">
+                                <thead style="background:var(--bg-secondary);">
+                                    <tr>
+                                        <th style="padding:10px; text-align:left;">Raison</th>
+                                        <th style="padding:10px; text-align:right;">Nombre de candidats</th>
+                                        <th style="padding:10px; text-align:right;">Pourcentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topReasonsTableBody">
+                                    <!-- Rempli dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Table of recommendations (détails du mail) -->
+                    <div class="card" style="margin-bottom:18px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list"></i> Recommandations reçues</h3>
+                        </div>
+                        <div class="card-body" style="padding:0; overflow:auto;">
+                            <table class="table" style="width:100%; border-collapse:collapse;">
+                                <thead style="background:var(--bg-secondary);">
+                                    <tr>
+                                        <th style="padding:10px; text-align:left;">Nom</th>
+                                        <th style="padding:10px; text-align:left;">Prénom</th>
+                                        <th style="padding:10px; text-align:left;">Téléphone</th>
+                                        <th style="padding:10px; text-align:left;">Type</th>
+                                        <th style="padding:10px; text-align:left;">Email</th>
+                                        <th style="padding:10px; text-align:left;">Raison</th>
+                                        <th style="padding:10px; text-align:left;">Date</th>
+                                        <th style="padding:10px; text-align:center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recommendationsTableBody">
+                                    <!-- Lignes remplies dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 6: Messages personnalisés reçus -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-envelope-open-text"></i> Messages personnalisés reçus</h3>
+                        </div>
+                        <div class="card-body" style="padding:14px;">
+                            <div id="customMessagesList" style="display:flex; flex-direction:column; gap:12px;">
+                                <!-- Cards with custom_message content filled dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div class="page" id="settingsPage">
+                    <div class="page-header">
+                        <h2><i class="fas fa-cog"></i> Paramètres</h2>
+                    </div>
+                    <div class="settings-container">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-building"></i> Informations de l'université</h3>
+                            </div>
+                            <form id="settingsForm" class="settings-form">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Nom de l'université</label>
+                                        <input type="text" id="uniName" value="Université Paris-Saclay">
+                                    </div>
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Ville</label>
+                                        <input type="text" id="uniCity" value="Paris">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="uniDescription" maxlength="200" placeholder="Décrivez votre université en quelques mots..."></textarea>
+                                    <small id="descCount" style="color:var(--text-muted);">0/200</small>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Email de contact</label>
+                                        <input type="email" id="uniEmail" value="contact@universite.fr">
+                                    </div>
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Téléphone</label>
+                                        <input type="text" id="uniPhone" value="+33 1 23 45 67 89">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Site web</label>
+                                    <input type="text" id="uniWebsite" value="https://www.universite.fr">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Logo</label>
+                                        <div class="logo-upload">
+                                            <input type="file" id="logoInput" accept="image/*" style="display:none;">
+                                            <div id="logoPreview" class="logo-preview" tabindex="0" role="button" aria-label="Sélectionner un logo">
+                                                <i class="fas fa-university"></i>
+                                            </div>
+                                            <small id="logoFilename">Aucun fichier choisi</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="flex:1;">
+                                        <label>Couleur principale</label>
+                                        <input type="color" id="primaryColor" value="#6366f1" style="height: 46px; padding: 4px 8px;">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary btn-block">
+                                    <i class="fas fa-save"></i> Sauvegarder les modifications
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Short Modal -->
+    <div class="modal" id="shortModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-video"></i> Nouveau Short</h3>
+                <button class="modal-close" onclick="window.closeModal('shortModal')">&times;</button>
+            </div>
+            <form id="shortForm" style="padding: 24px;">
+                <div class="form-group">
+                    <label>Titre du short</label>
+                    <input type="text" id="shortTitle" placeholder="Ex: Découvrez notre campus" required>
+                </div>
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select id="shortCategory">
+                        <option value="campus">Campus</option>
+                        <option value="formation">Formation</option>
+                        <option value="evenement">Événement</option>
+                        <option value="temoignage">Témoignage</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="shortDescription" placeholder="Ex: Une visite immersive de notre campus" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Hashtags</label>
+                    <input type="text" id="shortHashtags" placeholder="Ex: #campus #université">
+                </div>
+                <div class="form-group">
+                    <label>Vidéo</label>
+                    <div class="file-upload">
+                        <input type="file" id="shortVideo" accept="video/*" style="display:none;" required>
+                        <div id="shortVideoPreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une vidéo">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <small id="shortVideoFilename">Aucun fichier choisi</small>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn-secondary" onclick="window.closeModal('shortModal')" style="flex:1;">Annuler</button>
+                    <button type="submit" class="btn-primary" style="flex:1;">
+                        <i class="fas fa-paper-plane"></i> Publier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Flyer Modal -->
+    <div class="modal" id="flyerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-image"></i> Nouveau Flyer</h3>
+                <button class="modal-close" onclick="window.closeModal('flyerModal')">&times;</button>
+            </div>
+            <form id="flyerForm" style="padding: 24px;">
+                <div class="form-group">
+                    <label>Titre du flyer</label>
+                    <input type="text" id="flyerTitle" placeholder="Ex: Journée portes ouvertes" required>
+                </div>
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select id="flyerCategory">
+                        <option value="all">Général</option>
+                        <option value="admission">Admission</option>
+                        <option value="info">Information</option>
+                        <option value="evenement">Événement</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="flyerDescription" placeholder="Description du flyer..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    <div class="file-upload">
+                        <input type="file" id="flyerImage" accept="image/*" style="display:none;" required>
+                        <div id="flyerImagePreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une image de flyer">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <small id="flyerFilename">Aucun fichier choisi</small>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn-secondary" onclick="window.closeModal('flyerModal')" style="flex:1;">Annuler</button>
+                    <button type="submit" class="btn-primary" style="flex:1;">
+                        <i class="fas fa-cloud-upload-alt"></i> Publier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Formation Modal -->
+    <div class="modal" id="formationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-book-open"></i> Ajouter une formation</h3>
+                <button class="modal-close" onclick="window.closeModal('formationModal')">&times;</button>
+            </div>
+            <form id="formationForm" style="padding: 24px;">
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Nom de la formation</label>
+                        <input type="text" id="formationName" list="formationOptions" placeholder="Choisir ou saisir une filière" required>
+                        <datalist id="formationOptions"></datalist>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Niveau</label>
+                        <div style="display: flex; gap: 12px; align-items: flex-end;">
+                            <select id="formationLevel" style="flex: 1;">
+                                <option value="Licence">Licence</option>
+                                <option value="Master">Master</option>
+                            </select>
+                            <select id="formationLevelDetail" style="flex: 1; display: none;" aria-label="Niveau détaillé">
+                                <option value="Licence 1">Licence 1</option>
+                                <option value="Licence 2">Licence 2</option>
+                                <option value="Licence 3">Licence 3</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Durée</label>
+                        <input type="text" id="formationDuration" placeholder="Ex: 3 ans">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Lieu</label>
+                        <input type="text" id="formationLocation" placeholder="Ex: Campus principal">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Langue</label>
+                        <input type="text" id="formationLanguage" value="Français">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Frais d'inscription</label>
+                        <input type="text" id="formationFees" placeholder="Ex: 170€/an">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="formationDescription" placeholder="Description de la formation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Prérequis</label>
+                    <textarea id="formationPrerequisites" placeholder="Prérequis..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Alternance</label>
+                    <div style="display: flex; gap: 20px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="radio" name="formationAlternance" value="Oui"> Oui
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="radio" name="formationAlternance" value="Non" checked> Non
+                        </label>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn-secondary" onclick="window.closeModal('formationModal')" style="flex:1;">Annuler</button>
+                    <button type="submit" class="btn-primary" style="flex:1;">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-alt"></i> Créer un événement</h3>
+                <button class="modal-close" onclick="window.closeModal('eventModal')">&times;</button>
+            </div>
+            <form id="eventForm" style="padding: 24px;">
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" id="eventTitle" placeholder="Ex: Journée Portes Ouvertes" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Date de début</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Date de fin</label>
+                        <input type="date" id="eventEndDate">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Heure de début</label>
+                        <input type="time" id="eventTime">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Heure de fin</label>
+                        <input type="time" id="eventEndTime">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Lieu</label>
+                        <input type="text" id="eventLocation" placeholder="Ex: Amphi A">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Type</label>
+                        <select id="eventType">
+                            <option value="Portes Ouvertes">Portes Ouvertes</option>
+                            <option value="Forum">Forum</option>
+                            <option value="Conférence">Conférence</option>
+                            <option value="Atelier">Atelier</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="eventDescription" placeholder="Description de l'événement..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Lien d'inscription</label>
+                        <input type="url" id="eventLink" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Capacité</label>
+                        <input type="number" id="eventCapacity" placeholder="Ex: 500">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn-secondary" onclick="window.closeModal('eventModal')" style="flex:1;">Annuler</button>
+                    <button type="submit" class="btn-primary" style="flex:1;">
+                        <i class="fas fa-plus"></i> Créer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Testimonial Modal -->
+    <div class="modal" id="testimonialModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-quote-right"></i> Ajouter un témoignage</h3>
+                <button class="modal-close" onclick="window.closeModal('testimonialModal')">&times;</button>
+            </div>
+            <form id="testimonialForm" style="padding: 24px;">
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Nom de l'étudiant</label>
+                        <input type="text" id="testimonialName" placeholder="Ex: Marie Dubois" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Promotion</label>
+                        <input type="text" id="testimonialPromotion" placeholder="Ex: 2024">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Programme</label>
+                    <input type="text" id="testimonialProgram" placeholder="Ex: Licence Informatique">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <div style="display: flex; gap: 20px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
+                            <input type="radio" name="testimonialRating" value="5" checked> ★★★★★
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
+                            <input type="radio" name="testimonialRating" value="4"> ★★★★
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
+                            <input type="radio" name="testimonialRating" value="3"> ★★★
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="testimonialMessage" placeholder="Témoignage de l'étudiant..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Poste actuel</label>
+                    <input type="text" id="testimonialCurrentJob" placeholder="Ex: Développeuse chez TechCorp">
+                </div>
+                <div class="form-group">
+                    <label>Photo</label>
+                    <input type="file" id="testimonialPhoto" accept="image/*">
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn-secondary" onclick="window.closeModal('testimonialModal')" style="flex:1;">Annuler</button>
+                    <button type="submit" class="btn-primary" style="flex:1;">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Template Selector Modal -->
+    <div class="modal" id="templateSelectorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-palette"></i> Choisir un template</h3>
+                <button class="modal-close" onclick="window.closeModal('templateSelectorModal')">&times;</button>
+            </div>
+            <div id="templateSelectorBody" class="template-selector-body"></div>
+            <div style="padding: 16px; border-top: 1px solid var(--border);">
+                <button class="btn-secondary btn-block" onclick="window.closeModal('templateSelectorModal')">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ajouter après le modal templateSelectorModal -->
+<div class="modal" id="postPreviewModal">
+    <div class="modal-content post-preview-content">
+        <div class="post-preview-layout">
+            <!-- Partie gauche : Média -->
+            <div class="post-preview-media">
+                <div class="post-preview-close">
+                    <button class="modal-close" onclick="window.closeModal('postPreviewModal')">&times;</button>
+                </div>
+                <div id="postMediaContainer" class="post-media-container">
+                    <!-- Dynamique -->
+                </div>
+                <div class="post-actions-bar">
+                    <button class="post-action-btn" onclick="window.previewLike()">
+                        <i class="fas fa-heart"></i>
+                        <span id="previewLikeCount">0</span>
+                    </button>
+                    <button class="post-action-btn" onclick="window.previewShare()">
+                        <i class="fas fa-share"></i>
+                        <span id="previewShareCount">0</span>
+                    </button>
+                    <button class="post-action-btn">
+                        <i class="fas fa-eye"></i>
+                        <span id="previewViewCount">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Partie droite : Commentaires -->
+            <div class="post-preview-comments">
+                <div class="post-preview-header">
+                    <h3 id="previewPostTitle">Titre du post</h3>
+                    <span id="previewPostDate" style="font-size:12px;color:var(--text-muted);"></span>
+                </div>
+                <div class="post-preview-description" id="previewPostDescription">
+                    Description du post
+                </div>
+                <div class="post-comments-section">
+                    <div class="post-comments-header">
+                        <span>Commentaires</span>
+                        <span id="previewCommentCount">0</span>
+                    </div>
+                    <div id="previewCommentsList" class="post-comments-list">
+                        <!-- Dynamique -->
+                    </div>
+                </div>
+                <div class="post-comment-input-area">
+                    <div id="previewReplyTo" style="display:none;font-size:12px;color:var(--primary);">
+                        Réponse à <strong id="previewReplyToName"></strong>
+                        <button onclick="window.cancelReply()" style="background:none;border:none;color:var(--danger);cursor:pointer;">Annuler</button>
+                    </div>
+                    <div class="post-comment-input-wrapper">
+                        <input type="text" id="previewCommentInput" placeholder="Écrire un commentaire..." />
+                        <button onclick="window.sendPreviewComment()" class="send-comment-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Toast Container -->
+    <!-- Content preview modal (enhanced: media viewer + right pane with comments) -->
+    <div class="modal" id="contentPreviewModal">
+        <div class="modal-content content-preview-content">
+            <div class="modal-left content-preview-media-pane">
+                <div class="content-preview-topbar">
+                    <button class="modal-close" onclick="closeModal('contentPreviewModal')">&times;</button>
+                </div>
+                <div id="previewMediaViewer" class="content-preview-media-viewer"></div>
+                <div class="content-preview-controls">
+                    <button id="previewPrevButton" class="content-preview-nav-btn" type="button" style="display:none;">&larr;</button>
+                    <div id="previewImageCounter" class="content-preview-counter"></div>
+                    <button id="previewNextButton" class="content-preview-nav-btn" type="button" style="display:none;">&rarr;</button>
+                </div>
+            </div>
+            <div class="modal-right content-preview-details">
+                <!-- Right pane populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Track fetched views sums so we can show combined views (images + videos)
+        let fetchedShortsViews = 0;
+        let fetchedFlyersViews = 0;
+        // Track fetched followers sums (from content items) so we can combine with appData.followers
+        let fetchedShortsFollowers = 0;
+        let fetchedFlyersFollowers = 0;
+
+        function updateCombinedViewsDisplay() {
+            const total = (fetchedShortsViews || 0) + (fetchedFlyersViews || 0);
+            const statViews = document.getElementById('statViews');
+            if (statViews) statViews.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
+            const totalViewsKpi = document.getElementById('totalViewsKpi');
+            if (totalViewsKpi) totalViewsKpi.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
+        }
+
+        function updateCombinedFollowersDisplay() {
+            // The dashboard KPI must show the institution/centre followers count from the identity API.
+            const total = (window.appData && typeof window.appData.server_followers_count === 'number')
+                ? window.appData.server_followers_count
+                : 0;
+            const statFollowers = document.getElementById('statFollowers');
+            if (statFollowers) statFollowers.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
+            const totalFollowersKpi = document.getElementById('totalFollowersKpi');
+            if (totalFollowersKpi) totalFollowersKpi.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
+        }
+
+        (function(){
+            const input = document.getElementById('logoInput');
+            const preview = document.getElementById('logoPreview');
+            const filename = document.getElementById('logoFilename');
+
+            if (!input || !preview || !filename) return;
+
+            function showPlaceholder(){
+                preview.innerHTML = '<i class="fas fa-university"></i>';
+                filename.textContent = 'Aucun fichier choisi';
+            }
+
+            preview.addEventListener('click', () => input.click());
+            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+
+            input.addEventListener('change', (e) => {
+                const file = input.files && input.files[0];
+                if (!file) { showPlaceholder(); return; }
+                filename.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(ev){
+                    preview.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.alt = 'Logo';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // initialize
+            showPlaceholder();
+        })();
+
+        (function(){
+            const input = document.getElementById('flyerImage');
+            const preview = document.getElementById('flyerImagePreview');
+            const filename = document.getElementById('flyerFilename');
+            const flyerForm = document.getElementById('flyerForm');
+
+            if (!input || !preview || !filename) return;
+
+            function showFlyerPlaceholder(){
+                preview.innerHTML = '<i class="fas fa-upload"></i>';
+                filename.textContent = 'Aucun fichier choisi';
+            }
+
+            preview.addEventListener('click', () => input.click());
+            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+
+            input.addEventListener('change', () => {
+                const file = input.files && input.files[0];
+                if (!file) { showFlyerPlaceholder(); return; }
+                filename.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(ev){
+                    preview.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.alt = 'Prévisualisation du flyer';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (flyerForm) {
+                flyerForm.addEventListener('reset', () => showFlyerPlaceholder());
+            }
+
+            showFlyerPlaceholder();
+        })();
+
+        (function(){
+            const input = document.getElementById('shortVideo');
+            const preview = document.getElementById('shortVideoPreview');
+            const filename = document.getElementById('shortVideoFilename');
+            const shortForm = document.getElementById('shortForm');
+
+            if (!input || !preview || !filename) return;
+
+            function showShortVideoPlaceholder(){
+                preview.innerHTML = '<i class="fas fa-video"></i>';
+                filename.textContent = 'Aucun fichier choisi';
+            }
+
+            preview.addEventListener('click', () => input.click());
+            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+
+            input.addEventListener('change', () => {
+                const file = input.files && input.files[0];
+                if (!file) { showShortVideoPlaceholder(); return; }
+                filename.textContent = file.name;
+                preview.innerHTML = '<i class="fas fa-file-video"></i>';
+            });
+
+            if (shortForm) {
+                shortForm.addEventListener('reset', () => showShortVideoPlaceholder());
+            }
+
+            showShortVideoPlaceholder();
+        })();
+
+        // Fetch and populate profile for university/centre
+        async function fetchMyProfile() {
+            const base = window.API_BASE || 'https://universearch-pwlf.onrender.com';
+            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+            let session = {};
+            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
+
+            const token = session.jwt_token || localStorage.getItem('jwt_token') || localStorage.getItem('softura_token') || localStorage.getItem('token') || null;
+            if (!token) return; // no authenticated user
+
+            const roleRaw = (typeof getUserRole === 'function' ? getUserRole() : '') || (session.role || session.profile_type || session.profileType || session.institution_type || '').toString().toLowerCase();
+            const endpoints = roleRaw.includes('centre') ? ['/centres/me'] : ['/universites/me', '/centres/me'];
+
+            for (const ep of endpoints) {
+                try {
+                    const res = await fetch(base + ep, { headers: { Authorization: `Bearer ${token}` } });
+                    if (!res.ok) continue;
+                    const data = await res.json().catch(() => null);
+                    if (!data) continue;
+                    const profile = Array.isArray(data) ? data[0] : (data.data || data || {});
+                    profile.__institution_kind = ep.includes('/centres') ? 'centre' : 'universite';
+                    window.currentProfile = profile;
+                    populateProfile(profile);
+                    return;
+                } catch (e) {
+                    // try next endpoint
+                    continue;
+                }
+            }
+        }
+
+        function populateProfile(p) {
+            if (!p) return;
+            const name = p.name || p.nom || p.universiteName || p.label || '';
+            const city = p.city || p.ville || p.cityName || p.location || '';
+            const description = p.description || p.bio || p.about || '';
+            const email = p.email || p.contact_email || '';
+            const phone = p.phone || p.telephone || p.telephone_contact || p.contacts || p.contact || '';
+            // Accept several server-side variants (some backends use 'lien_site' or 'lien' or 'site_web')
+            const website = p.website || p.site || p.site_web || p.website_url || p.lien_site || p.lien || '';
+            const color = p.primaryColor || p.primary_color || p.color || p.themeColor || '';
+            const logoUrl = p.logo || p.logoUrl || p.logo_url || p.image || p.avatar || '';
+
+            const sidebarName = document.getElementById('sidebarUniName');
+            if (sidebarName && name) sidebarName.textContent = name;
+
+            const uniName = document.getElementById('uniName'); if (uniName && name) uniName.value = name;
+            const uniCity = document.getElementById('uniCity'); if (uniCity && city) uniCity.value = city;
+            const uniDescription = document.getElementById('uniDescription'); if (uniDescription && description) uniDescription.value = description;
+            const uniEmail = document.getElementById('uniEmail'); if (uniEmail && email) uniEmail.value = email;
+            const uniPhone = document.getElementById('uniPhone'); if (uniPhone && phone) uniPhone.value = phone;
+            const uniWebsite = document.getElementById('uniWebsite'); if (uniWebsite && website) uniWebsite.value = website;
+            const primaryColor = document.getElementById('primaryColor'); if (primaryColor && color) primaryColor.value = color;
+
+            // update avatar and logo preview
+            const avatar = document.getElementById('uniAvatarPreview');
+            if (avatar && logoUrl) {
+                avatar.innerHTML = '';
+                const img = document.createElement('img'); img.src = logoUrl; img.alt = 'Logo'; img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover'; avatar.appendChild(img);
+            }
+
+            const logoPreview = document.getElementById('logoPreview');
+            const logoFilename = document.getElementById('logoFilename');
+            if (logoPreview && logoUrl) {
+                logoPreview.innerHTML = '';
+                const img = document.createElement('img'); img.src = logoUrl; img.alt = 'Logo'; logoPreview.appendChild(img);
+                if (logoFilename) logoFilename.textContent = 'Logo chargé depuis le serveur';
+            }
+        }
+
+        function getContentAuthorCandidates(context, session = {}) {
+            const profile = window.currentProfile || {};
+            return [
+                context?.contentAuthorId,
+                context?.profileId,
+                profile.profile_id,
+                profile.user_id,
+                session.profile_id,
+                session.userId,
+                session.user_id,
+                session.id,
+                context?.id,
+                profile.id,
+                profile.centre_id,
+                profile.universite_id,
+                session.organization_id,
+                session.entity_id
+            ].filter((value, index, list) => value && list.indexOf(value) === index);
+        }
+
+        function getPostsFromResponse(json) {
+            if (Array.isArray(json)) return json;
+            if (Array.isArray(json?.data)) return json.data;
+            if (Array.isArray(json?.posts)) return json.posts;
+            if (Array.isArray(json?.data?.posts)) return json.data.posts;
+            return [];
+        }
+
+        async function fetchOrganizationPosts(contentBase, authorIds, entityType, preferOrganizationFeed = false) {
+            for (const authorId of authorIds) {
+                const urls = [];
+                if (preferOrganizationFeed) {
+                    const organizationQuery = new URLSearchParams({
+                        organization_id: authorId,
+                        organization_type: entityType,
+                        page: '1',
+                        limit: '1000',
+                    });
+                    urls.push(`${contentBase}/feed/organization?${organizationQuery.toString()}`);
+                }
+
+                const postsQuery = new URLSearchParams({
+                    entity_id: authorId,
+                    entity_type: entityType,
+                    limit: '1000',
+                });
+                urls.push(`${contentBase}/posts?${postsQuery.toString()}`);
+
+                for (const url of urls) {
+                    const res = await fetch(url);
+                    if (!res.ok) {
+                        console.warn('Could not fetch organization posts:', res.status, url);
+                        continue;
+                    }
+
+                    const json = await res.json().catch(() => null);
+                    const posts = getPostsFromResponse(json);
+                    if (posts.length > 0) {
+                        console.log('[MEDIA] Posts trouves avec author_id:', authorId, posts.length);
+                        return posts;
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        // Fetch and display shorts (videos only) for the university
+        async function fetchAndDisplayShorts() {
+            const contentBase = 'https://universearch-content-service.onrender.com';
+            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+            let session = {};
+            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
+
+            const context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
+            if (!context?.contentAuthorId && !window.currentProfile?.profile_id && typeof fetchMyProfile === 'function') {
+                await fetchMyProfile();
+            }
+            const refreshedContext = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : context;
+            const profileTypeRaw = (context?.kind || session.role || session.profile_type || session.profileType || window.currentProfile?.role || window.currentProfile?.profile_type || window.currentProfile?.profileType || '').toString().toLowerCase();
+            const entityType = refreshedContext?.entityType || (profileTypeRaw.includes('centre') ? 'centre' : 'universite');
+            const authorIds = getContentAuthorCandidates(refreshedContext, session);
+            if (authorIds.length === 0) return;
+
+            try {
+                const posts = await fetchOrganizationPosts(contentBase, authorIds, entityType, false);
+                const shorts = posts.filter(p => String(p.media_type || '').toLowerCase() === 'video' && String(p.statut || '').toUpperCase() === 'PUBLISHED');
+                shorts.forEach(short => registerPreviewItem('short', short));
+
+                // normalize and persist fetched shorts so the dashboard charts reflect remote content
+                appData.shorts = shorts.map(short => ({
+                    ...short,
+                    views: short.views_count ?? short.views ?? 0,
+                    likes: short.likes_count ?? short.likes ?? 0,
+                    shares: short.shares_count ?? short.shares ?? 0,
+                    createdAt: short.createdAt || short.date_creation || short.date_publication || new Date().toISOString(),
+                    videoUrl: short.media_url || short.videoUrl || ''
+                }));
+
+                // compute and store total views for shorts
+                fetchedShortsViews = appData.shorts.reduce((s, c) => s + (c.views || 0), 0);
+                // gather followers-like metric from shorts if present (some posts expose followers_count or author_followers)
+                fetchedShortsFollowers = appData.shorts.reduce((s, c) => s + (c.followers_count ?? c.author_followers ?? 0), 0);
+                updateCombinedViewsDisplay();
+                updateCombinedFollowersDisplay();
+
+                const shortsList = document.getElementById('shortsList');
+                if (!shortsList) return;
+
+                if (appData.shorts.length === 0) {
+                    shortsList.innerHTML = '<div class="empty-state"><i class="fas fa-video"></i><p>Aucun short vidéo pour le moment</p><button class="btn-primary" onclick="window.openShortModal()">Créer mon premier short</button></div>';
+                    updateShortCounts(0);
+                    updateDashboardStats();
+                    updateAnalytics();
+                    initEngagementChart();
+                    initDashboardPerformanceChart();
+                    return;
+                }
+
+                shortsList.innerHTML = shorts.map(short => {
+                    const likes = short.likes_count ?? 0;
+                    const shares = short.shares_count ?? short.shares ?? 0;
+                    const views = short.views_count ?? 0;
+                    return `
+                    <div class="flyer-card" onclick="openPreview('short','${short.id}')">
+                        <div class="flyer-image">
+                            <video src="${short.media_url || ''}" controls muted playsinline preload="metadata" onclick="event.stopPropagation()"></video>
+                        </div>
+                        <div class="flyer-info">
+                            <h4>${short.titre || 'Sans titre'}</h4>
+                            ${short.description ? `<p>${short.description.substring(0, 100)}...</p>` : ''}
+                            <div class="flyer-meta">
+                                <span><i class="fas fa-eye"></i> ${views}</span>
+                                <span><i class="fas fa-heart"></i> ${likes}</span>
+                                <span><i class="fas fa-share"></i> ${shares}</span>
+                            </div>
+                            <small style="color: var(--text-muted);">Publié le ${new Date(short.date_creation).toLocaleDateString('fr-FR')}</small>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                updateShortCounts(shorts.length);
+                updateDashboardStats();
+                updateAnalytics();
+                initEngagementChart();
+                initDashboardPerformanceChart();
+            } catch (e) {
+                console.error('Error fetching shorts:', e);
+            }
+        }
+
+        // Fetch and display flyers (images only) for the university
+        async function fetchAndDisplayFlyers() {
+            const contentBase = 'https://universearch-content-service.onrender.com';
+            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+            let session = {};
+            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
+
+            const context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
+            if (!context?.contentAuthorId && !window.currentProfile?.profile_id && typeof fetchMyProfile === 'function') {
+                await fetchMyProfile();
+            }
+            const refreshedContext = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : context;
+            const profileTypeRaw = (context?.kind || session.role || session.profile_type || session.profileType || window.currentProfile?.role || window.currentProfile?.profile_type || window.currentProfile?.profileType || '').toString().toLowerCase();
+            const entityType = refreshedContext?.entityType || (profileTypeRaw.includes('centre') ? 'centre' : 'universite');
+            const authorIds = getContentAuthorCandidates(refreshedContext, session);
+            if (authorIds.length === 0) return; // need an author id to filter
+
+            try {
+                const posts = await fetchOrganizationPosts(contentBase, authorIds, entityType, true);
+                console.log('📦 [DIAGNOSTIC] Posts reçus du serveur:', posts.length, posts);
+                
+                const flyers = posts.filter(p => String(p.media_type || '').toLowerCase() === 'image' && String(p.statut || '').toUpperCase() === 'PUBLISHED');
+                console.log('🖼️ [DIAGNOSTIC] Flyers filtrés (image + PUBLISHED):', flyers.length);
+                console.log('🖼️ [DIAGNOSTIC] Détail des flyers:', flyers.map(f => ({
+                    id: f.id,
+                    titre: f.titre,
+                    media_type: f.media_type,
+                    media_url: f.media_url,
+                    statut: f.statut,
+                    views: f.views_count,
+                    date: f.date_creation
+                })));
+                
+                flyers.forEach((f, idx) => {
+                    console.log(`🖼️ [DIAGNOSTIC] Flyer ${idx}: URL="${f.media_url}" | Titre="${f.titre}" | Type="${f.media_type}"`);
+                });
+                
+                flyers.forEach(flyer => registerPreviewItem('flyer', flyer));
+
+                // normalize and persist fetched flyers so the dashboard charts reflect remote content
+                appData.flyers = flyers.map(flyer => ({
+                    ...flyer,
+                    views: flyer.views_count ?? flyer.views ?? 0,
+                    likes: flyer.likes_count ?? flyer.likes ?? 0,
+                    comments: flyer.comments_count ?? flyer.comments ?? 0,
+                    createdAt: flyer.createdAt || flyer.date_creation || flyer.date_publication || new Date().toISOString(),
+                    imageUrl: flyer.media_url || flyer.imageUrl || ''
+                }));
+
+                // compute and store total views for flyers
+                fetchedFlyersViews = appData.flyers.reduce((s, c) => s + (c.views || 0), 0);
+                // gather followers-like metric from flyers if present
+                fetchedFlyersFollowers = appData.flyers.reduce((s, c) => s + (c.followers_count ?? c.author_followers ?? 0), 0);
+                updateCombinedViewsDisplay();
+                updateCombinedFollowersDisplay();
+
+                const flyersList = document.getElementById('flyersList');
+                if (!flyersList) return;
+
+                if (appData.flyers.length === 0) {
+                    flyersList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Aucun flyer disponible</p>';
+                    updateFlyerCounts(0);
+                    updateDashboardStats();
+                    updateAnalytics();
+                    initEngagementChart();
+                    initDashboardPerformanceChart();
+                    return;
+                }
+
+                console.log('🖼️ [RENDER] Premier flyer:', flyers[0]);
+                console.log('🖼️ [RENDER] Premier flyer media_url:', flyers[0]?.media_url);
+                console.log('🖼️ [RENDER] Nombre total de flyers à afficher:', flyers.length);
+
+                // TEST: Use static image for first item to verify CSS works
+                const testWithStaticImage = false; // Change to true to test CSS
+
+                flyersList.innerHTML = flyers.map((flyer, idx) => {
+                    const likes = flyer.likes_count ?? 0;
+                    const comments = flyer.comments_count ?? 0;
+                    const views = flyer.views_count ?? 0;
+                    const imageUrl = testWithStaticImage && idx === 0 
+                        ? 'https://picsum.photos/500/300?random=1'
+                        : flyer.media_url;
+                    
+                    console.log(`🖼️ [RENDER] Flyer ID=${flyer.id}, URL=${imageUrl}, Title=${flyer.titre}`);
+
+                    return `
+                    <div class="flyer-card" onclick="openPreview('flyer','${flyer.id}')">
+                        <div class="flyer-image">
+                            <img src="${imageUrl || ''}" alt="${flyer.titre || 'Flyer'}" loading="lazy" onerror="console.error('Image load failed for:', this.src)">
+                        </div>
+                        <div class="flyer-info">
+                            <h4>${flyer.titre || 'Sans titre'}</h4>
+                            ${flyer.description ? `<p>${flyer.description.substring(0, 100)}...</p>` : ''}
+                            <div class="flyer-meta">
+                                <span><i class="fas fa-comment"></i> ${comments}</span>
+                                <span><i class="fas fa-heart"></i> ${likes}</span>
+                                <span><i class="fas fa-eye"></i> ${views}</span>
+                            </div>
+                            <small style="color: var(--text-muted);">Publié le ${new Date(flyer.date_creation).toLocaleDateString('fr-FR')}</small>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                updateFlyerCounts(flyers.length);
+                updateDashboardStats();
+                updateAnalytics();
+                initEngagementChart();
+                initDashboardPerformanceChart();
+            } catch (e) {
+                console.error('Error fetching flyers:', e);
+            }
+        }
+
+        function updateShortCounts(count) {
+            const shortsCount = document.getElementById('shortsCount');
+            if (shortsCount) shortsCount.textContent = count;
+            const statShorts = document.getElementById('statShorts');
+            if (statShorts) statShorts.textContent = count;
+            const shortsPageCount = document.getElementById('shortsPageCount');
+            if (shortsPageCount) shortsPageCount.textContent = count;
+        }
+
+        function updateFlyerCounts(count) {
+            const flyersCount = document.getElementById('flyersCount');
+            if (flyersCount) flyersCount.textContent = count;
+            const statFlyers = document.getElementById('statFlyers');
+            if (statFlyers) statFlyers.textContent = count;
+            const flyersPageCount = document.getElementById('flyersPageCount');
+            if (flyersPageCount) flyersPageCount.textContent = count;
+        }
+
+        const previewRegistry = { short: {}, flyer: {} };
+
+        function registerPreviewItem(type, item) {
+            if (!previewRegistry[type]) previewRegistry[type] = {};
+            if (item && item.id) {
+                previewRegistry[type][item.id] = item;
+            }
+        }
+
+        async function openPreview(type, id) {
+            let item = previewRegistry[type]?.[id];
+            if (!item) {
+                const source = type === 'short' ? window.appData?.shorts || [] : window.appData?.flyers || [];
+                item = source.find(i => i.id === id);
+            }
+            if (!item) return;
+
+            const modal = document.getElementById('contentPreviewModal');
+            const mediaViewer = document.getElementById('previewMediaViewer');
+            const previewRight = document.querySelector('#contentPreviewModal .modal-right');
+            const prevBtn = document.getElementById('previewPrevButton');
+            const nextBtn = document.getElementById('previewNextButton');
+            const counter = document.getElementById('previewImageCounter');
+            if (!modal || !mediaViewer || !previewRight || !prevBtn || !nextBtn || !counter) return;
+
+            const medias = [];
+            if (Array.isArray(item.medias) && item.medias.length > 0) {
+                item.medias.forEach(m => { if (m && m.url) medias.push({ url: m.url, type: m.type || 'image' }); });
+            }
+            if (medias.length === 0) {
+                const url = item.media_url || item.videoUrl || item.imageUrl || item.image || '';
+                const typeGuess = (item.media_type === 'video' || String(url).toLowerCase().includes('.mp4') || String(url).toLowerCase().includes('/video')) ? 'video' : 'image';
+                if (url) medias.push({ url, type: typeGuess });
+            }
+            if (medias.length === 0) return;
+
+            let currentIndex = 0;
+            const totalMedia = medias.length;
+
+            const previewTitle = item.titre || item.title || 'Prévisualisation';
+            const previewDescription = item.description || item.desc || '';
+            const previewDate = item.date_creation || item.createdAt || item.date || new Date().toISOString();
+            const likes = Number(item.likes_count ?? item.likes ?? 0);
+            const initialComments = Array.isArray(item.comments) ? item.comments : (Array.isArray(item.comments_list) ? item.comments_list : []);
+            let comments = window.normalizeComments ? window.normalizeComments(initialComments) : initialComments;
+            const views = Number(item.views_count ?? item.views ?? 0);
+            const shares = Number(item.shares_count ?? item.shares ?? 0);
+            let liked = Boolean(item.isLiked);
+            let currentLikes = likes;
+            let replyingToId = null;
+
+            const formatDate = (value) => { try { const d = new Date(value); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR'); } catch (e) { return ''; } };
+
+            const countComments = (list) => (list || []).reduce((total, comment) => total + 1 + countComments(comment.replies || []), 0);
+
+            const findCommentById = (list, searchId) => {
+                for (const comment of list) {
+                    if (String(comment.id) === String(searchId)) return comment;
+                    if (Array.isArray(comment.replies)) {
+                        const nested = findCommentById(comment.replies, searchId);
+                        if (nested) return nested;
+                    }
+                }
+                return null;
+            };
+
+            const createCommentHTML = (comment, level = 0) => {
+                const container = document.createElement('div');
+                container.style.marginLeft = `${level * 12}px`;
+                container.style.padding = '10px';
+                container.style.borderRadius = '10px';
+                container.style.border = '1px solid var(--border)';
+                container.style.background = 'var(--bg-secondary)';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '6px';
+
+                const header = document.createElement('div');
+                header.style.display = 'flex';
+                header.style.justifyContent = 'space-between';
+                header.style.alignItems = 'center';
+
+                const author = document.createElement('strong');
+                author.textContent = comment.author || comment.user?.name || comment.user?.sigle || comment.user || comment.name || 'Anonyme';
+                const time = document.createElement('span');
+                time.style.color = 'var(--text-muted)';
+                time.style.fontSize = '12px';
+                time.textContent = formatDate(comment.createdAt || comment.created_at || comment.date_comment || comment.date || new Date().toISOString());
+                header.appendChild(author);
+                header.appendChild(time);
+
+                const text = document.createElement('div');
+                text.style.color = 'var(--text-primary)';
+                text.style.whiteSpace = 'pre-wrap';
+                text.textContent = comment.text || comment.contenu || comment.body || '';
+
+                const actions = document.createElement('div');
+                actions.style.display = 'flex';
+                actions.style.gap = '8px';
+
+                const replyBtn = document.createElement('button');
+                replyBtn.type = 'button';
+                replyBtn.textContent = 'Répondre';
+                replyBtn.style.background = 'transparent';
+                replyBtn.style.border = 'none';
+                replyBtn.style.cursor = 'pointer';
+                replyBtn.style.color = 'var(--primary)';
+                replyBtn.onclick = () => {
+                    replyingToId = comment.id;
+                    const replyInfo = document.getElementById('previewReplyInfo');
+                    const replyAuthor = document.getElementById('previewReplyToAuthor');
+                    const commentInput = document.getElementById('previewInputComment');
+                    if (replyInfo && replyAuthor) {
+                        replyAuthor.textContent = comment.author || comment.user || comment.name || 'Anonyme';
+                        replyInfo.style.display = 'flex';
+                    }
+                    if (commentInput) { commentInput.placeholder = `Répondre à ${comment.author || comment.user || comment.name || 'Anonyme'}...`; commentInput.focus(); }
+                };
+                actions.appendChild(replyBtn);
+
+                container.appendChild(header);
+                container.appendChild(text);
+                container.appendChild(actions);
+
+                if (Array.isArray(comment.replies) && comment.replies.length > 0) {
+                    comment.replies.forEach(r => container.appendChild(createCommentHTML(r, level + 1)));
+                }
+                return container;
+            };
+
+            const renderComments = () => {
+                const commentsContainer = document.getElementById('previewCommentsContainer');
+                const commentsCount = document.getElementById('previewCommentCount');
+                if (!commentsContainer || !commentsCount) return;
+                commentsContainer.innerHTML = '';
+                if (!comments || comments.length === 0) {
+                    const empty = document.createElement('div'); empty.style.color = 'var(--text-muted)'; empty.textContent = 'Aucun commentaire pour le moment.'; commentsContainer.appendChild(empty);
+                } else {
+                    comments.forEach(c => commentsContainer.appendChild(createCommentHTML(c)));
+                }
+                const total = countComments(comments);
+                commentsCount.textContent = `${total} commentaire${total > 1 ? 's' : ''}`;
+            };
+
+            const addComment = async (text) => {
+                const normalized = String(text || '').trim();
+                if (!normalized) return;
+                const commentInput = document.getElementById('previewInputComment');
+                const sendBtn = document.getElementById('previewSendComment');
+                if (commentInput) commentInput.disabled = true;
+                if (sendBtn) sendBtn.disabled = true;
+
+                let newComment;
+                try {
+                    newComment = window.createPostComment
+                        ? await window.createPostComment(item.id, normalized, replyingToId)
+                        : null;
+                } catch (error) {
+                    console.warn('Comment API failed, keeping comment locally:', error);
+                } finally {
+                    if (commentInput) commentInput.disabled = false;
+                    if (sendBtn) sendBtn.disabled = false;
+                }
+
+                if (!newComment) {
+                    newComment = { id: `local_${Date.now()}`, author: 'Vous', text: normalized, createdAt: new Date().toISOString(), parent_comment_id: replyingToId || null, replies: [] };
+                }
+                if (replyingToId) {
+                    const parent = findCommentById(comments, replyingToId);
+                    if (parent) { parent.replies = parent.replies || []; parent.replies.push(newComment); }
+                    else { comments.push(newComment); }
+                } else { comments.push(newComment); }
+                replyingToId = null;
+                const replyInfo = document.getElementById('previewReplyInfo');
+                if (replyInfo) replyInfo.style.display = 'none';
+                if (commentInput) { commentInput.placeholder = 'Écrivez un commentaire...'; commentInput.value = ''; }
+                renderComments();
+            };
+
+            const renderMedia = () => {
+                mediaViewer.innerHTML = '';
+                const m = medias[currentIndex];
+                if (!m) return;
+                counter.textContent = `${currentIndex + 1}/${totalMedia}`;
+                if (m.type === 'video') {
+                    const v = document.createElement('video'); v.src = m.url || ''; v.controls = true; v.style.width = '100%'; v.style.height = '100%'; v.style.objectFit = 'contain'; mediaViewer.appendChild(v);
+                } else {
+                    const img = document.createElement('img'); img.src = m.url || ''; img.alt = previewTitle; img.style.maxWidth = '100%'; img.style.maxHeight = '100%'; img.style.objectFit = 'contain'; mediaViewer.appendChild(img);
+                }
+            };
+
+            const renderRightPane = () => {
+                previewRight.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <h2 id="previewTitleText" style="margin:0 0 6px; font-size:18px;">${previewTitle}</h2>
+                                <div style="color:var(--text-muted); font-size:13px;"><span><i class='fas fa-calendar'></i> ${formatDate(previewDate)}</span></div>
+                            </div>
+                            <div style="text-align:right; color:var(--text-muted); font-size:13px;">${views} vues</div>
+                        </div>
+                        <div id="previewDetails" style="color:var(--text-muted); line-height:1.5;">${previewDescription}</div>
+                        <div style="display:flex; gap:8px;">
+                            <div id="previewLikeButton" class="action-item" style="cursor:pointer; display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:var(--bg);">
+                                <i class="fas fa-heart" style="color:${liked ? '#ef4444' : 'inherit'}"></i>
+                                <span id="previewLikeCount">${currentLikes}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:var(--bg);">
+                                <i class="fas fa-share"></i>
+                                <span>${shares}</span>
+                            </div>
+                        </div>
+                        <div id="previewCommentsSection" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                            <h4 style="margin:0; font-size:1rem;">Commentaires</h4>
+                            <div id="previewCommentsContainer" style="display:flex; flex-direction:column; gap:8px; max-height:240px; overflow:auto; padding-right:6px;"></div>
+                            <div id="previewReplyInfo" style="display:none; align-items:center; gap:8px; color:#2563eb; font-size:0.95rem;">
+                                <span>Répondre à <strong id="previewReplyToAuthor"></strong></span>
+                                <button id="previewCancelReply" type="button" style="border:none; background:none; color:#ef4444; cursor:pointer;">Annuler</button>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+                                <input id="previewInputComment" type="text" placeholder="Écrivez un commentaire..." style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text-primary);">
+                                <button id="previewSendComment" type="button" class="btn-primary" style="padding:8px 12px; border-radius:10px;">Envoyer</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // wire comment controls
+                const sendBtn = document.getElementById('previewSendComment');
+                const cancelReply = document.getElementById('previewCancelReply');
+                const input = document.getElementById('previewInputComment');
+                if (sendBtn) sendBtn.onclick = () => addComment(input ? input.value : '');
+                if (cancelReply) cancelReply.onclick = () => { replyingToId = null; const ri = document.getElementById('previewReplyInfo'); if (ri) ri.style.display = 'none'; if (input) { input.placeholder = 'Écrivez un commentaire...'; input.value = ''; } };
+                if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { addComment(input.value); } });
+            };
+
+            prevBtn.style.display = totalMedia > 1 ? 'inline-flex' : 'none';
+            nextBtn.style.display = totalMedia > 1 ? 'inline-flex' : 'none';
+
+            prevBtn.onclick = () => { currentIndex = (currentIndex > 0) ? currentIndex - 1 : totalMedia - 1; renderMedia(); };
+            nextBtn.onclick = () => { currentIndex = (currentIndex < totalMedia - 1) ? currentIndex + 1 : 0; renderMedia(); };
+
+            renderRightPane();
+            renderComments();
+            renderMedia();
+            modal.classList.add('active');
+
+            if (window.fetchPostComments && item.id) {
+                try {
+                    comments = await window.fetchPostComments(item.id);
+                    item.comments = comments;
+                    renderComments();
+                } catch (error) {
+                    console.warn('Error loading comments:', error);
+                }
+            }
+        }
+
+        // run after small delay to ensure DOM is ready
+        setTimeout(fetchMyProfile, 200);
+        setTimeout(fetchAndDisplayShorts, 250);
+        setTimeout(fetchAndDisplayFlyers, 300);
+        setTimeout(fetchAndDisplayFollowersCount, 350);
+
+        async function fetchAndDisplayFollowersCount() {
+            const base = 'https://universearch-pwlf.onrender.com';
+            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+            let session = {};
+            try { session = JSON.parse(sessionStr); } catch (e) { session = {}; }
+
+            const token = session.jwt_token || localStorage.getItem('jwt_token') || localStorage.getItem('softura_token') || localStorage.getItem('token') || null;
+            let profile = window.currentProfile || null;
+
+            if ((!profile || !(profile.id || profile.centre_id || profile.universite_id)) && token && typeof fetchMyProfile === 'function') {
+                await fetchMyProfile();
+                profile = window.currentProfile || profile;
+            }
+
+            let context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
+            let profileTypeRaw = [
+                profile?.role,
+                profile?.profile_type,
+                profile?.profileType,
+                profile?.type,
+                profile?.institution_type,
+                profile?.__institution_kind,
+                context?.kind
+            ].filter(Boolean).join(' ').toLowerCase();
+            let entityType = profileTypeRaw.includes('centre') ? 'centres' : 'universites';
+            let entityId = profile?.id || profile?.centre_id || profile?.universite_id || context?.id || session.organization_id || session.entity_id || null;
+
+            if (!entityId && token) {
+                try {
+                    const roleRaw = (typeof getUserRole === 'function' ? getUserRole() : '') || (session.role || session.profile_type || session.profileType || session.institution_type || '').toString().toLowerCase();
+                    const meEndpoints = roleRaw.includes('centre') ? ['/centres/me'] : ['/universites/me', '/centres/me'];
+                    for (const ep of meEndpoints) {
+                        const res = await fetch(base + ep, { headers: { Authorization: `Bearer ${token}` } });
+                        if (!res.ok) continue;
+                        const data = await res.json().catch(() => null);
+                        const meProfile = Array.isArray(data) ? data[0] : (data.data || data || {});
+                        if (meProfile && (meProfile.id || meProfile.centre_id || meProfile.universite_id)) {
+                            meProfile.__institution_kind = ep.includes('/centres') ? 'centre' : 'universite';
+                            window.currentProfile = meProfile;
+                            profile = meProfile;
+                            entityId = meProfile.id || meProfile.centre_id || meProfile.universite_id;
+                            entityType = ep.includes('/centres') ? 'centres' : 'universites';
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading /me profile for followers count:', e);
+                    return;
+                }
+            }
+
+            if (!entityId) return;
+
+            const url = `${base}/${entityType}/${encodeURIComponent(entityId)}/followers/count`;
+            console.log('🔍 [FOLLOWERS DEBUG] URL:', url);
+            console.log('🔍 [FOLLOWERS DEBUG] entityId:', entityId);
+            console.log('🔍 [FOLLOWERS DEBUG] entityType:', entityType);
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers.Authorization = `Bearer ${token}`;
+                const res = await fetch(url, { headers });
+                if (!res.ok) {
+                    console.log('🔍 [FOLLOWERS DEBUG] API response NOT OK:', res.status);
+                    return;
+                }
+                const json = await res.json().catch(() => null);
+                console.log('🔍 [FOLLOWERS DEBUG] API response JSON:', json);
+                if (!json) return;
+                const count = json.followerCount
+                    ?? json.followersCount
+                    ?? json.followers_count
+                    ?? json.totalFollowers
+                    ?? json.total
+                    ?? json.count
+                    ?? json.data?.followerCount
+                    ?? json.data?.followersCount
+                    ?? json.data?.followers_count
+                    ?? json.data?.totalFollowers
+                    ?? json.data?.total
+                    ?? json.data?.count
+                    ?? null;
+                if (count == null) return;
+                if (typeof appData !== 'undefined') {
+                    appData.server_followers_count = Number(count);
+                    window.appData = appData;
+                } else {
+                    window.appData = window.appData || {};
+                    window.appData.server_followers_count = Number(count);
+                }
+                const statFollowers = document.getElementById('statFollowers');
+                if (statFollowers) statFollowers.textContent = typeof formatNumber === 'function' ? formatNumber(Number(count)) : String(count);
+                if (typeof updateDashboardStats === 'function') updateDashboardStats();
+            } catch (e) {
+                console.error('Error fetching followers count:', e);
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

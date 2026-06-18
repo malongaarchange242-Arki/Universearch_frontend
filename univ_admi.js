@@ -1,5 +1,5 @@
 /**
- * EDUSAAS - Main Dashboard Logic
+ * UNIVERSEARCH - Main Dashboard Logic
  * 2026 Edition
  */
 
@@ -98,7 +98,7 @@ function animateCards() {
 }
 
 // --- Fetch and display stats from backend ---
-const API_BASE = 'https://universearch-t126.onrender.com';
+const API_BASE = 'https://universearch-pwlf.onrender.com';
 
 function safeCountFromResponse(json) {
     if (Array.isArray(json)) return json.length;

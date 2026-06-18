@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Base URL for the content service (posts/comments/etc)
-    const CONTENT_API = 'https://universearch-content-service-k7kz.onrender.com';
+    const CONTENT_API = 'https://universearch-content-service.onrender.com';
 
     // Common auth headers helper
     const getAuthHeaders = () => {

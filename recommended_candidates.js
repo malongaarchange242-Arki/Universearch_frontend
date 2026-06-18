@@ -54,10 +54,10 @@ function afficherMessageSysteme(html) {
 // ============================================================================
 
 const API_CONFIG = {
-    PROA_API: 'https://universearch-proa-service-weza.onrender.com', // Local development
-    PORA_API: 'https://universearch-pora-service-1.onrender.com',
-    IDENTITY_API: 'https://universearch-t126.onrender.com',
-    MAIL_API: 'https://universearch-mail-4c9k.onrender.com',
+    PROA_API: 'https://universearch-proa-service.onrender.com', // Local development
+    PORA_API: 'https://universearch-pora-service.onrender.com',
+    IDENTITY_API: 'https://universearch-pwlf.onrender.com',
+    MAIL_API: 'https://universearch-mail.onrender.com',
 };
 
 // ============================================================================
@@ -74,6 +74,7 @@ let statistiquesCourantes = {
     avg_score: 0,
     top_10_count: 0
 };
+let proaApiBlocked = false;
 
 let filtres = {
     etablissement: '',
@@ -261,6 +262,16 @@ function setupEventListeners() {
     document.getElementById('filter-search').addEventListener('input', appliquerFiltres);
 }
 
+function afficherCandidatsSimules(message = 'Utilisation des donnees simulees (API indisponible)') {
+    console.log('Chargement des donnees simulees...');
+    candidats = genererCandidatsSimulés(10);
+    totalCandidats = candidats.length;
+    statistiquesCourantes = calculerStatistiques(candidats);
+    mettreAJourStatistiques();
+    afficherCandidats();
+    afficherToast(message, 'info');
+}
+
 // ============================================================================
 // CHARGEMENT DES DONNÉES
 // ============================================================================
@@ -294,7 +305,6 @@ async function chargerCandidats() {
         const response = await fetch(url, {
             method: 'GET',
             headers: { 
-                'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             signal: controller.signal
