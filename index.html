@@ -151,6 +151,174 @@
         }
         .btn-submit:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
+        /* Checkbox "Se souvenir de moi" */
+        .remember-forgot-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0 20px 0;
+            font-size: 14px;
+        }
+
+        .remember-forgot-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .remember-forgot-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+            transition: 0.2s;
+        }
+
+        .remember-forgot-row input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        .remember-forgot-row a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .remember-forgot-row a:hover {
+            text-decoration: underline;
+            color: var(--brand-color);
+        }
+
+        /* Modal Forgot Password */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brand-color);
+            margin-bottom: 8px;
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .modal-form .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-form label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .modal-form input {
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .modal-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+        }
+
+        .modal-btn-submit {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .modal-btn-submit:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-light);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-btn-cancel:hover {
+            background: #f1f5f9;
+        }
+
         /* Liens */
         .toggle-link { text-align: center; margin-top: 35px; font-size: 14px; color: var(--text-light); }
         .toggle-link span { color: var(--accent-color); font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -252,11 +420,11 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <label style="display: flex; align-items: center; font-size: 13px; color: var(--text-light); font-weight: 400; cursor: pointer;">
-                        <input type="checkbox" id="remember-me" style="margin-right: 8px;"> Se souvenir de moi
+                <div class="remember-forgot-row">
+                    <label>
+                        <input type="checkbox" id="remember-me"> Se souvenir de moi
                     </label>
-                    <a href="#" id="forgot-password-link" style="font-size: 13px; color: var(--accent-color); text-decoration: none; font-weight: 500;">Accès perdu ?</a>
+                    <a href="#" id="forgot-password-link">Accès perdu ?</a>
                 </div>
 
                 <button type="submit" class="btn-submit">
@@ -328,6 +496,31 @@
             </div>
         </div>
 
+    <!-- Modal Réinitialisation Mot de Passe -->
+    <div id="forgot-password-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Réinitialiser le mot de passe</h3>
+                <p>Entrez votre adresse email pour recevoir un lien de réinitialisation</p>
+            </div>
+
+            <form id="forgot-password-form" class="modal-form">
+                <div class="input-group">
+                    <label for="forgot-email">Adresse email</label>
+                    <input type="email" id="forgot-email" placeholder="votre@email.com" required>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-btn-submit">
+                        Envoyer le lien
+                    </button>
+                    <button type="button" class="modal-btn-cancel" onclick="closeForgotPasswordModal()">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     </div>
 
     <!-- Success modal inserted at end of body -->
@@ -385,6 +578,24 @@
                 document.getElementById('login-form').reset();
             }
         }
+
+        // Restore saved credentials on page load if "remember me" was previously checked
+        function loadSavedCredentials() {
+            const savedEmail = localStorage.getItem('saved_login_email');
+            const savedPass = localStorage.getItem('saved_login_password');
+            const rememberMeCheckbox = document.getElementById('remember-me');
+            
+            if (savedEmail && savedPass) {
+                document.getElementById('login-email').value = savedEmail;
+                document.getElementById('login-pass').value = savedPass;
+                if (rememberMeCheckbox) {
+                    rememberMeCheckbox.checked = true;
+                }
+            }
+        }
+
+        // Call on page load
+        loadSavedCredentials();
 
         // --- INSCRIPTION : utiliser exclusivement /auth/register ---
         document.getElementById('register-form').addEventListener('submit', async (e) => {
@@ -546,6 +757,16 @@
                 const rememberMe = document.getElementById('remember-me').checked;
                 const storage = rememberMe ? localStorage : sessionStorage;
                 
+                // Save credentials in localStorage if "remember me" is checked
+                if (rememberMe) {
+                    localStorage.setItem('saved_login_email', email);
+                    localStorage.setItem('saved_login_password', pass);
+                } else {
+                    // Clear saved credentials if "remember me" is unchecked
+                    localStorage.removeItem('saved_login_email');
+                    localStorage.removeItem('saved_login_password');
+                }
+                
                 // Persist token and user info
                 storage.setItem('softura_token', token);
                 storage.setItem('token', token);
@@ -624,24 +845,87 @@
             });
         }
         
-        // Forgot password handler
-        const forgotPasswordLink = document.getElementById('forgot-password-link');
-        if (forgotPasswordLink) {
-            forgotPasswordLink.addEventListener('click', (e) => {
+        // Forgot password modal and submission
+        function openForgotPasswordModal() {
+            const modal = document.getElementById('forgot-password-modal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                const emailInput = document.getElementById('forgot-email');
+                if (emailInput) emailInput.focus();
+            }
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgot-password-modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                const form = document.getElementById('forgot-password-form');
+                if (form) form.reset();
+            }
+        }
+
+        const forgotPasswordLinkEl = document.getElementById('forgot-password-link');
+        if (forgotPasswordLinkEl) {
+            forgotPasswordLinkEl.addEventListener('click', (e) => {
                 e.preventDefault();
-                showToast('Veuillez contacter l\'administrateur pour réinitialiser votre mot de passe', 'info');
+                openForgotPasswordModal();
             });
         }
-        
-        // Check if user is already logged in and redirect
-        const existingToken = localStorage.getItem('softura_token') || sessionStorage.getItem('softura_token');
-        if (existingToken && window.location.pathname.includes('Univ.html') === false) {
-            // Only redirect if not already on a dashboard page
-            const currentPage = window.location.pathname.split('/').pop();
-            if (currentPage !== 'institutions.html' && currentPage !== 'dashboard.html') {
-                // Optional: verify token with server before redirect
-                // For now, just let the user stay on login page, they can still login again
-            }
+
+        const forgotPasswordModalEl = document.getElementById('forgot-password-modal');
+        if (forgotPasswordModalEl) {
+            forgotPasswordModalEl.addEventListener('click', (e) => {
+                if (e.target === forgotPasswordModalEl) closeForgotPasswordModal();
+            });
+        }
+
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        if (forgotPasswordForm) {
+            forgotPasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('forgot-email').value.trim();
+                if (!email) {
+                    showToast('Veuillez entrer votre adresse email', 'error');
+                    return;
+                }
+
+                const btn = forgotPasswordForm.querySelector('button[type="submit"]');
+                const originalText = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Envoi en cours...';
+                    btn.disabled = true;
+                }
+
+                try {
+                    const res = await fetch('https://universearch-pwlf.onrender.com/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const errorMsg = json?.error || json?.message || 'Erreur lors de l\'envoi';
+                        throw new Error(errorMsg);
+                    }
+
+                    showToast('Lien de réinitialisation envoyé à votre email', 'success');
+                    closeForgotPasswordModal();
+                    const loginEmail = document.getElementById('login-email');
+                    if (loginEmail) loginEmail.value = email;
+                } catch (err) {
+                    console.error('Forgot password error:', err);
+                    showToast(err.message || 'Une erreur s\'est produite', 'error');
+                } finally {
+                    if (btn) {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                }
+            });
         }
     </script>
 </body>
