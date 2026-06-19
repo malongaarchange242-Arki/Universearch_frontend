@@ -5,7 +5,7 @@
 
 const MESSAGING_SERVICE_URL = localStorage.getItem('messaging_service_url') || 'https://universearch-messaging.onrender.com';
 const SOCKET_URL = localStorage.getItem('socket_url') || 'https://universearch-messaging.onrender.com';
-const API_BASE = 'https://universearch-9qle.onrender.com';
+const API_BASE = 'https://universearch-pwlf.onrender.com';
 
 // State management
 const adminState = {

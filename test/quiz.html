@@ -378,7 +378,12 @@
                                     <option value="admin">admin</option>
                                     <option value="superviseur">superviseur</option>
                                 </select>
-                                <input id="regUserType" placeholder="userType (bachelier|etudiant|parent)" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px">
+                                <div id="regUserTypeContainer">
+                                    <input id="regUserType" placeholder="userType (bachelier|etudiant|parent)" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px">
+                                </div>
+                                <div id="regQuartierContainer">
+                                    <input id="regQuartier" placeholder="Quartier" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px">
+                                </div>
                                 <div style="display:flex;gap:8px">
                                     <button id="registerBtn" class="btn-primary" style="flex:1">Créer le compte</button>
                                     <button id="fillTestBtn" class="btn-secondary" style="flex:1">Remplir test</button>
@@ -720,6 +725,20 @@
         document.getElementById('nextBtn').addEventListener('click', nextQuestion);
         document.getElementById('prevBtn').addEventListener('click', prevQuestion);
 
+        const regProfileTypeSelect = document.getElementById('regProfileType');
+        const regUserTypeContainer = document.getElementById('regUserTypeContainer');
+        const regQuartierContainer = document.getElementById('regQuartierContainer');
+
+        const updateRegistrationVisibility = () => {
+            const type = regProfileTypeSelect.value;
+            const showUserFields = type === 'utilisateur';
+            regUserTypeContainer.style.display = showUserFields ? 'block' : 'none';
+            regQuartierContainer.style.display = showUserFields ? 'block' : 'none';
+        };
+
+        regProfileTypeSelect.addEventListener('change', updateRegistrationVisibility);
+        updateRegistrationVisibility();
+
         // Identity-service: register from quiz
         document.getElementById('registerBtn').addEventListener('click', async function () {
             const email = document.getElementById('regEmail').value.trim();
@@ -729,6 +748,7 @@
             const telephone = document.getElementById('regTelephone').value.trim();
             const profileType = document.getElementById('regProfileType').value;
             const userType = document.getElementById('regUserType').value.trim() || undefined;
+            const quartier = document.getElementById('regQuartier').value.trim() || undefined;
 
             const msg = document.getElementById('registerMessage');
             msg.textContent = '';
@@ -743,6 +763,7 @@
                     telephone,
                     profileType,
                     userType,
+                    quartier,
                 };
 
                 const res = await fetch('http://localhost:3001/auth/register', {
@@ -779,6 +800,7 @@
             document.getElementById('regNom').value = `Test`;
             document.getElementById('regPrenom').value = `User${random}`;
             document.getElementById('regUserType').value = 'etudiant';
+            document.getElementById('regQuartier').value = 'Montmartre';
         });
 
         // Lancer

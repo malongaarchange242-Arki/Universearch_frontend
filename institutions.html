@@ -28,6 +28,7 @@
         .flyer-meta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; color: var(--text-muted); font-size: 13px; margin-top: 6px; }
         .flyer-meta span { display: inline-flex; align-items: center; gap: 6px; }
         .flyer-meta i { color: var(--accent-color); }
+        .flyer-meta button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
         .page-count-badge { display: inline-flex; align-items: center; justify-content: center; margin-left: 10px; padding: 4px 10px; border-radius: 999px; font-size: 0.85rem; background: var(--primary); color: white; }
     </style>
 </head>
@@ -93,14 +94,6 @@
                             <i class="fas fa-book-open"></i>
                             <span>Formations</span>
                         </a>
-                        <a class="nav-item nav-subitem" data-page="events">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Événements</span>
-                        </a>
-                        <a class="nav-item nav-subitem" data-page="testimonials">
-                            <i class="fas fa-quote-right"></i>
-                            <span>Témoignages</span>
-                        </a>
                     </div>
                 </div>
 
@@ -151,16 +144,12 @@
                     <p id="pageSubtitle">Bienvenue dans votre espace de gestion</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary" id="createContentBtn">
-                        <i class="fas fa-plus"></i>
-                        <span>Nouveau contenu</span>
-                    </button>
                     <div class="notifications">
                         <i class="far fa-comment-dots"></i>
                         <span class="notif-badge" id="headerChatBadge">0</span>
                     </div>
                     <div class="user-menu">
-                        <img src="https://ui-avatars.com/api/?background=6366f1&color=fff&rounded=true&bold=true&name=U" alt="Admin">
+                        <img id="headerUniversityLogo" src="" alt="Logo Université" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #f0f0f0;">
                     </div>
                 </div>
             </header>
@@ -216,8 +205,8 @@
                             </div>
                             <div class="stat-content">
                                 <h3 class="stat-value" id="statMessages">0</h3>
-                                <p class="stat-label">Messages chat</p>
-                                <span class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</span>
+                                <p class="stat-label">Commentaires totaux</p>
+                                <span class="stat-trend up"><i class="fas fa-arrow-up"></i> Total</span>
                             </div>
                         </div>
                     </div>
@@ -343,27 +332,6 @@
                 </div>
 
                 <!-- Events Page -->
-                <div class="page" id="eventsPage">
-                    <div class="page-header">
-                        <h2><i class="fas fa-calendar-alt"></i> Événements</h2>
-                        <button class="btn-primary" onclick="window.openEventModal()">
-                            <i class="fas fa-plus"></i> Créer événement
-                        </button>
-                    </div>
-                    <div id="eventsList" class="events-grid"></div>
-                </div>
-
-                <!-- Testimonials Page -->
-                <div class="page" id="testimonialsPage">
-                    <div class="page-header">
-                        <h2><i class="fas fa-quote-right"></i> Témoignages</h2>
-                        <button class="btn-primary" onclick="window.openTestimonialModal()">
-                            <i class="fas fa-plus"></i> Ajouter témoignage
-                        </button>
-                    </div>
-                    <div id="testimonialsList" class="testimonials-grid"></div>
-                </div>
-
                 <!-- Chat Page -->
                 <div class="page" id="chatPage">
                     <div class="page-header">
@@ -1335,6 +1303,7 @@
                     ...short,
                     views: short.views_count ?? short.views ?? 0,
                     likes: short.likes_count ?? short.likes ?? 0,
+                    comments: short.comments_count ?? short.comments ?? 0,
                     shares: short.shares_count ?? short.shares ?? 0,
                     createdAt: short.createdAt || short.date_creation || short.date_publication || new Date().toISOString(),
                     videoUrl: short.media_url || short.videoUrl || ''
@@ -1376,6 +1345,9 @@
                                 <span><i class="fas fa-eye"></i> ${views}</span>
                                 <span><i class="fas fa-heart"></i> ${likes}</span>
                                 <span><i class="fas fa-share"></i> ${shares}</span>
+                                <button class="delete-btn" onclick="event.stopPropagation(); window.deleteContent('short','${short.id}')" aria-label="Supprimer ce short">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
                             </div>
                             <small style="color: var(--text-muted);">Publié le ${new Date(short.date_creation).toLocaleDateString('fr-FR')}</small>
                         </div>
@@ -1491,6 +1463,9 @@
                                 <span><i class="fas fa-comment"></i> ${comments}</span>
                                 <span><i class="fas fa-heart"></i> ${likes}</span>
                                 <span><i class="fas fa-eye"></i> ${views}</span>
+                                <button class="delete-btn" onclick="event.stopPropagation(); window.deleteContent('flyer','${flyer.id}')" aria-label="Supprimer ce flyer">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
                             </div>
                             <small style="color: var(--text-muted);">Publié le ${new Date(flyer.date_creation).toLocaleDateString('fr-FR')}</small>
                         </div>

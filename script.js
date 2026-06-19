@@ -23,7 +23,8 @@ window.appData = appData;
 let availableFilieres = [];
 
 // API Configuration
-const CONTENT_API = 'https://universearch-content-service.onrender.com';
+const CONTENT_API = window.CONTENT_API || 'https://universearch-content-service.onrender.com';
+const MESSAGING_SERVICE_URL = window.MESSAGING_SERVICE_URL || 'https://universearch-messaging.onrender.com';
 
 // Helper to get JWT token from various storage locations
 function getJWTToken() {
@@ -658,14 +659,7 @@ function initSampleData() {
     }
 
     if (appData.followers.length === 0) {
-        appData.followers = [
-            { id: 'f1', platform: 'Instagram', handle: '@univ_paris_saclay', followers: 15200, growth: 12.5, color: 'platform-1', icon: 'fa-instagram' },
-            { id: 'f2', platform: 'Twitter', handle: '@UnivParisSaclay', followers: 8900, growth: 8.3, color: 'platform-2', icon: 'fa-twitter' },
-            { id: 'f3', platform: 'YouTube', handle: '@UnivParisSaclay', followers: 23400, growth: 15.7, color: 'platform-3', icon: 'fa-youtube' },
-            { id: 'f4', platform: 'Facebook', handle: '/UnivParisSaclay', followers: 31200, growth: -2.1, color: 'platform-4', icon: 'fa-facebook' },
-            { id: 'f5', platform: 'LinkedIn', handle: '/school/univ-paris-saclay', followers: 45600, growth: 22.4, color: 'platform-1', icon: 'fa-linkedin' },
-            { id: 'f6', platform: 'TikTok', handle: '@univ_paris_saclay', followers: 28900, growth: 34.8, color: 'platform-3', icon: 'fa-tiktok' }
-        ];
+        initSampleFollowersData();
     }
 
     if (appData.analyticsHistory.length === 0) {
@@ -696,6 +690,10 @@ async function loadData() {
     await loadUniversityProfileFromApi();
     await loadAvailableFilieresFromApi();
     const loadedFromApi = await loadFormationsFromApi();
+    const loadedTopFollowers = await loadTopFollowers();
+    if (!loadedTopFollowers && appData.followers.length === 0) {
+        initSampleFollowersData();
+    }
     const formationsEmpty = !Array.isArray(appData.formations) || appData.formations.length === 0;
     if (!loadedFromApi && formationsEmpty) {
         const loadedFromJson = await loadFormationsFromJson();
@@ -737,6 +735,72 @@ function saveData() {
     updateAllDisplays();
 }
 
+async function loadTopFollowers() {
+    console.log('[TopFollowers] loadTopFollowers called');
+    const token = getJWTToken();
+    const { organizationId, kind } = getCurrentOrganizationContext();
+    console.log('[TopFollowers] organizationId:', organizationId, 'organizationType raw:', kind);
+    const searchParams = new URLSearchParams();
+
+    if (organizationId) {
+        searchParams.set('organization_id', organizationId);
+    }
+
+    if (kind) {
+        searchParams.set('organization_type', kind === 'centre' ? 'centre_formation' : 'universite');
+    }
+
+    const endpoint = `${CONTENT_API}/stats/organization/top-followers${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    console.log('[TopFollowers] endpoint:', endpoint);
+
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
+        const res = await fetch(endpoint, {
+            headers,
+        });
+
+        console.log('[TopFollowers] fetch response status:', res.status);
+        const json = await res.json().catch(() => null);
+        console.log('[TopFollowers] fetch response payload:', json);
+
+        if (!res.ok) {
+            console.warn('Failed to load top followers:', res.status);
+            return false;
+        }
+        if (!json || !json.success || !Array.isArray(json.data)) {
+            console.warn('Unexpected top followers payload:', json);
+            return false;
+        }
+
+        if (json.data.length > 0) {
+            appData.followers = json.data.map((item) => ({
+                id: item.user_id,
+                display_name: item.display_name,
+                likes: item.likes,
+                comments: item.comments,
+                views: item.views,
+                score: item.score,
+                last_interaction_at: item.last_interaction_at,
+                platform: item.display_name,
+                handle: item.user_id,
+            }));
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.warn('Error loading top followers:', error);
+        return false;
+    }
+}
+
 // Update all UI components
 function updateAllDisplays() {
     updateUniversityInfo();
@@ -746,8 +810,6 @@ function updateAllDisplays() {
     displayShorts();
     displayFlyers();
     displayFormations();
-    displayEvents();
-    displayTestimonials();
     updateAnalytics();
     updateActivityFeed();
     updateChatUI();
@@ -796,6 +858,17 @@ function updateUniversityInfo() {
             ? 'Logo selectionne'
             : 'Logo charge depuis le serveur';
     }
+
+    // Mettre à jour le logo dans le header
+    const headerLogo = document.getElementById('headerUniversityLogo');
+    if (headerLogo && appData.university.logo) {
+        headerLogo.src = appData.university.logo;
+        headerLogo.onerror = () => {
+            headerLogo.src = `https://ui-avatars.com/api/?background=6366f1&color=fff&rounded=true&bold=true&name=${encodeURIComponent(appData.university.name.substring(0, 1))}`;
+        };
+    } else if (headerLogo) {
+        headerLogo.src = `https://ui-avatars.com/api/?background=6366f1&color=fff&rounded=true&bold=true&name=${encodeURIComponent(appData.university.name.substring(0, 1))}`;
+    }
     
     document.documentElement.style.setProperty('--primary', appData.university.primaryColor);
     document.documentElement.style.setProperty('--primary-dark', appData.university.primaryColor);
@@ -828,7 +901,7 @@ function updateDashboardStats() {
     if (statFollowers) statFollowers.textContent = formatNumber(totalFollowers);
     
     const statMessages = document.getElementById('statMessages');
-    if (statMessages) statMessages.textContent = formatNumber(appData.chatMessages || 0);
+    if (statMessages) statMessages.textContent = formatNumber(getTotalContentComments());
 }
 
 // NOUVELLE FONCTION : Formatage des nombres
@@ -886,32 +959,140 @@ function getContentShares(item) {
     return Number(item.shares_count ?? item.shares ?? 0);
 }
 
+function getContentComments(item) {
+    return Number(item.comments_count ?? item.comments ?? item.comment_count ?? 0);
+}
+
+function getTotalContentComments() {
+    return appData.shorts.reduce((sum, item) => sum + getContentComments(item), 0) +
+        appData.flyers.reduce((sum, item) => sum + getContentComments(item), 0);
+}
+
 function getContentCreatedAt(item) {
     return new Date(item.createdAt || item.date_creation || item.date_publication || item.created_at || Date.now()).toISOString();
+}
+
+function initSampleFollowersData() {
+    appData.followers = [
+        { 
+            id: 'f1', 
+            user_id: 'f1',
+            display_name: 'Jean Dupont', 
+            platform: 'Instagram', 
+            handle: '@jeandupont', 
+            followers: 15200, 
+            growth: 12.5, 
+            likes: 1520, 
+            comments: 234, 
+            views: 45000,
+            shares: 120,
+            score: 2574,
+            color: 'platform-1', 
+            icon: 'fa-instagram' 
+        },
+        { 
+            id: 'f2', 
+            user_id: 'f2',
+            display_name: 'Marie Garcia', 
+            platform: 'Twitter', 
+            handle: '@mariagarcia', 
+            followers: 8900, 
+            growth: 8.3, 
+            likes: 890,
+            comments: 156,
+            views: 28000,
+            shares: 67,
+            score: 1621,
+            color: 'platform-2', 
+            icon: 'fa-twitter' 
+        },
+        { 
+            id: 'f3', 
+            user_id: 'f3',
+            display_name: 'Paul Martin', 
+            platform: 'YouTube', 
+            handle: '@paulmartin', 
+            followers: 23400, 
+            growth: 15.7, 
+            likes: 2340,
+            comments: 456,
+            views: 89000,
+            shares: 234,
+            score: 4842,
+            color: 'platform-3', 
+            icon: 'fa-youtube' 
+        },
+        { 
+            id: 'f4', 
+            user_id: 'f4',
+            display_name: 'Sophie Bernard', 
+            platform: 'Facebook', 
+            handle: '/sophiebernard', 
+            followers: 31200, 
+            growth: -2.1, 
+            likes: 3120,
+            comments: 234,
+            views: 102000,
+            shares: 89,
+            score: 5279,
+            color: 'platform-4', 
+            icon: 'fa-facebook' 
+        },
+        { 
+            id: 'f5', 
+            user_id: 'f5',
+            display_name: 'Antoine Leclerc', 
+            platform: 'LinkedIn', 
+            handle: '/antoineleclerc', 
+            followers: 45600, 
+            growth: 22.4, 
+            likes: 4560,
+            comments: 890,
+            views: 134000,
+            shares: 456,
+            score: 8942,
+            color: 'platform-1', 
+            icon: 'fa-linkedin' 
+        }
+    ];
 }
 
 // NOUVELLE FONCTION : Mise à jour section followers
 function updateFollowersSection() {
     const followersList = document.getElementById('followersList');
+    console.log('[TopFollowers] updateFollowersSection called', {
+        followersLength: appData.followers.length,
+        followersListExists: !!followersList,
+    });
     if (followersList) {
-        followersList.innerHTML = appData.followers.map(follower => `
+        followersList.innerHTML = appData.followers.map(follower => {
+            const name = follower.display_name || follower.platform || follower.handle || follower.name || follower.id || 'Follower';
+            const interactionCount = follower.score != null
+                ? `${formatNumber(follower.score)} interactions`
+                : typeof follower.followers === 'number'
+                    ? `${formatNumber(follower.followers)} followers`
+                    : '';
+            const likes = Number(follower.likes || follower.followers || 0);
+            const comments = Number(follower.comments || 0);
+            const views = Number(follower.views || 0);
+
+            return `
             <div class="follower-item">
-                <div class="follower-avatar ${follower.color}">
-                    <i class="fab ${follower.icon}"></i>
+                <div class="follower-avatar ${follower.color || 'platform-1'}">
+                    <i class="fab ${follower.icon || 'fa-user'}"></i>
                 </div>
                 <div class="follower-info">
-                    <div class="follower-name">${follower.platform}</div>
-                    <div class="follower-handle">${follower.handle}</div>
-                </div>
-                <div class="follower-stats">
-                    <div class="follower-count">${formatNumber(follower.followers)}</div>
-                    <div class="follower-growth ${follower.growth >= 0 ? 'up' : 'down'}">
-                        <i class="fas fa-${follower.growth >= 0 ? 'arrow-up' : 'arrow-down'}"></i>
-                        ${Math.abs(follower.growth)}%
+                    <div class="follower-name">${escapeHtml(name)}</div>
+                    <div class="follower-meta">${escapeHtml(interactionCount)}</div>
+                    <div class="follower-details">
+                        <span>${formatNumber(likes)} likes</span>
+                        <span>${formatNumber(comments)} commentaires</span>
+                        <span>${formatNumber(views)} vues</span>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 }
 
@@ -930,70 +1111,70 @@ function initFollowersChart() {
     
     if (followersChart) followersChart.destroy();
     
+    // Utiliser les vrais followers de l'API
+    const followers = Array.isArray(appData.followers) ? appData.followers : [];
+    const colors = [
+        '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', 
+        '#8b5cf6', '#f97316', '#14b8a6', '#d946ef', '#6ee7b7'
+    ];
+    
+    // Si pas de followers, afficher un graphe vide
+    if (followers.length === 0) {
+        followersChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Aucune donnée'],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+        return;
+    }
+    
+    // Créer un dataset pour chaque top follower avec ses interactions
+    const datasets = followers.slice(0, 5).map((follower, index) => {
+        const color = colors[index % colors.length];
+        const displayName = follower.display_name || `Follower ${index + 1}`;
+        
+        // Simuler une progression d'interactions sur 12 mois pour ce follower
+        const baseInteractions = follower.score || 100;
+        const monthlyData = Array.from({ length: 12 }, (_, month) => {
+            // Croissance progressive avec variation
+            const growth = Math.floor((baseInteractions / 12) * (month + 1));
+            const variance = Math.floor(Math.random() * (baseInteractions * 0.1));
+            return Math.max(0, growth + variance);
+        });
+        
+        return {
+            label: displayName,
+            data: monthlyData,
+            borderColor: color,
+            backgroundColor: color.replace(')', ', 0.08)').replace('rgb(', 'rgba('),
+            borderWidth: 2.5,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: color,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        };
+    });
+    
     const labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
     
     followersChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Instagram',
-                    data: [8000, 8500, 9200, 9800, 10500, 11200, 11800, 12500, 13200, 14000, 14800, 15200],
-                    borderColor: '#E1306C',
-                    backgroundColor: 'rgba(225, 48, 108, 0.08)',
-                    borderWidth: 2.5,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#E1306C',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'YouTube',
-                    data: [12000, 12800, 13500, 14200, 15000, 16200, 17500, 18800, 20000, 21500, 22500, 23400],
-                    borderColor: '#FF0000',
-                    backgroundColor: 'rgba(255, 0, 0, 0.08)',
-                    borderWidth: 2.5,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#FF0000',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'Twitter',
-                    data: [5000, 5300, 5600, 6000, 6400, 6800, 7200, 7600, 8000, 8400, 8700, 8900],
-                    borderColor: '#1DA1F2',
-                    backgroundColor: 'rgba(29, 161, 242, 0.08)',
-                    borderWidth: 2.5,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#1DA1F2',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'Facebook',
-                    data: [35000, 34800, 34500, 34000, 33800, 33500, 33000, 32800, 32500, 32000, 31600, 31200],
-                    borderColor: '#1877F2',
-                    backgroundColor: 'rgba(24, 119, 242, 0.08)',
-                    borderWidth: 2.5,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#1877F2',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                }
-            ]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -1019,14 +1200,14 @@ function initFollowersChart() {
                     cornerRadius: 8,
                     callbacks: {
                         label: function(context) {
-                            return context.dataset.label + ': ' + formatNumber(context.parsed.y);
+                            return context.dataset.label + ': ' + formatNumber(context.parsed.y) + ' interactions';
                         }
                     }
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: false,
+                    beginAtZero: true,
                     grid: { color: 'rgba(0,0,0,0.04)' },
                     ticks: {
                         callback: function(value) { return formatNumber(value); },
@@ -1051,7 +1232,7 @@ function initDashboardPerformanceChart() {
     let history = Array.isArray(appData.analyticsHistory) ? appData.analyticsHistory.slice(-14) : [];
     if (history.length === 0) {
         const totalViews = appData.shorts.reduce((sum, item) => sum + getContentViews(item), 0) + appData.flyers.reduce((sum, item) => sum + getContentViews(item), 0);
-        const totalMessages = getDashboardStatValue('statMessages', appData.chatMessages || 0);
+        const totalMessages = getDashboardStatValue('statMessages', getTotalContentComments());
         const totalFollowers = getDashboardStatValue('statFollowers', (typeof appData.server_followers_count === 'number') ? appData.server_followers_count : 0);
         history = buildSyntheticHistory(14, { views: totalViews, messages: totalMessages, followers: totalFollowers });
     }
@@ -1071,7 +1252,7 @@ function initDashboardPerformanceChart() {
                     borderSkipped: false
                 },
                 {
-                    label: 'Messages',
+                    label: 'Commentaires',
                     data: history.map(h => h.messages ?? 0),
                     backgroundColor: 'rgba(16, 185, 129, 0.7)',
                     borderColor: '#10b981',
@@ -1134,14 +1315,14 @@ function initEngagementChart() {
     engagementChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Shorts publiés', 'Flyers actifs', 'Vues totales', 'Followers totaux', 'Messages chat'],
+            labels: ['Shorts publiés', 'Flyers actifs', 'Vues totales', 'Followers totaux', 'Commentaires'],
             datasets: [{
                 data: [
                     getDashboardStatValue('statShorts', appData.shorts.length),
                     getDashboardStatValue('statFlyers', appData.flyers.length),
                     getDashboardStatValue('statViews', appData.shorts.reduce((s, c) => s + getContentViews(c), 0) + appData.flyers.reduce((s, c) => s + getContentViews(c), 0)),
                     getDashboardStatValue('statFollowers', (typeof appData.server_followers_count === 'number') ? appData.server_followers_count : 0),
-                    getDashboardStatValue('statMessages', appData.chatMessages || 0)
+                    getDashboardStatValue('statMessages', getTotalContentComments())
                 ],
                 backgroundColor: [
                     'rgba(99, 102, 241, 0.8)',
@@ -1455,79 +1636,6 @@ function displayFormations() {
     `).join('');
 }
 
-function displayEvents() {
-    const container = document.getElementById('eventsList');
-    if (!container) return;
-    
-    if (appData.events.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>Aucun événement planifié</p><button class="btn-primary" onclick="window.openEventModal()">Créer un événement</button></div>';
-        return;
-    }
-    
-    container.innerHTML = appData.events.map(event => {
-        const startDateTime = event.date ? new Date(event.date + 'T' + (event.time || '00:00')) : null;
-        const formattedDate = startDateTime ? startDateTime.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : event.date;
-        
-        return `
-        <div class="event-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                <h4 class="event-title" style="margin:0;">${escapeHtml(event.title)}</h4>
-                <span style="background: var(--info-gradient); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${event.type || 'Événement'}</span>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <p style="margin:0; font-size:13px;"><i class="fas fa-calendar" style="color:var(--primary);width:20px;"></i> ${formattedDate}</p>
-                ${event.time ? `<p style="margin:0; font-size:13px;"><i class="fas fa-clock" style="color:var(--primary);width:20px;"></i> ${event.time}${event.endTime ? ' - ' + event.endTime : ''}</p>` : ''}
-                <p style="margin:0; font-size:13px;"><i class="fas fa-map-marker-alt" style="color:var(--primary);width:20px;"></i> ${escapeHtml(event.location || '')}</p>
-                ${event.capacity ? `<p style="margin:0; font-size:13px;"><i class="fas fa-users" style="color:var(--primary);width:20px;"></i> ${event.capacity} places</p>` : ''}
-            </div>
-            ${event.description ? `<p style="font-size:14px;margin-bottom:12px;">${escapeHtml(event.description)}</p>` : ''}
-            ${event.link ? `<a href="${event.link}" target="_blank" class="event-link"><i class="fas fa-external-link-alt"></i> Lien d'inscription</a>` : ''}
-            <div style="margin-top: 16px;">
-                <button class="btn-secondary" onclick="window.deleteEvent('${event.id}')" style="color:var(--danger);">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    `}).join('');
-}
-
-function displayTestimonials() {
-    const container = document.getElementById('testimonialsList');
-    if (!container) return;
-    
-    if (appData.testimonials.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-quote-right"></i><p>Aucun témoignage</p><button class="btn-primary" onclick="window.openTestimonialModal()">Ajouter un témoignage</button></div>';
-        return;
-    }
-    
-    container.innerHTML = appData.testimonials.map(testimonial => {
-        const stars = '★'.repeat(parseInt(testimonial.rating) || 5) + '☆'.repeat(5 - (parseInt(testimonial.rating) || 5));
-        return `
-        <div class="testimonial-card">
-            <div style="font-size: 16px; font-style: italic; margin-bottom: 16px; color: var(--text-secondary); line-height: 1.6;">
-                <i class="fas fa-quote-left" style="color: var(--primary); opacity: 0.3; font-size: 24px;"></i>
-                ${escapeHtml(testimonial.message)}
-            </div>
-            <div class="author-info">
-                <div class="author-avatar">
-                    ${testimonial.photo ? `<img src="${testimonial.photo}" alt="${escapeHtml(testimonial.studentName)}">` : `<i class="fas fa-user"></i>`}
-                </div>
-                <div>
-                    <strong>${escapeHtml(testimonial.studentName)}</strong>
-                    <div class="author-meta">Promotion ${testimonial.promotion} - ${escapeHtml(testimonial.program)}</div>
-                    <div class="author-rating">${stars}</div>
-                </div>
-            </div>
-            ${testimonial.currentJob ? `<div class="author-job"><i class="fas fa-briefcase"></i> ${escapeHtml(testimonial.currentJob)}</div>` : ''}
-            <div style="margin-top: 16px;">
-                <button class="btn-secondary" onclick="window.deleteTestimonial('${testimonial.id}')" style="color:var(--danger);">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    `}).join('');
-}
-
 function updateAnalytics() {
     // Check if this is recruitment analytics (has recruitment KPI elements)
     const recruitmentKpi = document.getElementById('candidatesTotalKpi');
@@ -1721,6 +1829,72 @@ function deleteContent(type, id) {
     }
 }
 
+async function deletePostFromApi(id) {
+    const token = getJWTToken();
+    if (!token) {
+        throw new Error('Session expiree: reconnectez-vous pour supprimer ce contenu.');
+    }
+
+    const res = await fetch(`${CONTENT_API}/posts/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        const text = payload ? '' : await res.text().catch(() => '');
+        const apiMessage = payload?.error || payload?.message || text;
+
+        if (res.status === 401) {
+            throw new Error('Session expiree: reconnectez-vous pour supprimer ce contenu.');
+        }
+        if (res.status === 403) {
+            throw new Error("Suppression refusee: vous ne pouvez supprimer que vos propres contenus.");
+        }
+        if (res.status === 404 || String(apiMessage || '').toLowerCase().includes('post not found')) {
+            return { success: true, alreadyDeleted: true };
+        }
+
+        throw new Error(apiMessage || `Impossible de supprimer le contenu (${res.status}).`);
+    }
+
+    return res.json().catch(() => null);
+}
+
+async function refreshContentAfterDelete(type) {
+    if (type === 'short' && typeof fetchAndDisplayShorts === 'function') {
+        await fetchAndDisplayShorts();
+    } else if (type === 'flyer' && typeof fetchAndDisplayFlyers === 'function') {
+        await fetchAndDisplayFlyers();
+    } else {
+        updateAllDisplays();
+    }
+}
+
+async function deleteContent(type, id) {
+    if (!id) return;
+    if (!confirm('Etes-vous sur de vouloir supprimer ce contenu ?')) return;
+
+    try {
+        await deletePostFromApi(id);
+
+        if (type === 'short') {
+            appData.shorts = appData.shorts.filter(s => String(s.id) !== String(id));
+        } else {
+            appData.flyers = appData.flyers.filter(f => String(f.id) !== String(id));
+        }
+
+        saveData();
+        await refreshContentAfterDelete(type);
+        showToast('Contenu supprime en base avec succes', 'error');
+    } catch (error) {
+        console.error('Erreur suppression contenu:', error);
+        showToast(error.message || 'Impossible de supprimer ce contenu', 'error');
+    }
+}
+
 function deleteFormation(id) {
     if (confirm('Supprimer cette formation ?')) {
         appData.formations = appData.formations.filter(f => f.id !== id);
@@ -1800,6 +1974,8 @@ function navigateTo(page) {
         setTimeout(() => {
             updateAnalytics();
         }, 200);
+    } else if (page === 'chat') {
+        setTimeout(() => loadSupportConversation(), 10);
     }
     
     // Fermer le sidebar mobile
@@ -2033,14 +2209,165 @@ const supportConversations = {
         icon: 'fa-headset',
         unread: 0,
         time: 'Maintenant',
-        messages: [
-            { text: 'Bonjour, nous souhaitons contacter l\'administration Universearch au sujet de notre espace institution.', sent: true, time: '10:25' },
-            { text: 'Bonjour, votre demande est bien reçue. Expliquez-nous ce dont vous avez besoin et l\'équipe admin vous répondra ici.', sent: false, time: '10:27' }
-        ]
+        messages: []
     }
 };
 
 let activeSupportConversationId = null;
+let supportConversationId = null;
+let supportConversationLoaded = false;
+
+async function getOrCreateSupportConversation() {
+    const token = getJWTToken();
+    if (!token) {
+        showToast('Vous devez être connecté pour utiliser le chat de support.', 'error');
+        return null;
+    }
+
+    try {
+        const response = await fetch(`${MESSAGING_SERVICE_URL}/conversations?limit=50&offset=0`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Erreur getConversations:', response.status, errorText);
+            return null;
+        }
+
+        const result = await response.json().catch(() => null);
+        const conversations = Array.isArray(result?.data) ? result.data : [];
+        const organization = getCurrentOrganizationContext();
+        const institutionId = organization.organizationId;
+
+        let conversation = conversations.find(conv => conv.institution_id === institutionId);
+        if (!conversation) {
+            const name = `Support Universearch - ${organization.kind === 'centre' ? 'Centre' : 'Université'}`;
+            const description = 'Conversation de support entre l\'institution et l\'administration Universearch.';
+            const createRes = await fetch(`${MESSAGING_SERVICE_URL}/conversations`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, description })
+            });
+
+            if (!createRes.ok) {
+                const errorText = await createRes.text().catch(() => '');
+                console.error('Erreur createConversation:', createRes.status, errorText);
+                showToast('Impossible de créer la conversation de support.', 'error');
+                return null;
+            }
+
+            const created = await createRes.json().catch(() => null);
+            conversation = created?.data || null;
+        }
+
+        return conversation;
+    } catch (error) {
+        console.error('Erreur getOrCreateSupportConversation:', error);
+        return null;
+    }
+}
+
+async function loadSupportConversation() {
+    if (supportConversationLoaded) return;
+
+    const conversation = await getOrCreateSupportConversation();
+    if (!conversation) {
+        return;
+    }
+
+    supportConversationId = conversation.id;
+    supportConversations.admin.name = conversation.name || supportConversations.admin.name;
+    supportConversations.admin.time = 'Maintenant';
+    activeSupportConversationId = 'admin';
+
+    try {
+        const token = getJWTToken();
+        const response = await fetch(`${MESSAGING_SERVICE_URL}/conversations/${supportConversationId}/messages?limit=100&offset=0`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json().catch(() => null);
+            const messages = Array.isArray(result?.data) ? result.data : [];
+            supportConversations.admin.messages = messages.map(msg => ({
+                text: msg.text || '',
+                sent: msg.sender_type !== 'admin',
+                time: msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+            }));
+            supportConversationLoaded = true;
+            updateChatUI();
+            // Update counters after loading messages
+            updateSupportMessageCounts();
+            if (activeSupportConversationId) selectConversation(activeSupportConversationId);
+        } else {
+            const errorText = await response.text().catch(() => '');
+            console.error('Erreur loadSupportConversation messages:', response.status, errorText);
+        }
+    } catch (error) {
+        console.error('Erreur loadSupportConversation:', error);
+    }
+}
+
+async function sendSupportChatMessage(messageText) {
+    if (!supportConversationId) {
+        await loadSupportConversation();
+        if (!supportConversationId) return;
+    }
+
+    const token = getJWTToken();
+    if (!token) {
+        showToast('Vous devez être connecté pour envoyer un message.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${MESSAGING_SERVICE_URL}/messages`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                conversation_id: supportConversationId,
+                text: messageText
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Erreur sendSupportChatMessage:', response.status, errorText);
+            showToast('Impossible d\'envoyer le message.', 'error');
+            return;
+        }
+
+        const result = await response.json().catch(() => null);
+        const createdMessage = result?.data;
+        if (createdMessage) {
+            const time = createdMessage.created_at ? new Date(createdMessage.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+            supportConversations.admin.messages.push({ text: createdMessage.text || messageText, sent: true, time });
+            // Update counters after sending
+            updateSupportMessageCounts();
+            if (activeSupportConversationId) selectConversation(activeSupportConversationId);
+            updateChatUI();
+            showToast('Message envoyé à l\'admin !');
+
+            // Real-time notification is handled by the server-side emission; no client emit here to avoid duplicates.
+        }
+    } catch (error) {
+        console.error('Erreur sendSupportChatMessage:', error);
+        showToast('Erreur réseau lors de l\'envoi du message.', 'error');
+    }
+}
 
 function updateChatUI() {
     const conversationsList = document.getElementById('conversationsList');
@@ -2102,6 +2429,25 @@ function selectConversation(convId) {
     document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
     const activeItem = document.querySelector(`.conversation-item[onclick*="${convId}"]`);
     if (activeItem) activeItem.classList.add('active');
+    // Ensure counters reflect current messages
+    try { updateSupportMessageCounts(); } catch (e) { /* ignore */ }
+}
+
+// Update message counters/badges for support chat
+function updateSupportMessageCounts() {
+    try {
+        const conv = supportConversations.admin;
+        if (!conv) return;
+        const count = Array.isArray(conv.messages) ? conv.messages.length : 0;
+        const counterEl = document.getElementById('chatUnreadCount');
+        if (counterEl) counterEl.textContent = String(count);
+        const headerBadge = document.getElementById('headerChatBadge');
+        if (headerBadge) headerBadge.textContent = String(count);
+        const statMessages = document.getElementById('statMessages');
+        if (statMessages) statMessages.textContent = formatNumber(count);
+    } catch (e) {
+        console.warn('updateSupportMessageCounts failed', e);
+    }
 }
 
 // Theme Toggle
@@ -2836,49 +3182,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Create content button
-    const createContentBtn = document.getElementById('createContentBtn');
-    if (createContentBtn) {
-        createContentBtn.addEventListener('click', () => {
-            openShortModal();
-        });
-    }
-    
     // Chat send button
     const sendChatBtn = document.getElementById('sendChatBtn');
     const chatInput = document.getElementById('chatInput');
     if (sendChatBtn && chatInput) {
-        sendChatBtn.addEventListener('click', () => {
+        sendChatBtn.addEventListener('click', async () => {
             const messageText = chatInput.value.trim();
-            if (messageText) {
-                const chatMessages = document.getElementById('chatMessages');
-                const activeConv = supportConversations[activeSupportConversationId || 'admin'];
-                if (chatMessages) {
-                    const now = new Date();
-                    const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                    if (activeConv) {
-                        activeConv.messages.push({ text: messageText, sent: true, time });
-                        activeConv.time = time;
-                    }
-                    chatMessages.innerHTML += `
-                        <div class="message sent">
-                            <div class="message-bubble">${escapeHtml(messageText)}</div>
-                        </div>
-                        <div style="font-size:10px;color:var(--text-muted);text-align:right;margin-top:2px;">${time}</div>
-                    `;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-                updateChatUI();
-                if (activeSupportConversationId) selectConversation(activeSupportConversationId);
-                showToast('Message envoyé à l\'admin !');
-                chatInput.value = '';
-                chatInput.focus();
-            }
+            if (!messageText) return;
+            await sendSupportChatMessage(messageText);
+            chatInput.value = '';
+            chatInput.focus();
         });
         
         // Envoyer avec Entrée
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 sendChatBtn.click();
             }
         });
@@ -2904,10 +3223,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                showToast('Déconnexion en cours... 👋');
-                setTimeout(() => location.reload(), 1000);
+        logoutBtn.addEventListener('click', async () => {
+            if (!confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                return;
+            }
+
+            showToast('Déconnexion en cours... 👋');
+            const token = getJWTToken();
+            const logoutUrl = `${getIdentityApiBase()}/logout`;
+
+            try {
+                const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+                let session = {};
+                try { session = JSON.parse(sessionStr); } catch (e) { session = {}; }
+
+                const refreshToken = session.refresh_token || session.refreshToken || localStorage.getItem('refresh_token') || localStorage.getItem('refreshToken') || null;
+                const body = refreshToken ? { refresh_token: refreshToken } : {};
+
+                await fetch(logoutUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                    body: Object.keys(body).length ? JSON.stringify(body) : undefined,
+                });
+            } catch (error) {
+                console.warn('Erreur lors de la déconnexion:', error);
+            } finally {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('softura_token');
+                localStorage.removeItem('token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('softura_session');
+                localStorage.removeItem('session');
+                setTimeout(() => location.href = 'index.html', 800);
             }
         });
     }
