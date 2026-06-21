@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         const respBody = await upd.json().catch(() => ({}));
                                         console.log('📦 [DEBUG] Réponse complète du serveur:', respBody);
                                         console.log('✅ [DEBUG] Success! Filières sauvegardées sur serveur');
-                                        showToast('✅ Filières enregistrées avec succès!', 2000);
+                                        showToast('Filières enregistrées avec succès!', 'success');
                                     }
                                 } catch (e) {
                                     console.error('❌ [DEBUG] Erreur lors de la requête fetch:', e.message);
@@ -1389,9 +1389,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerHTML = originalText;
 
                     if (success) {
-                        showToast('✅ Frais de scolarité enregistrés avec succès!', 3000);
+                        showToast('Frais de scolarité enregistrés avec succès!', 'success');
                     } else {
-                        showToast('✅ Données sauvegardées localement (backend non disponible)', 3000);
+                        showToast('Données sauvegardées localement (backend non disponible)', 'success');
                     }
 
                     // Close modal after a short delay

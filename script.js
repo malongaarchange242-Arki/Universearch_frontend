@@ -41,6 +41,19 @@ async function createActivityRecord(title, description = null, status = 'active'
         return null;
     }
 
+    const activityContext = await resolveActivityOrganizationContext();
+    const payload = {
+        title,
+        description,
+        status,
+        is_public: isPublic
+    };
+
+    if (activityContext.organizationId) {
+        payload.organization_id = activityContext.organizationId;
+        payload.organization_type = activityContext.organizationType;
+    }
+
     try {
         const res = await fetch(`${CONTENT_API}/activities`, {
             method: 'POST',
@@ -48,12 +61,7 @@ async function createActivityRecord(title, description = null, status = 'active'
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({
-                title,
-                description,
-                status,
-                is_public: isPublic
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!res.ok) {
@@ -146,21 +154,37 @@ function getCurrentOrganizationContext() {
     };
 }
 
+async function resolveActivityOrganizationContext() {
+    let context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
+
+    if (!context?.organizationId && typeof loadUniversityProfileFromApi === 'function') {
+        await loadUniversityProfileFromApi();
+        context = getCurrentOrganizationContext();
+    }
+
+    const organizationType = context?.kind === 'centre' ? 'centre_formation' : 'universite';
+
+    return {
+        organizationId: context?.organizationId || null,
+        organizationType
+    };
+}
+
 function normalizeUniversityProfile(profile = {}) {
     return {
         id: profile.id || profile.centre_id || profile.universite_id || null,
         profileId: profile.profile_id || profile.profileId || null,
         name: profile.nom || profile.name || profile.universiteName || appData.university.name || '',
         city: profile.ville || profile.city || profile.cityName || profile.location || appData.university.city || '',
-        description: profile.description || profile.bio || profile.about || '',
-        email: profile.email || profile.contact_email || '',
-        phone: profile.contacts || profile.phone || profile.telephone || profile.telephone_contact || '',
-        website: profile.lien_site || profile.website || profile.site || profile.site_web || profile.website_url || '',
-        logo: profile.logo_url || profile.logo || profile.logoUrl || profile.image || profile.avatar || null,
-        coverLogo: profile.couverture_logo_url || null,
-        primaryColor: profile.primary_color || profile.primaryColor || profile.color || appData.university.primaryColor || '#6366f1',
-        sigle: profile.sigle || '',
-        anneeFondation: profile.annee_fondation || null,
+        description: profile.description ?? profile.bio ?? profile.about ?? appData.university.description ?? '',
+        email: profile.email ?? profile.contact_email ?? appData.university.email ?? '',
+        phone: profile.contacts ?? profile.phone ?? profile.telephone ?? profile.telephone_contact ?? appData.university.phone ?? '',
+        website: profile.lien_site ?? profile.website ?? profile.site ?? profile.site_web ?? profile.website_url ?? appData.university.website ?? '',
+        logo: profile.logo_url ?? profile.logo ?? profile.logoUrl ?? profile.image ?? profile.avatar ?? appData.university.logo ?? null,
+        coverLogo: profile.couverture_logo_url ?? appData.university.coverLogo ?? null,
+        primaryColor: profile.primary_color ?? profile.primaryColor ?? profile.color ?? appData.university.primaryColor ?? '#6366f1',
+        sigle: profile.sigle ?? appData.university.sigle ?? '',
+        anneeFondation: profile.annee_fondation ?? appData.university.anneeFondation ?? null,
         raw: profile
     };
 }
@@ -823,6 +847,9 @@ function updateUniversityInfo() {
     
     const uniName = document.getElementById('uniName');
     if (uniName) uniName.value = appData.university.name;
+    
+    const uniSigle = document.getElementById('uniSigle');
+    if (uniSigle) uniSigle.value = appData.university.sigle || '';
     
     const uniCity = document.getElementById('uniCity');
     if (uniCity) uniCity.value = appData.university.city;
@@ -1686,7 +1713,15 @@ async function loadStoredActivities() {
     if (!token) return null;
 
     try {
-        const res = await fetch(`${CONTENT_API}/activities`, {
+        const activityContext = await resolveActivityOrganizationContext();
+        const searchParams = new URLSearchParams();
+        if (activityContext.organizationId) {
+            searchParams.set('organization_id', activityContext.organizationId);
+            searchParams.set('organization_type', activityContext.organizationType);
+        }
+
+        const endpoint = `${CONTENT_API}/activities${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+        const res = await fetch(endpoint, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -1764,20 +1799,70 @@ function formatRelativeTime(date) {
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function showToast(message, type = 'success') {
+function validatePhoneNumber(phone) {
+    return /^[0-9+()\s-]+$/.test(phone);
+}
+
+function showToast(message, typeOrDuration = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
+
+    // Compatibility: if second arg is a number, treat it as duration
+    let duration = 3000;
+    let type = 'success';
+    if (typeof typeOrDuration === 'number') {
+        duration = typeOrDuration;
+        type = 'info';
+    } else {
+        type = typeOrDuration || 'success';
+    }
+
+    const iconMap = {
+        like: 'fa-heart',
+        logo: 'fa-palette',
+        short: 'fa-video',
+        flyer: 'fa-image',
+        formation: 'fa-graduation-cap',
+        event: 'fa-calendar-check',
+        testimonial: 'fa-star',
+        comment: 'fa-comment',
+        link: 'fa-link',
+        light: 'fa-sun',
+        dark: 'fa-moon',
+        logout: 'fa-sign-out-alt',
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+
+    // Déterminer l'icône selon le message ou le type
+    let icon = iconMap[type] || 'fa-info-circle';
+    const lower = (message || '').toLowerCase();
+    if (lower.includes('like')) icon = iconMap.like;
+    else if (lower.includes('logo')) icon = iconMap.logo;
+    else if (lower.includes('short')) icon = iconMap.short;
+    else if (lower.includes('flyer')) icon = iconMap.flyer;
+    else if (lower.includes('formation')) icon = iconMap.formation;
+    else if (lower.includes('événement') || lower.includes('evenement') || lower.includes('événement')) icon = iconMap.event;
+    else if (lower.includes('témoign') || lower.includes('temoign')) icon = iconMap.testimonial;
+    else if (lower.includes('comment')) icon = iconMap.comment;
+    else if (lower.includes('lien') || lower.includes('copi')) icon = iconMap.link;
+    else if (lower.includes('clair')) icon = iconMap.light;
+    else if (lower.includes('sombre')) icon = iconMap.dark;
+    else if (lower.includes('déconnexion') || lower.includes('deconnexion')) icon = iconMap.logout;
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <i class="fas ${icon}" style="margin-right: 12px;"></i>
         <span>${message}</span>
     `;
+
     container.appendChild(toast);
     setTimeout(() => {
         toast.style.animation = 'slideInRight 0.3s ease reverse';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, duration);
 }
 
 // Content Actions
@@ -1791,7 +1876,7 @@ function likeContent(type, id) {
     if (item) {
         item.likes = (item.likes || 0) + 1;
         saveData();
-        showToast('Merci pour votre like ! ❤️');
+        showToast('Merci pour votre like !', 'like');
     }
 }
 
@@ -2467,12 +2552,12 @@ function toggleTheme() {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
         if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Mode sombre</span>';
-        showToast('Mode clair activé ☀️');
+        showToast('Mode clair activé', 'light');
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
         if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Mode clair</span>';
-        showToast('Mode sombre activé 🌙');
+        showToast('Mode sombre activé', 'dark');
     }
 }
 
@@ -2523,14 +2608,22 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const uniName = document.getElementById('uniName');
             const uniCity = document.getElementById('uniCity');
+            const uniSigle = document.getElementById('uniSigle');
             const uniDescription = document.getElementById('uniDescription');
             const uniEmail = document.getElementById('uniEmail');
             const uniPhone = document.getElementById('uniPhone');
             const uniWebsite = document.getElementById('uniWebsite');
             const primaryColor = document.getElementById('primaryColor');
             const submitBtn = settingsForm.querySelector('button[type="submit"]');
+            const phoneValue = uniPhone ? uniPhone.value.trim() : '';
+            
+            if (phoneValue && !validatePhoneNumber(phoneValue)) {
+                showToast('Numéro de téléphone invalide. Utilisez uniquement chiffres, +, espaces, tirets et parenthèses.', 'error');
+                return;
+            }
             
             if (uniName) appData.university.name = uniName.value;
+            if (uniSigle) appData.university.sigle = uniSigle.value;
             if (uniCity) appData.university.city = uniCity.value;
             if (uniDescription) appData.university.description = uniDescription.value;
             if (uniEmail) appData.university.email = uniEmail.value;
@@ -2568,6 +2661,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (descCount) descCount.textContent = `${e.target.value.length}/200`;
         });
     }
+
+    const uniPhoneInput = document.getElementById('uniPhone');
+    if (uniPhoneInput) {
+        uniPhoneInput.addEventListener('input', (e) => {
+            const cleaned = e.target.value.replace(/[^0-9+()\s-]/g, '');
+            if (cleaned !== e.target.value) {
+                e.target.value = cleaned;
+            }
+        });
+    }
     
     // Logo upload
     const logoInput = document.getElementById('logoInput');
@@ -2578,7 +2681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.onload = (event) => {
                     appData.university.logo = event.target.result;
                     saveData();
-                    showToast('Logo mis à jour ! 🎨');
+                    showToast('Logo mis à jour !', 'logo');
                 };
                 reader.readAsDataURL(e.target.files[0]);
             }
@@ -2776,7 +2879,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         saveData();
                         closeModal('shortModal');
                         if (shortForm) shortForm.reset();
-                        showToast('Short publié avec succès ! 🎬');
+                        showToast('Short publié avec succès !', 'short');
                     } catch (err) {
                         console.error('Error publishing short:', err);
                         showToast('Erreur: ' + (err.message || 'Impossible de publier le short'), 'error');
@@ -2906,7 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveData();
                 closeModal('flyerModal');
                 if (flyerForm) flyerForm.reset();
-                showToast('Flyer publié avec succès ! 🖼️');
+                showToast('Flyer publié avec succès !', 'flyer');
                 createActivityRecord(
                     `Flyer ajouté : ${title}`,
                     desc || `Flyer ajouté sur le tableau de bord`,
@@ -2981,7 +3084,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         saveData();
                         closeModal('flyerModal');
                         if (flyerForm) flyerForm.reset();
-                        showToast('Flyer publié avec succès ! 🖼️');
+                        showToast('Flyer publié avec succès !', 'flyer');
                     } catch (err) {
                         console.error('Error processing flyer:', err);
                         showToast('Erreur: ' + (err.message || 'Impossible de publier'), 'error');
@@ -3090,7 +3193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveData();
             closeModal('formationModal');
             formationForm.reset();
-            showToast('Formation ajoutée avec succès ! 📚');
+            showToast('Formation ajoutée avec succès !', 'formation');
         });
     }
     
@@ -3117,7 +3220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveData();
             closeModal('eventModal');
             eventForm.reset();
-            showToast('Événement créé avec succès ! 📅');
+            showToast('Événement créé avec succès !', 'event');
             createActivityRecord(
                 `Événement créé : ${event.title}`,
                 `Nouvel événement planifié pour le ${event.date}`
@@ -3154,7 +3257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveData();
             closeModal('testimonialModal');
             testimonialForm.reset();
-            showToast('Témoignage ajouté avec succès ! ⭐');
+            showToast('Témoignage ajouté avec succès !', 'testimonial');
             createActivityRecord(
                 `Témoignage ajouté : ${testimonial.studentName}`,
                 `Un nouveau témoignage de ${testimonial.studentName} a été enregistré.`
@@ -3228,7 +3331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            showToast('Déconnexion en cours... 👋');
+            showToast('Déconnexion en cours...', 'logout');
             const token = getJWTToken();
             const logoutUrl = `${getIdentityApiBase()}/logout`;
 
@@ -3611,7 +3714,7 @@ async function sendPreviewComment() {
     
     // Sauvegarder les données
     saveData();
-    showToast('Commentaire ajouté ! 💬');
+    showToast('Commentaire ajouté !', 'comment');
 }
 
 // Liker un commentaire
@@ -3643,7 +3746,7 @@ function previewLike() {
     const likeCount = document.getElementById('previewLikeCount');
     if (likeCount) likeCount.textContent = item.likes;
     
-    showToast('Merci pour votre like ! ❤️');
+    showToast('Merci pour votre like !', 'like');
 }
 
 // Partager le post
@@ -3659,7 +3762,7 @@ function previewShare() {
     
     if (navigator.clipboard) {
         navigator.clipboard.writeText(window.location.href + '?post=' + item.id);
-        showToast('Lien copié ! 🔗');
+        showToast('Lien copié !', 'link');
     }
 }
 

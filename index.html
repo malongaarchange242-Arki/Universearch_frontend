@@ -472,7 +472,7 @@
                 <div class="input-group">
                     <label>Ligne Directe</label>
                     <div class="input-wrapper">
-                        <input type="tel" id="reg-phone" placeholder="+242 05 ..." required>
+                        <input type="tel" id="reg-phone" placeholder="+242 05 ..." pattern="[0-9+()\s-]*" title="Utilisez uniquement chiffres, +, -, (), et espaces" required>
                         <i class="fa-solid fa-phone"></i>
                     </div>
                 </div>
@@ -628,6 +628,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         nom: name,
+                        nom_representant: name,
                         email,
                         telephone: phone,
                         password,
