@@ -110,10 +110,11 @@
         
         .input-wrapper { position: relative; overflow: visible; }
         .input-wrapper i { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; transition: 0.3s; z-index: 2; }
+        .input-wrapper .phone-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #334155; font-weight: 700; z-index: 2; pointer-events: none; }
         
         .input-wrapper input {
             width: 100%;
-            padding: 16px 64px 16px 48px;
+            padding: 16px 64px 16px 74px;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             font-size: 15px;
@@ -472,7 +473,8 @@
                 <div class="input-group">
                     <label>Ligne Directe</label>
                     <div class="input-wrapper">
-                        <input type="tel" id="reg-phone" placeholder="+242 05 ..." pattern="[0-9+()\s-]*" title="Utilisez uniquement chiffres, +, -, (), et espaces" required>
+                        <span class="phone-prefix">+242</span>
+                        <input type="tel" id="reg-phone" placeholder="069611047" pattern="^[0-9]{9,11}$" maxlength="11" title="Format attendu : 069611047 sans lettres" required>
                         <i class="fa-solid fa-phone"></i>
                     </div>
                 </div>
@@ -597,20 +599,31 @@
         // Call on page load
         loadSavedCredentials();
 
+        const regPhoneInput = document.getElementById('reg-phone');
+        if (regPhoneInput) {
+            regPhoneInput.addEventListener('input', (e) => {
+                const cleaned = e.target.value.replace(/[^0-9]/g, '');
+                if (cleaned !== e.target.value) {
+                    e.target.value = cleaned;
+                }
+            });
+        }
+
         // --- INSCRIPTION : utiliser exclusivement /auth/register ---
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
-            const phone = document.getElementById('reg-phone').value.trim();
+            const rawPhone = document.getElementById('reg-phone').value.trim();
+            const phone = `+242${rawPhone}`;
             const password = document.getElementById('reg-pass').value;
             const checkedOrg = document.querySelector('input[name="orgType"]:checked');
             const typeValue = checkedOrg ? checkedOrg.value : 'universite';
 
             // Validation
-            const phonePattern = /^\+[0-9]{9,14}$/;
-            if (!phonePattern.test(phone)) {
-                showToast('Ligne Directe invalide. Utilisez le format +242069611047 sans lettres.', 'error');
+            const phonePattern = /^[0-9]{9,11}$/;
+            if (!phonePattern.test(rawPhone)) {
+                showToast('Ligne Directe invalide. Entrez 9 à 11 chiffres après +242, sans lettres.', 'error');
                 return;
             }
             if (password.length < 6) {
