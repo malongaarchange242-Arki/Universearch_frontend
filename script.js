@@ -1,15 +1,6 @@
 // Data Storage
 let appData = {
-    university: {
-        name: "Université Paris-Saclay",
-        city: "Paris",
-        description: "Une université d'excellence reconnue internationalement",
-        email: "contact@universite.fr",
-        phone: "+33 1 23 45 67 89",
-        website: "https://www.universite.fr",
-        logo: null,
-        primaryColor: "#6366f1"
-    },
+   
     shorts: [],
     flyers: [],
     formations: [],

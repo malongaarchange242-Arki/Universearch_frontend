@@ -608,6 +608,11 @@
             const typeValue = checkedOrg ? checkedOrg.value : 'universite';
 
             // Validation
+            const phonePattern = /^\+[0-9]{9,14}$/;
+            if (!phonePattern.test(phone)) {
+                showToast('Ligne Directe invalide. Utilisez le format +242069611047 sans lettres.', 'error');
+                return;
+            }
             if (password.length < 6) {
                 showToast('Le mot de passe doit contenir au moins 6 caractères', 'error');
                 return;
