@@ -25,6 +25,10 @@ let selectedGender = 'all'; // default to 'all'
 let selectedUserType = 'all'; // default to 'all'
 let selectedFile = null;
 let selectedAgeMode = 'none';
+let currentCampaignId = null;
+let currentMediaUrl = null;
+let currentMediaType = null;
+let campaignBeingEdited = null;
 
 const ageTargetingDefaults = {
     minAge: 24,
@@ -699,9 +703,141 @@ function openCampaignModal(campaign) {
         mediaElement.addEventListener('click', () => requestElementFullscreen(mediaElement));
     }
 
+    campaignBeingEdited = campaign;
+    currentCampaignId = campaign?.id || campaign?.campaign_id || campaign?._id || null;
+    currentMediaUrl = campaign?.media_url || campaign?.mediaUrl || campaign?.image_url || campaign?.video_url || null;
+    currentMediaType = campaign?.media_type || (currentMediaUrl?.includes('.mp4') ? 'video' : 'image');
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
+}
+
+async function deleteCampaign() {
+    if (!currentCampaignId) {
+        showNotification('Impossible de supprimer : identifiant de campagne manquant.', 'error');
+        return;
+    }
+
+    const confirmation = confirm('Voulez-vous vraiment supprimer cette campagne ?');
+    if (!confirmation) return;
+
+    try {
+        const resp = await fetch(`${apiBase}/ads/campaign/${encodeURIComponent(currentCampaignId)}`, {
+            method: 'DELETE'
+        });
+
+        const json = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+            const errorMsg = json?.error || json?.message || `Échec de la suppression (HTTP ${resp.status})`;
+            throw new Error(errorMsg);
+        }
+
+        showNotification('Campagne supprimée avec succès.', 'success');
+        closeCampaignModal();
+        resetEditMode();
+        loadCampaigns();
+    } catch (err) {
+        console.error('Erreur suppression campagne :', err);
+        showNotification(err.message || 'Erreur lors de la suppression de la campagne.', 'error');
+    }
+}
+
+function enterEditMode(campaign) {
+    if (!campaign) {
+        showNotification('Campagne introuvable pour modification.', 'error');
+        return;
+    }
+
+    campaignBeingEdited = campaign;
+    currentCampaignId = campaign?.id || campaign?.campaign_id || campaign?._id || null;
+    currentMediaUrl = campaign?.media_url || campaign?.mediaUrl || campaign?.image_url || campaign?.video_url || null;
+    currentMediaType = campaign?.media_type || (currentMediaUrl?.includes('.mp4') ? 'video' : 'image');
+    selectedFile = null;
+    if (mediaInput) {
+        mediaInput.value = '';
+    }
+
+    document.getElementById('ad-title').value = campaign?.title || '';
+    document.getElementById('ad-desc').value = campaign?.description || '';
+    document.getElementById('ad-location').value = campaign?.location || '';
+
+    selectedGender = campaign?.target_gender || 'all';
+    selectGender(selectedGender);
+
+    selectedUserType = campaign?.target_user_type || 'all';
+    selectUserType(selectedUserType);
+
+    selectedUsers = Array.isArray(campaign?.target_users) ? campaign.target_users : (Array.isArray(campaign?.targetUsers) ? campaign.targetUsers : []);
+    updateSelectedUsersDisplay();
+
+    if (campaign?.target_age !== undefined || campaign?.age_tolerance !== undefined) {
+        if (campaign?.target_age !== undefined) {
+            selectAgeTargetingMode('target');
+            document.getElementById('ad-target-age').value = String(campaign.target_age || ageTargetingDefaults.targetAge);
+            document.getElementById('ad-age-tolerance').value = String(campaign.age_tolerance ?? ageTargetingDefaults.ageTolerance);
+        }
+    } else if (campaign?.min_age !== undefined || campaign?.max_age !== undefined) {
+        if (campaign?.min_age !== undefined && campaign?.max_age !== undefined) {
+            selectAgeTargetingMode('range');
+            document.getElementById('ad-range-min-age').value = String(campaign.min_age || ageTargetingDefaults.rangeMinAge);
+            document.getElementById('ad-range-max-age').value = String(campaign.max_age || ageTargetingDefaults.rangeMaxAge);
+        } else if (campaign?.min_age !== undefined) {
+            selectAgeTargetingMode('min');
+            document.getElementById('ad-min-age').value = String(campaign.min_age || ageTargetingDefaults.minAge);
+        }
+    }
+    updateAgeTargetingSummary();
+
+    if (mediaContent && currentMediaUrl) {
+        previewPlaceholder.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        mediaContent.innerHTML = '';
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        closeBtn.className = "absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-all";
+        closeBtn.onclick = removeMedia;
+
+        const mediaElement = document.createElement(currentMediaType === 'video' ? 'video' : 'img');
+        if (currentMediaType === 'video') {
+            mediaElement.src = currentMediaUrl;
+            mediaElement.autoplay = true;
+            mediaElement.loop = true;
+            mediaElement.muted = true;
+            mediaElement.playsInline = true;
+            mediaElement.className = "w-full h-full object-contain";
+        } else {
+            mediaElement.src = currentMediaUrl;
+            mediaElement.className = "w-full h-full object-contain";
+        }
+
+        mediaContent.appendChild(closeBtn);
+        mediaContent.appendChild(mediaElement);
+    }
+
+    const previewTitle = document.getElementById('preview-title');
+    const previewDesc = document.getElementById('preview-desc');
+    if (previewTitle) previewTitle.innerText = campaign?.title || "Titre de l'annonce";
+    if (previewDesc) previewDesc.innerText = campaign?.description || "Description de l'annonce apparaîtra ici...";
+
+    const launchBtn = document.getElementById('launch-campaign-button');
+    if (launchBtn) {
+        launchBtn.innerText = 'Sauvegarder les modifications';
+    }
+
+    closeCampaignModal();
+    document.getElementById('ad-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetEditMode() {
+    campaignBeingEdited = null;
+    currentCampaignId = null;
+    currentMediaUrl = null;
+    currentMediaType = null;
+    const launchBtn = document.getElementById('launch-campaign-button');
+    if (launchBtn) {
+        launchBtn.innerText = 'Lancer la Campagne';
+    }
 }
 
 function closeCampaignModal() {
@@ -723,7 +859,9 @@ async function launchCampaign() {
     const title = document.getElementById('ad-title').value.trim();
     const description = document.getElementById('ad-desc').value.trim() || undefined;
     const hasMedia = !previewContainer.classList.contains('hidden');
-    const mediaType = hasMedia ? (selectedFile.type.startsWith('video/') ? 'video' : 'image') : null;
+    const mediaType = selectedFile ? (selectedFile.type.startsWith('video/') ? 'video' : 'image') : currentMediaType;
+    const editMode = Boolean(currentCampaignId);
+    const existingMediaUrl = currentMediaUrl;
 
     // Collect targeting data
     const ageTargeting = getAgeTargetingPayload();
@@ -744,63 +882,70 @@ async function launchCampaign() {
         return;
     }
 
-    if (!hasMedia || !selectedFile) {
+    const mediaAvailable = selectedFile || existingMediaUrl;
+    if (!mediaAvailable) {
         console.log('Error: No media or no file');
         showNotification("Veuillez ajouter un média", "error");
         return;
     }
 
-    if (!mediaType) {
-        console.log('Error: Invalid media type');
-        showNotification("Type de média non supporté", "error");
-        return;
-    }
-
-    console.log('Uploading media...');
-    console.log('File to upload:', selectedFile);
-    showNotification("Upload du média en cours...", "info");
-
     try {
-        // 1) Upload du média
-        const uploadForm = new FormData();
-        uploadForm.append('file', selectedFile);
+        let mediaUrl = existingMediaUrl;
+        if (selectedFile) {
+            console.log('Uploading media...');
+            console.log('File to upload:', selectedFile);
+            showNotification("Upload du média en cours...", "info");
 
-        console.log('Sending upload request to:', `${apiBase}/ads/media/upload`);
-        const uploadResp = await fetch(`${apiBase}/ads/media/upload`, {
-            method: 'POST',
-            body: uploadForm,
-        });
+            try {
+                // 1) Upload du média
+                const uploadForm = new FormData();
+                uploadForm.append('file', selectedFile);
 
-        console.log('Upload response status:', uploadResp.status);
-        const uploadData = await uploadResp.json();
-        console.log('Upload response data:', uploadData);
+                console.log('Sending upload request to:', `${apiBase}/ads/media/upload`);
+                const uploadResp = await fetch(`${apiBase}/ads/media/upload`, {
+                    method: 'POST',
+                    body: uploadForm,
+                });
 
-        if (!uploadResp.ok) {
-            throw new Error(uploadData.error || 'Erreur lors de l\'upload');
+                console.log('Upload response status:', uploadResp.status);
+                const uploadData = await uploadResp.json();
+                console.log('Upload response data:', uploadData);
+
+                if (!uploadResp.ok) {
+                    throw new Error(uploadData.error || 'Erreur lors de l\'upload');
+                }
+
+                mediaUrl = uploadData.data.mediaUrl;
+            } catch (err) {
+                console.error('Media upload failed:', err);
+                showNotification(err.message || 'Erreur lors de l\'upload du média', 'error');
+                return;
+            }
         }
 
-        const mediaUrl = uploadData.data.mediaUrl;
         console.log('Media URL:', mediaUrl);
 
-        // 2) Création de la campagne
+        // 2) Création ou mise à jour de la campagne
         const sendNotifications = document.getElementById('send-notifications-toggle').checked;
+        const destination = mediaType === 'image' ? 'carousel' : 'shorts';
         const payload = {
             title,
             description,
             media_url: mediaUrl,
             media_type: mediaType,
-            destination: mediaType === 'image' ? 'carousel' : 'shorts',
+            destination,
             target_gender: targetGender,
             target_user_type: targetUserType,
             target_users: selectedUsers.length > 0 ? selectedUsers : undefined,
             ...ageTargeting,
             location: location,
-            send_notifications: sendNotifications
+            send_notifications: sendNotifications,
+            ...(destination === 'carousel' && campaignBeingEdited?.carousel_slot !== undefined ? { carousel_slot: campaignBeingEdited.carousel_slot } : {})
         };
 
         console.log('Campaign payload:', payload);
-        const campaignResp = await fetch(`${apiBase}/ads/campaign`, {
-            method: 'POST',
+        const campaignResp = await fetch(`${apiBase}/ads/campaign${editMode && currentCampaignId ? '/' + encodeURIComponent(currentCampaignId) : ''}`, {
+            method: editMode && currentCampaignId ? 'PATCH' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
@@ -817,8 +962,8 @@ async function launchCampaign() {
             throw new Error(campaignData.error || 'Erreur lors de la création de la campagne');
         }
 
-        console.log('Campaign created successfully');
-        showNotification("Campagne lancée avec succès !", "success");
+        console.log(editMode ? 'Campaign updated successfully' : 'Campaign created successfully');
+        showNotification(editMode ? "Campagne mise à jour avec succès !" : "Campagne lancée avec succès !", "success");
         // Réinitialiser le formulaire
         document.getElementById('ad-title').value = '';
         document.getElementById('ad-desc').value = '';
@@ -833,6 +978,7 @@ async function launchCampaign() {
         document.getElementById('ad-location').value = '';
         document.getElementById('send-notifications-toggle').checked = true;
         removeMedia();
+        resetEditMode();
         // Recharger les campagnes
         loadCampaigns();
     } catch (err) {
@@ -869,25 +1015,29 @@ async function loadCampaigns() {
             ? data.data
             : (Array.isArray(data) ? data : []);
 
+        const carouselCampaigns = campaigns
+            .filter(c => c.destination === 'carousel')
+            .sort((a, b) => (Number(a.carousel_slot) || 999) - (Number(b.carousel_slot) || 999));
+
         const tbody = document.getElementById('campaigns-table-body') || document.querySelector('tbody');
         if (!tbody) {
             throw new Error('Table des campagnes introuvable');
         }
         tbody.innerHTML = ''; // Clear existing rows
 
-        if (campaigns.length === 0) {
+        if (carouselCampaigns.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-8 py-8 text-center text-slate-500">
-                        Aucune campagne disponible pour le moment.
+                    <td colspan="6" class="px-8 py-8 text-center text-slate-500">
+                        Aucune campagne carousel disponible pour le moment.
                     </td>
                 </tr>
             `;
-            console.log('No campaigns returned by API');
+            console.log('No carousel campaigns returned by API');
             return;
         }
 
-        campaigns.forEach(campaign => {
+        carouselCampaigns.forEach(campaign => {
             const impressions = getCampaignMetric(campaign, ['impressions', 'views', 'view_count', 'reach']);
             const clicks = getCampaignMetric(campaign, ['clicks', 'click_count']);
             const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(1) : '0.0';
@@ -897,6 +1047,7 @@ async function loadCampaigns() {
             row.setAttribute('tabindex', '0');
 
             row.innerHTML = `
+                <td class="px-6 py-4 text-sm font-bold text-slate-900">Slot ${campaign.carousel_slot ?? '-'}</td>
                 <td class="px-8 py-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
@@ -918,8 +1069,8 @@ async function loadCampaigns() {
                     <span class="font-bold text-slate-900">${ctr}%</span>
                 </td>
                 <td class="px-8 py-4 text-right">
-                    <button class="campaign-action-btn text-slate-400 hover:text-slate-600 transition-colors" type="button" aria-label="Voir l'annonce">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                    <button class="campaign-edit-btn inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors" type="button" aria-label="Modifier la campagne">
+                        Modifier
                     </button>
                 </td>
             `;
@@ -932,17 +1083,17 @@ async function loadCampaigns() {
                 }
             });
 
-            const actionBtn = row.querySelector('.campaign-action-btn');
-            if (actionBtn) {
-                actionBtn.addEventListener('click', (event) => {
+            const editBtn = row.querySelector('.campaign-edit-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    openCampaignModal(campaign);
+                    enterEditMode(campaign);
                 });
             }
 
             tbody.appendChild(row);
         });
-        console.log('Campaigns loaded successfully, count:', campaigns.length);
+        console.log('Carousel campaigns loaded successfully, count:', carouselCampaigns.length);
     } catch (err) {
         console.error('Error loading campaigns:', err);
         showNotification(err.message || 'Erreur lors du chargement des campagnes', 'error');
@@ -978,6 +1129,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ensureCampaignModalLayout();
     document.getElementById('campaign-modal-close')?.addEventListener('click', closeCampaignModal);
     document.getElementById('campaign-modal-close-footer')?.addEventListener('click', closeCampaignModal);
+    document.getElementById('campaign-modal-delete')?.addEventListener('click', deleteCampaign);
+    document.getElementById('campaign-modal-delete-header')?.addEventListener('click', deleteCampaign);
+    document.getElementById('campaign-modal-edit-header')?.addEventListener('click', () => enterEditMode(campaignBeingEdited));
     document.querySelector('[data-close-campaign-modal="true"]')?.addEventListener('click', closeCampaignModal);
     document.getElementById('campaign-modal')?.addEventListener('click', (event) => {
         if (event.target?.id === 'campaign-modal') {

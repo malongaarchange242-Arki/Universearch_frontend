@@ -1,14 +1,14 @@
 // Data Storage
 let appData = {
     university: {
-        name: "Université Paris-Saclay",
-        city: "Paris",
-        description: "Une université d'excellence reconnue internationalement",
-        email: "contact@universite.fr",
-        phone: "+33 1 23 45 67 89",
-        website: "https://www.universite.fr",
+        name: '',
+        city: '',
+        description: '',
+        email: '',
+        phone: '',
+        website: '',
         logo: null,
-        primaryColor: "#6366f1"
+        primaryColor: '#6366f1'
     },
     shorts: [],
     flyers: [],
@@ -683,7 +683,7 @@ function initSampleData() {
     }
 
     if (appData.followers.length === 0) {
-        initSampleFollowersData();
+        appData.followers = [];
     }
 
     if (appData.analyticsHistory.length === 0) {
@@ -716,7 +716,7 @@ async function loadData() {
     const loadedFromApi = await loadFormationsFromApi();
     const loadedTopFollowers = await loadTopFollowers();
     if (!loadedTopFollowers && appData.followers.length === 0) {
-        initSampleFollowersData();
+        appData.followers = [];
     }
     const formationsEmpty = !Array.isArray(appData.formations) || appData.formations.length === 0;
     if (!loadedFromApi && formationsEmpty) {
@@ -1000,88 +1000,7 @@ function getContentCreatedAt(item) {
 }
 
 function initSampleFollowersData() {
-    appData.followers = [
-        { 
-            id: 'f1', 
-            user_id: 'f1',
-            display_name: 'Jean Dupont', 
-            platform: 'Instagram', 
-            handle: '@jeandupont', 
-            followers: 15200, 
-            growth: 12.5, 
-            likes: 1520, 
-            comments: 234, 
-            views: 45000,
-            shares: 120,
-            score: 2574,
-            color: 'platform-1', 
-            icon: 'fa-instagram' 
-        },
-        { 
-            id: 'f2', 
-            user_id: 'f2',
-            display_name: 'Marie Garcia', 
-            platform: 'Twitter', 
-            handle: '@mariagarcia', 
-            followers: 8900, 
-            growth: 8.3, 
-            likes: 890,
-            comments: 156,
-            views: 28000,
-            shares: 67,
-            score: 1621,
-            color: 'platform-2', 
-            icon: 'fa-twitter' 
-        },
-        { 
-            id: 'f3', 
-            user_id: 'f3',
-            display_name: 'Paul Martin', 
-            platform: 'YouTube', 
-            handle: '@paulmartin', 
-            followers: 23400, 
-            growth: 15.7, 
-            likes: 2340,
-            comments: 456,
-            views: 89000,
-            shares: 234,
-            score: 4842,
-            color: 'platform-3', 
-            icon: 'fa-youtube' 
-        },
-        { 
-            id: 'f4', 
-            user_id: 'f4',
-            display_name: 'Sophie Bernard', 
-            platform: 'Facebook', 
-            handle: '/sophiebernard', 
-            followers: 31200, 
-            growth: -2.1, 
-            likes: 3120,
-            comments: 234,
-            views: 102000,
-            shares: 89,
-            score: 5279,
-            color: 'platform-4', 
-            icon: 'fa-facebook' 
-        },
-        { 
-            id: 'f5', 
-            user_id: 'f5',
-            display_name: 'Antoine Leclerc', 
-            platform: 'LinkedIn', 
-            handle: '/antoineleclerc', 
-            followers: 45600, 
-            growth: 22.4, 
-            likes: 4560,
-            comments: 890,
-            views: 134000,
-            shares: 456,
-            score: 8942,
-            color: 'platform-1', 
-            icon: 'fa-linkedin' 
-        }
-    ];
+    appData.followers = [];
 }
 
 // NOUVELLE FONCTION : Mise à jour section followers
