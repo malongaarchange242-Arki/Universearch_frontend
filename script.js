@@ -326,6 +326,12 @@ function normalizeRemoteFormation(filiere, domaine = {}, index = 0) {
         description: filiere?.description || domaine?.description || '',
         prerequisites: filiere?.prerequis || filiere?.prerequisites || '',
         fees: filiere?.frais_inscription || filiere?.fees || '',
+        feesL1: filiere?.frais_l1 || filiere?.feesL1 || '',
+        feesL2: filiere?.frais_l2 || filiere?.feesL2 || '',
+        feesL3: filiere?.frais_l3 || filiere?.feesL3 || '',
+        feesM1: filiere?.frais_m1 || filiere?.feesM1 || '',
+        feesM2: filiere?.frais_m2 || filiere?.feesM2 || '',
+        feesM3: filiere?.frais_m3 || filiere?.feesM3 || '',
         alternance,
         createdAt: filiere?.created_at || filiere?.date_creation || new Date().toISOString()
     };
@@ -597,34 +603,6 @@ function initSampleData() {
         });
     }
     
-    if (appData.formations.length === 0) {
-        appData.formations.push({
-            id: 'f_1',
-            name: 'Licence Informatique',
-            level: 'Licence 3',
-            duration: '3 ans',
-            location: 'Campus principal',
-            language: 'Français',
-            description: 'Formation complète en développement logiciel, IA et data science.',
-            prerequisites: 'Baccalauréat général avec spécialité mathématiques ou NSI',
-            fees: '170€/an',
-            alternance: 'Oui',
-            createdAt: new Date(Date.now() - 432000000).toISOString()
-        });
-        appData.formations.push({
-            id: 'f_2',
-            name: 'Master Data Science',
-            level: 'Master 2',
-            duration: '2 ans',
-            location: 'Campus Innovation',
-            language: 'Français/Anglais',
-            description: 'Master spécialisé en intelligence artificielle et big data.',
-            prerequisites: 'Licence en informatique ou mathématiques',
-            fees: '243€/an',
-            alternance: 'Oui',
-            createdAt: new Date(Date.now() - 518400000).toISOString()
-        });
-    }
     
     if (appData.events.length === 0) {
         appData.events.push({
@@ -700,16 +678,9 @@ function initSampleData() {
     }
 }
 
-// Load data from localStorage
+// Load data without using localStorage persistence
 async function loadData() {
-    const saved = localStorage.getItem('uniflow_data');
-    const hasSaved = Boolean(saved);
-    const skipSample = hasSaved && sessionStorage.getItem('uniflow_data_cleared') === 'true';
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        delete parsed.server_followers_count;
-        appData = { ...appData, ...parsed };
-    }
+    localStorage.removeItem('uniflow_data');
 
     await loadUniversityProfileFromApi();
     await loadAvailableFilieresFromApi();
@@ -721,10 +692,10 @@ async function loadData() {
     const formationsEmpty = !Array.isArray(appData.formations) || appData.formations.length === 0;
     if (!loadedFromApi && formationsEmpty) {
         const loadedFromJson = await loadFormationsFromJson();
-        if (!loadedFromJson && !hasSaved && !skipSample) {
+        if (!loadedFromJson) {
             initSampleData();
         }
-    } else if (!hasSaved && !skipSample) {
+    } else {
         initSampleData();
     }
 
@@ -739,22 +710,8 @@ async function loadData() {
     }
 }
 
-// Save data to localStorage
+// Save data in memory only; do not persist appData to localStorage
 function saveData() {
-    const safeAppData = {
-        ...appData,
-        shorts: Array.isArray(appData.shorts)
-            ? appData.shorts.map((short) => ({
-                  ...short,
-                  videoUrl:
-                      typeof short.videoUrl === 'string' && short.videoUrl.startsWith('data:')
-                          ? ''
-                          : short.videoUrl,
-              }))
-            : appData.shorts,
-    };
-    delete safeAppData.server_followers_count;
-    localStorage.setItem('uniflow_data', JSON.stringify(safeAppData));
     window.appData = appData;
     updateAllDisplays();
 }
@@ -2010,27 +1967,26 @@ function openFormationModal() {
 function updateFormationLevelDetail() {
     const mainLevel = document.getElementById('formationLevel');
     const detailLevel = document.getElementById('formationLevelDetail');
+    const feesByYear = document.getElementById('formationFeesByYear');
+    const licenseFees = document.getElementById('licenseFees');
+    const masterFees = document.getElementById('masterFees');
+    
     if (!mainLevel || !detailLevel) return;
 
     const level = mainLevel.value;
     if (level === 'Licence') {
-        detailLevel.style.display = 'block';
-        detailLevel.innerHTML = `
-            <option value="Licence 1">Licence 1</option>
-            <option value="Licence 2">Licence 2</option>
-            <option value="Licence 3">Licence 3</option>
-        `;
         detailLevel.value = 'Licence 1';
+        if (feesByYear) feesByYear.style.display = 'block';
+        if (licenseFees) licenseFees.style.display = 'flex';
+        if (masterFees) masterFees.style.display = 'none';
     } else if (level === 'Master') {
-        detailLevel.style.display = 'block';
-        detailLevel.innerHTML = `
-            <option value="Master 1">Master 1</option>
-            <option value="Master 2">Master 2</option>
-        `;
         detailLevel.value = 'Master 1';
+        if (feesByYear) feesByYear.style.display = 'block';
+        if (licenseFees) licenseFees.style.display = 'none';
+        if (masterFees) masterFees.style.display = 'flex';
     } else {
-        detailLevel.style.display = 'none';
-        detailLevel.innerHTML = '';
+        detailLevel.value = '';
+        if (feesByYear) feesByYear.style.display = 'none';
     }
 }
 
@@ -2577,7 +2533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uniDescription) {
         uniDescription.addEventListener('input', (e) => {
             const descCount = document.getElementById('descCount');
-            if (descCount) descCount.textContent = `${e.target.value.length}/200`;
+            if (descCount) descCount.textContent = `${e.target.value.length}/2000`;
         });
     }
 
@@ -3054,27 +3010,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Ajout en cours...';
             }
 
+            const levelValue = document.getElementById('formationLevel').value;
+            const feesValue = document.getElementById('formationFees')?.value || '';
+            const feesL1 = document.getElementById('formationFeesL1')?.value || '';
+            const feesL2 = document.getElementById('formationFeesL2')?.value || '';
+            const feesL3 = document.getElementById('formationFeesL3')?.value || '';
+            const feesM1 = document.getElementById('formationFeesM1')?.value || '';
+            const feesM2 = document.getElementById('formationFeesM2')?.value || '';
+            const feesM3 = document.getElementById('formationFeesM3')?.value || '';
+
             const formation = {
                 id: selectedFiliere.id,
                 name: formationName,
-                level: document.getElementById('formationLevel').value,
+                level: levelValue,
                 duration: document.getElementById('formationDuration').value,
                 location: document.getElementById('formationLocation').value,
                 language: document.getElementById('formationLanguage').value,
                 description: document.getElementById('formationDescription').value,
                 prerequisites: document.getElementById('formationPrerequisites').value,
-                fees: document.getElementById('formationFees').value,
+                fees: feesValue,
+                feesL1,
+                feesL2,
+                feesL3,
+                feesM1,
+                feesM2,
+                feesM3,
                 alternance: alternanceRadio ? alternanceRadio.value : 'Non',
                 createdAt: new Date().toISOString()
             };
             const formationDetails = {
                 nom_affiche: formationName,
-                niveau: document.getElementById('formationLevel').value,
+                niveau: levelValue,
                 niveau_detail: document.getElementById('formationLevelDetail')?.value || null,
                 duree: document.getElementById('formationDuration').value,
                 lieu: document.getElementById('formationLocation').value,
                 langue: document.getElementById('formationLanguage').value,
-                frais_inscription: document.getElementById('formationFees').value,
+                frais_inscription: feesValue,
+                frais_l1: feesL1,
+                frais_l2: feesL2,
+                frais_l3: feesL3,
+                frais_m1: feesM1,
+                frais_m2: feesM2,
+                frais_m3: feesM3,
                 description: document.getElementById('formationDescription').value,
                 prerequis: document.getElementById('formationPrerequisites').value,
                 alternance: alternanceRadio ? alternanceRadio.value === 'Oui' : false

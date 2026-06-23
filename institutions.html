@@ -545,8 +545,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Description</label>
-                                    <textarea id="uniDescription" maxlength="200" placeholder="Décrivez votre université en quelques mots..."></textarea>
-                                    <small id="descCount" style="color:var(--text-muted);">0/200</small>
+                                    <textarea id="uniDescription" maxlength="2000" placeholder="Décrivez votre université en quelques mots..."></textarea>
+                                    <small id="descCount" style="color:var(--text-muted);">0/2000</small>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group" style="flex:1;">
@@ -705,12 +705,24 @@
                                 <option value="Licence">Licence</option>
                                 <option value="Master">Master</option>
                             </select>
-                            <select id="formationLevelDetail" style="flex: 1; display: none;" aria-label="Niveau détaillé">
-                                <option value="Licence 1">Licence 1</option>
-                                <option value="Licence 2">Licence 2</option>
-                                <option value="Licence 3">Licence 3</option>
-                            </select>
                         </div>
+                        <input type="hidden" id="formationLevelDetail" value="Licence 1">
+                        <div id="formationFeesByYear" style="display: none; margin-top: 12px;">
+                            <div id="licenseFees" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <input type="text" id="formationFeesL1" placeholder="Frais L1" style="flex: 1;">
+                                <input type="text" id="formationFeesL2" placeholder="Frais L2" style="flex: 1;">
+                                <input type="text" id="formationFeesL3" placeholder="Frais L3" style="flex: 1;">
+                            </div>
+                            <div id="masterFees" style="display: none; flex-direction: row; gap: 8px;">
+                                <input type="text" id="formationFeesM1" placeholder="Frais M1" style="flex: 1;">
+                                <input type="text" id="formationFeesM2" placeholder="Frais M2" style="flex: 1;">
+                                <input type="text" id="formationFeesM3" placeholder="Frais M3" style="flex: 1;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex:1;" id="formationFeesContainer">
+                        <label>Frais d'inscription</label>
+                        <input type="text" id="formationFees" placeholder="Ex: 50000 cfa/mois">
                     </div>
                 </div>
                 <div class="form-row">
@@ -727,10 +739,6 @@
                     <div class="form-group" style="flex:1;">
                         <label>Langue</label>
                         <input type="text" id="formationLanguage" value="Français">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Frais d'inscription</label>
-                        <input type="text" id="formationFees" placeholder="Ex: 170€/an">
                     </div>
                 </div>
                 <div class="form-group">

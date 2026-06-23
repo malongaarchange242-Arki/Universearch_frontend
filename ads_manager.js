@@ -761,6 +761,8 @@ function enterEditMode(campaign) {
     document.getElementById('ad-title').value = campaign?.title || '';
     document.getElementById('ad-desc').value = campaign?.description || '';
     document.getElementById('ad-location').value = campaign?.location || '';
+    document.getElementById('ad-lien').value = campaign?.lien || campaign?.lien_site || '';
+    document.getElementById('ad-contacts').value = campaign?.contacts || '';
 
     selectedGender = campaign?.target_gender || 'all';
     selectGender(selectedGender);
@@ -926,6 +928,8 @@ async function launchCampaign() {
         console.log('Media URL:', mediaUrl);
 
         // 2) Création ou mise à jour de la campagne
+        const contacts = document.getElementById('ad-contacts').value.trim() || undefined;
+        const lien = document.getElementById('ad-lien').value.trim() || undefined;
         const sendNotifications = document.getElementById('send-notifications-toggle').checked;
         const destination = mediaType === 'image' ? 'carousel' : 'shorts';
         const payload = {
@@ -939,6 +943,8 @@ async function launchCampaign() {
             target_users: selectedUsers.length > 0 ? selectedUsers : undefined,
             ...ageTargeting,
             location: location,
+            contacts,
+            lien,
             send_notifications: sendNotifications,
             ...(destination === 'carousel' && campaignBeingEdited?.carousel_slot !== undefined ? { carousel_slot: campaignBeingEdited.carousel_slot } : {})
         };
@@ -967,6 +973,8 @@ async function launchCampaign() {
         // Réinitialiser le formulaire
         document.getElementById('ad-title').value = '';
         document.getElementById('ad-desc').value = '';
+        document.getElementById('ad-lien').value = '';
+        document.getElementById('ad-contacts').value = '';
         // Reset targeting
         selectedGender = 'all';
         selectGender('all'); // Reset visual selection
