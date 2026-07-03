@@ -21,10 +21,153 @@ let appData = {
 };
 window.appData = appData;
 let availableFilieres = [];
+let availableProfessionalFormations = [];
 
 // API Configuration
 const CONTENT_API = window.CONTENT_API || 'https://universearch-content-service.onrender.com';
 const MESSAGING_SERVICE_URL = window.MESSAGING_SERVICE_URL || 'https://universearch-messaging.onrender.com';
+const DEFAULT_TIMEOUT = 10000; // 10 secondes
+
+// ========== GESTION DES ERREURS API ==========
+/**
+ * Effectue une requête fetch avec gestion complète des erreurs
+ * @param {string} url - URL de la requête
+ * @param {object} options - Options fetch standard (method, headers, body, etc.)
+ * @param {number} timeout - Timeout en ms (défaut: 10000)
+ * @returns {Promise<{ok: boolean, data: any, error: string|null, status: number}>}
+ */
+async function safeFetch(url, options = {}, timeout = DEFAULT_TIMEOUT) {
+    try {
+        // Vérifier la connexion réseau
+        if (!navigator.onLine) {
+            return {
+                ok: false,
+                data: null,
+                error: 'Pas de connexion Internet. Vérifiez votre connexion réseau.',
+                status: 0,
+                isNetworkError: true
+            };
+        }
+
+        // Créer un contrôleur d'abort pour le timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            // Essayer de parser la réponse
+            let data = null;
+            const contentType = response.headers.get('content-type');
+            if (contentType?.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.warn('Erreur lors du parsing JSON:', e);
+                    data = null;
+                }
+            } else {
+                try {
+                    data = await response.text();
+                } catch (e) {
+                    console.warn('Erreur lors de la lecture du contenu:', e);
+                    data = null;
+                }
+            }
+
+            if (!response.ok) {
+                const errorMessage = data?.message || data?.error || `Erreur serveur (${response.status})`;
+                return {
+                    ok: false,
+                    data,
+                    error: `${errorMessage}`,
+                    status: response.status,
+                    isServerError: true
+                };
+            }
+
+            return {
+                ok: true,
+                data,
+                error: null,
+                status: response.status
+            };
+
+        } catch (err) {
+            clearTimeout(timeoutId);
+
+            if (err.name === 'AbortError') {
+                return {
+                    ok: false,
+                    data: null,
+                    error: `La requête a dépassé le délai d'attente (${timeout / 1000}s). Le serveur ne répond pas.`,
+                    status: 0,
+                    isTimeout: true
+                };
+            }
+
+            throw err; // Relancer pour le catch extérieur
+        }
+
+    } catch (err) {
+        console.error('Erreur lors de la requête:', err);
+
+        // Distinguer les types d'erreurs réseau
+        const isNetworkError = err.message?.includes('Failed to fetch') || 
+                             err.message?.includes('NetworkError') ||
+                             err.message?.includes('Network request failed') ||
+                             err instanceof TypeError;
+
+        return {
+            ok: false,
+            data: null,
+            error: isNetworkError
+                ? 'Pas de connexion Internet. Vérifiez votre connexion réseau.'
+                : `Erreur: ${err.message || 'Une erreur inconnue s\'est produite'}`,
+            status: 0,
+            isNetworkError
+        };
+    }
+}
+
+/**
+ * Affiche un message d'erreur à l'utilisateur avec actions proposées
+ * @param {object} errorResult - Résultat de safeFetch avec erreur
+ * @param {string} context - Contexte de l'erreur (pour les logs)
+ * @param {boolean} showToast - Afficher un toast d'erreur
+ */
+function handleApiError(errorResult, context = '', showToast = true) {
+    const { error, isNetworkError, isTimeout, status } = errorResult;
+
+    console.error(`[${context}] Erreur API:`, error);
+
+    if (showToast) {
+        // Afficher le toast d'erreur
+        if (typeof window.showToast === 'function') {
+            window.showToast(error, 'error');
+        }
+    }
+
+    // Logger pour le debugging
+    if (isNetworkError) {
+        console.warn('Erreur réseau détectée');
+    } else if (isTimeout) {
+        console.warn('Timeout: le serveur ne répond pas');
+    } else if (status >= 500) {
+        console.error('Erreur serveur 5xx:', status);
+    } else if (status >= 400) {
+        console.warn('Erreur client 4xx:', status);
+    }
+
+    return { error, isNetworkError, isTimeout, status };
+}
+
+// ========== FIN GESTION DES ERREURS ==========
 
 // Helper to get JWT token from various storage locations
 function getJWTToken() {
@@ -37,7 +180,7 @@ function getJWTToken() {
 async function createActivityRecord(title, description = null, status = 'active', isPublic = true) {
     const token = getJWTToken();
     if (!token) {
-        console.warn('Activity record not created: no auth token');
+        console.warn('Enregistrement d\'activité non créé: pas de token');
         return null;
     }
 
@@ -54,27 +197,21 @@ async function createActivityRecord(title, description = null, status = 'active'
         payload.organization_type = activityContext.organizationType;
     }
 
-    try {
-        const res = await fetch(`${CONTENT_API}/activities`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(payload)
-        });
+    const result = await safeFetch(`${CONTENT_API}/activities`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+    });
 
-        if (!res.ok) {
-            const errorText = await res.text().catch(() => '');
-            console.warn('Failed to create activity record:', res.status, errorText);
-            return null;
-        }
-
-        return await res.json().catch(() => null);
-    } catch (err) {
-        console.warn('Error creating activity record:', err);
+    if (!result.ok) {
+        console.warn('Impossible de créer l\'enregistrement d\'activité:', result.error);
         return null;
     }
+
+    return result.data || null;
 }
 
 function getUserRole() {
@@ -202,33 +339,41 @@ function applyUniversityProfile(profile) {
 
 async function loadUniversityProfileFromApi() {
     const token = getJWTToken();
-    if (!token) return false;
+    if (!token) {
+        console.warn('Pas de token: impossible de charger le profil');
+        return false;
+    }
 
     const role = getUserRole();
     const endpoints = role.includes('centre') ? ['/centres/me'] : ['/universites/me', '/centres/me'];
+    let lastError = null;
 
     for (const endpoint of endpoints) {
-        try {
-            const res = await fetch(`${getIdentityApiBase()}${endpoint}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!res.ok) {
-                console.warn(`Unable to fetch ${endpoint}: ${res.status}`);
-                continue;
-            }
+        const result = await safeFetch(`${getIdentityApiBase()}${endpoint}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
 
-            const json = await res.json().catch(() => null);
-            const profile = Array.isArray(json) ? json[0] : (json?.data || json || {});
-            if (!profile || typeof profile !== 'object') continue;
-            profile.__institution_kind = endpoint.includes('/centres') ? 'centre' : 'universite';
-            applyUniversityProfile(profile);
-            console.log(`Profil charge depuis ${endpoint}:`, profile.nom || profile.name || profile.id);
-            return true;
-        } catch (error) {
-            console.warn(`Error loading profile from ${endpoint}:`, error);
+        if (!result.ok) {
+            lastError = result;
+            console.warn(`Impossible de charger ${endpoint}: ${result.error}`);
+            continue;
         }
+
+        const json = result.data;
+        const profile = Array.isArray(json) ? json[0] : (json?.data || json || {});
+        if (!profile || typeof profile !== 'object') continue;
+
+        profile.__institution_kind = endpoint.includes('/centres') ? 'centre' : 'universite';
+        applyUniversityProfile(profile);
+        console.log(`Profil chargé depuis ${endpoint}:`, profile.nom || profile.name || profile.id);
+        return true;
     }
 
+    console.warn('Impossible de charger le profil: tous les endpoints ont échoué');
+    // Afficher le message d'erreur du dernier appel échoué
+    if (lastError && typeof window.showToast === 'function') {
+        window.showToast(lastError.error || 'Impossible de charger le profil', 'error');
+    }
     return false;
 }
 
@@ -245,7 +390,8 @@ async function uploadUniversityLogoIfNeeded() {
     const contentType = match[1] || 'image/png';
     const extension = contentType.split('/')[1] || 'png';
     const { logoEndpoint } = getCurrentOrganizationContext();
-    const res = await fetch(`${getIdentityApiBase()}${logoEndpoint}`, {
+
+    const result = await safeFetch(`${getIdentityApiBase()}${logoEndpoint}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -258,23 +404,27 @@ async function uploadUniversityLogoIfNeeded() {
         })
     });
 
-    if (!res.ok) {
-        const message = await res.text().catch(() => '');
-        throw new Error(message || `Logo upload failed (${res.status})`);
+    if (!result.ok) {
+        console.warn('Impossible de charger le logo:', result.error);
+        return null;
     }
 
-    const json = await res.json().catch(() => null);
+    const json = result.data;
     return json?.url || json?.logo_url || json?.data?.url || null;
 }
 
 async function saveUniversityProfileToApi() {
     const token = getJWTToken();
     if (!token) {
-        throw new Error('Session expiree: reconnectez-vous');
+        if (typeof window.showToast === 'function') {
+            window.showToast('Session expirée : reconnectez-vous', 'error');
+        }
+        return null;
     }
 
     const { meEndpoint } = getCurrentOrganizationContext();
 
+    // Upload logo if needed
     const uploadedLogoUrl = await uploadUniversityLogoIfNeeded();
     if (uploadedLogoUrl) {
         appData.university.logo = uploadedLogoUrl;
@@ -291,7 +441,7 @@ async function saveUniversityProfileToApi() {
         primary_color: appData.university.primaryColor || null
     };
 
-    const res = await fetch(`${getIdentityApiBase()}${meEndpoint}`, {
+    const result = await safeFetch(`${getIdentityApiBase()}${meEndpoint}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -300,32 +450,36 @@ async function saveUniversityProfileToApi() {
         body: JSON.stringify(payload)
     });
 
-    if (!res.ok) {
-        const message = await res.text().catch(() => '');
-        throw new Error(message || `Impossible de modifier l'institution (${res.status})`);
+    if (!result.ok) {
+        handleApiError(result, 'saveUniversityProfileToApi', true);
+        return null;
     }
 
-    const json = await res.json().catch(() => null);
-    const profile = json?.data || json;
+    const profile = result.data?.data || result.data;
     if (profile && typeof profile === 'object') {
         applyUniversityProfile(profile);
+        if (typeof window.showToast === 'function') {
+            window.showToast('Profil mise à jour avec succès', 'success');
+        }
     }
     return profile;
 }
 
 function normalizeRemoteFormation(filiere, domaine = {}, index = 0) {
-    const name = filiere?.nom_affiche || filiere?.name || filiere?.nom || filiere?.title || filiere?.label || `Formation ${index + 1}`;
+    // Support both university filieres and professional formations
+    const name = filiere?.nom_affiche || filiere?.nom_formation || filiere?.name || filiere?.nom || filiere?.title || filiere?.label || `Formation ${index + 1}`;
     const alternance = filiere?.alternance === true || String(filiere?.alternance || '').toLowerCase() === 'oui' ? 'Oui' : 'Non';
+    
     return {
         id: filiere?.id || String(name).toLowerCase().replace(/\s+/g, '-'),
         name,
-        level: filiere?.niveau_detail || filiere?.niveau || filiere?.level || domaine?.nom || 'Filiere',
+        level: filiere?.niveau_detail || filiere?.niveau || filiere?.level || filiere?.type_certification || domaine?.nom || 'Formation',
         duration: filiere?.duree || filiere?.duration || '',
         location: filiere?.lieu || filiere?.location || '',
         language: filiere?.langue || filiere?.language || 'Francais',
         description: filiere?.description || domaine?.description || '',
         prerequisites: filiere?.prerequis || filiere?.prerequisites || '',
-        fees: filiere?.frais_inscription || filiere?.fees || '',
+        fees: filiere?.frais_inscription || filiere?.cout_formation || filiere?.fees || '',
         feesL1: filiere?.frais_l1 || filiere?.feesL1 || '',
         feesL2: filiere?.frais_l2 || filiere?.feesL2 || '',
         feesL3: filiere?.frais_l3 || filiere?.feesL3 || '',
@@ -333,14 +487,19 @@ function normalizeRemoteFormation(filiere, domaine = {}, index = 0) {
         feesM2: filiere?.frais_m2 || filiere?.feesM2 || '',
         feesM3: filiere?.frais_m3 || filiere?.feesM3 || '',
         alternance,
+        // Professional formation specific fields
+        category: filiere?.categorie_domaine || '',
+        certification: filiere?.type_certification || '',
+        mode: filiere?.mode_formation || '',
         createdAt: filiere?.created_at || filiere?.date_creation || new Date().toISOString()
     };
 }
 
 function extractFormationsFromProfile(profile) {
-    const domaines = Array.isArray(profile?.domaines) ? profile.domaines : [];
     const formations = [];
 
+    // Case 1: Universités - formations viennent de domaines
+    const domaines = Array.isArray(profile?.domaines) ? profile.domaines : [];
     domaines.forEach((domaine) => {
         const filieres = Array.isArray(domaine?.filieres) ? domaine.filieres : [];
         filieres.forEach((filiere) => {
@@ -348,76 +507,81 @@ function extractFormationsFromProfile(profile) {
         });
     });
 
+    // Case 2: Centres - formations professionnelles dans filieres avec filiere_id = null
+    const directFilieres = Array.isArray(profile?.filieres) ? profile.filieres : [];
+    directFilieres.forEach((filiere) => {
+        // Skip if it's a normal filiere (with filiere_id linked to a generic filiere)
+        // Include it if it's a professional formation (filiere_id = null)
+        if (filiere?.filiere_id === null || filiere?.filiere_id === undefined) {
+            formations.push(normalizeRemoteFormation(filiere, {}, formations.length));
+        }
+    });
+
     return formations;
 }
 
 async function loadFormationsFromApi() {
     const token = getJWTToken();
-    if (!token) return false;
+    if (!token) {
+        console.warn('Pas de token: impossible de charger les formations');
+        return false;
+    }
 
     const { meEndpoint: endpoint } = getCurrentOrganizationContext();
 
-    try {
-        const res = await fetch(`${getIdentityApiBase()}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    const result = await safeFetch(`${getIdentityApiBase()}${endpoint}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
 
-        if (!res.ok) {
-            console.warn(`Unable to fetch ${endpoint}: ${res.status}`);
-            return false;
+    if (!result.ok) {
+        const errorMsg = result.error || 'Impossible de charger les formations';
+        console.warn(`Impossible de charger les formations: ${errorMsg}`);
+        if (typeof window.showToast === 'function' && result.isNetworkError) {
+            window.showToast(errorMsg, 'error');
         }
-
-        const json = await res.json().catch(() => null);
-        const profile = Array.isArray(json) ? json[0] : (json?.data || json || {});
-        const formations = extractFormationsFromProfile(profile);
-
-        if (formations.length === 0) {
-            appData.formations = [];
-            window.appData = appData;
-            updateAllDisplays();
-            populateFormationDropdown();
-            return true;
-        }
-
-        appData.formations = formations;
-        window.appData = appData;
-        updateAllDisplays();
-        populateFormationDropdown();
-        console.log(`Formations chargees depuis ${endpoint}: ${formations.length}`);
-        return true;
-    } catch (error) {
-        console.warn('Error loading formations from API:', error);
         return false;
     }
+
+    const json = result.data;
+    const profile = Array.isArray(json) ? json[0] : (json?.data || json || {});
+    const formations = extractFormationsFromProfile(profile);
+
+    appData.formations = formations;
+    window.appData = appData;
+    updateAllDisplays();
+    populateFormationDropdown();
+    console.log(`Formations chargées depuis ${endpoint}: ${formations.length}`);
+    return true;
 }
 
 async function loadAvailableFilieresFromApi() {
     const { kind } = getCurrentOrganizationContext();
     const endpoint = kind === 'centre' ? '/centres/filieres' : '/filieres';
 
-    try {
-        const res = await fetch(`${getIdentityApiBase()}${endpoint}`);
-        if (!res.ok) {
-            console.warn(`Unable to fetch ${endpoint}: ${res.status}`);
-            return false;
-        }
+    const result = await safeFetch(`${getIdentityApiBase()}${endpoint}`);
 
-        const json = await res.json().catch(() => null);
-        const data = Array.isArray(json) ? json : (json?.data || json?.filieres || []);
-        availableFilieres = data
-            .map((item, index) => ({
-                id: item.id || item.filiere_id || '',
-                name: item.nom || item.name || item.title || `Filiere ${index + 1}`,
-                domaine_id: item.domaine_id || item.domaineId || null
-            }))
-            .filter((item) => item.id && item.name);
-        window.availableFilieres = availableFilieres;
-        populateFormationDropdown();
-        return availableFilieres.length > 0;
-    } catch (error) {
-        console.warn('Error loading available filieres:', error);
+    if (!result.ok) {
+        const errorMsg = result.error || 'Impossible de charger les filières';
+        console.warn(`Impossible de charger les filieres: ${errorMsg}`);
+        if (typeof window.showToast === 'function' && result.isNetworkError) {
+            window.showToast(errorMsg, 'error');
+        }
         return false;
     }
+
+    const json = result.data;
+    const data = Array.isArray(json) ? json : (json?.data || json?.filieres || []);
+    availableFilieres = data
+        .map((item, index) => ({
+            id: item.id || item.filiere_id || '',
+            name: item.nom || item.name || item.title || `Filiere ${index + 1}`,
+            domaine_id: item.domaine_id || item.domaineId || null
+        }))
+        .filter((item) => item.id && item.name);
+    window.availableFilieres = availableFilieres;
+    populateFormationDropdown();
+    console.log(`Filieres disponibles chargées: ${availableFilieres.length}`);
+    return availableFilieres.length > 0;
 }
 
 function findAvailableFiliereByName(name) {
@@ -438,7 +602,11 @@ function findAvailableFiliereByName(name) {
 async function attachFiliereToCurrentOrganization(filiereId, formationDetails = null) {
     const token = getJWTToken();
     if (!token) {
-        throw new Error('Session expiree: reconnectez-vous');
+        const errorMsg = 'Session expirée: reconnectez-vous';
+        if (typeof window.showToast === 'function') {
+            window.showToast(errorMsg, 'error');
+        }
+        return null;
     }
 
     const { kind, filieresEndpoint: endpoint } = getCurrentOrganizationContext();
@@ -446,6 +614,41 @@ async function attachFiliereToCurrentOrganization(filiereId, formationDetails = 
     if (kind !== 'centre' && formationDetails) {
         payload.formationDetails = [{ filiere_id: filiereId, ...formationDetails }];
     }
+
+    const result = await safeFetch(`${getIdentityApiBase()}${endpoint}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!result.ok) {
+        console.warn('Impossible d\'attacher la filière:', result.error);
+        if (typeof window.showToast === 'function') {
+            window.showToast('Impossible d\'attacher la filière', 'error');
+        }
+        return null;
+    }
+
+    if (typeof window.showToast === 'function') {
+        window.showToast('Filière attachée avec succès', 'success');
+    }
+    return result.data || null;
+}
+
+async function attachProfessionalFormationToMyCentre(formations) {
+    const token = getJWTToken();
+    if (!token) {
+        throw new Error('Session expiree: reconnectez-vous');
+    }
+
+    const endpoint = '/centres/me/filieres';
+    
+    const payload = {
+        formationDetails: Array.isArray(formations) ? formations : [formations]
+    };
 
     const res = await fetch(`${getIdentityApiBase()}${endpoint}`, {
         method: 'POST',
@@ -458,7 +661,7 @@ async function attachFiliereToCurrentOrganization(filiereId, formationDetails = 
 
     if (!res.ok) {
         const message = await res.text().catch(() => '');
-        throw new Error(message || `Impossible d'attacher la filiere (${res.status})`);
+        throw new Error(message || `Impossible d'ajouter la formation professionnelle (${res.status})`);
     }
 
     return res.json().catch(() => null);
@@ -528,7 +731,8 @@ function populateFormationDropdown() {
     const options = formations
         .map((item) => ({
             value: item.name || item.nom || item.title || item.label || '',
-            id: item.id || String(item.name || item.nom || item.title || item.label || '').toLowerCase().replace(/\s+/g, '-')
+            id: item.id || String(item.name || item.nom || item.title || item.label || '').toLowerCase().replace(/\s+/g, '-'),
+            original: item
         }))
         .filter((item) => item.value)
         .filter((item) => {
@@ -544,6 +748,31 @@ function populateFormationDropdown() {
         .join('');
 }
 
+function populateProfessionalFormationDropdown() {
+    const datalist = document.getElementById('proFormationOptions');
+    if (!datalist) return;
+
+    fetch('../Frontend/mes-formations.json')
+        .then(res => res.json())
+        .then(formations => {
+            if (!Array.isArray(formations)) return;
+
+            availableProfessionalFormations = formations.map(item => ({
+                id: item.id,
+                name: item.name
+            }));
+
+            datalist.innerHTML = formations
+                .map(item => `<option value="${escapeHtml(item.name)}"></option>`)
+                .join('');
+        })
+        .catch(error => {
+            console.error('Error loading professional formations dropdown:', error);
+            availableProfessionalFormations = [];
+            datalist.innerHTML = '';
+        });
+}
+
 // Variables globales pour les graphiques
 let followersChart = null;
 let dashboardPerformanceChart = null;
@@ -551,132 +780,20 @@ let engagementChart = null;
 let performanceChart = null;
 let analyticsFollowersChart = null;
 
-// Sample data for demonstration
-function initSampleData() {
-    if (appData.shorts.length === 0) {
-        appData.shorts.push({
-            id: 's_1',
-            title: 'Découvrez notre campus moderne',
-            category: 'campus',
-            videoUrl: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-            hashtags: '#campus #université',
-            views: 1250,
-            likes: 89,
-            shares: 34,
-            createdAt: new Date(Date.now() - 86400000).toISOString()
-        });
-        appData.shorts.push({
-            id: 's_2',
-            title: 'Témoignage Alumni 2024',
-            category: 'temoignage',
-            videoUrl: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-            hashtags: '#alumni #réussite',
-            views: 2340,
-            likes: 156,
-            shares: 67,
-            createdAt: new Date(Date.now() - 172800000).toISOString()
-        });
-    }
-    
-    if (appData.flyers.length === 0) {
-        appData.flyers.push({
-            id: 'fl_1',
-            title: 'Journée portes ouvertes 2025',
-            category: 'admission',
-            imageUrl: 'https://picsum.photos/id/20/400/300',
-            description: 'Venez découvrir nos formations',
-            views: 890,
-            likes: 56,
-            downloads: 123,
-            createdAt: new Date(Date.now() - 259200000).toISOString()
-        });
-        appData.flyers.push({
-            id: 'fl_2',
-            title: 'Forum des Métiers',
-            category: 'evenement',
-            imageUrl: 'https://picsum.photos/id/26/400/300',
-            description: 'Rencontrez les professionnels',
-            views: 1560,
-            likes: 98,
-            downloads: 245,
-            createdAt: new Date(Date.now() - 345600000).toISOString()
-        });
-    }
-    
-    
-    if (appData.events.length === 0) {
-        appData.events.push({
-            id: 'e_1',
-            title: 'Journée Portes Ouvertes',
-            date: '2025-03-15',
-            endDate: '2025-03-15',
-            time: '10:00',
-            endTime: '17:00',
-            location: 'Campus Universitaire - Amphi A',
-            type: 'Portes Ouvertes',
-            description: 'Venez découvrir nos formations et rencontrer nos équipes pédagogiques.',
-            link: 'https://www.universite.fr/portes-ouvertes',
-            capacity: '500',
-            createdAt: new Date(Date.now() - 604800000).toISOString()
-        });
-        appData.events.push({
-            id: 'e_2',
-            title: 'Conférence IA & Société',
-            date: '2025-04-10',
-            endDate: '2025-04-10',
-            time: '14:00',
-            endTime: '17:00',
-            location: 'Amphithéâtre B',
-            type: 'Conférence',
-            description: 'Conférence sur les enjeux éthiques de l\'intelligence artificielle.',
-            link: 'https://www.universite.fr/conference-ia',
-            capacity: '300',
-            createdAt: new Date(Date.now() - 691200000).toISOString()
-        });
-    }
-    
-    if (appData.testimonials.length === 0) {
-        appData.testimonials.push({
-            id: 't_1',
-            studentName: 'Marie Dubois',
-            promotion: '2024',
-            program: 'Licence Informatique',
-            rating: '5',
-            message: 'Une université dynamique avec des professeurs à l\'écoute. Les cours sont de qualité et les opportunités professionnelles nombreuses. Je recommande vivement !',
-            currentJob: 'Développeuse Full Stack chez TechCorp',
-            photo: null,
-            createdAt: new Date(Date.now() - 777600000).toISOString()
-        });
-        appData.testimonials.push({
-            id: 't_2',
-            studentName: 'Thomas Laurent',
-            promotion: '2023',
-            program: 'Master Data Science',
-            rating: '5',
-            message: 'Le Master Data Science m\'a ouvert les portes des plus grandes entreprises tech. L\'encadrement est exceptionnel.',
-            currentJob: 'Data Scientist chez AI Labs',
-            photo: null,
-            createdAt: new Date(Date.now() - 864000000).toISOString()
-        });
-    }
+function getLastTwelveMonthLabels(referenceDate = new Date()) {
+    const formatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
 
-    if (appData.followers.length === 0) {
-        appData.followers = [];
-    }
+    return Array.from({ length: 12 }, (_, index) => {
+        const date = new Date(referenceDate.getFullYear(), referenceDate.getMonth() - 11 + index, 1);
+        const month = formatter.format(date).replace('.', '');
+        const label = month.charAt(0).toUpperCase() + month.slice(1);
 
-    if (appData.analyticsHistory.length === 0) {
-        const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-        for (let i = 29; i >= 0; i--) {
-            appData.analyticsHistory.push({
-                date: days[i % 7],
-                views: Math.floor(Math.random() * 800) + 200,
-                likes: Math.floor(Math.random() * 300) + 50,
-                engagement: Math.floor(Math.random() * 20) + 5,
-                shares: Math.floor(Math.random() * 100) + 10
-            });
-        }
-    }
+        return date.getMonth() === 0 ? `${label} ${date.getFullYear()}` : label;
+    });
 }
+
+// ❌ SUPPRIMÉ: Fonction initSampleData() - Plus de données d'exemple
+// L'application démarre désormais avec des données vides
 
 // Load data without using localStorage persistence
 async function loadData() {
@@ -692,12 +809,10 @@ async function loadData() {
     const formationsEmpty = !Array.isArray(appData.formations) || appData.formations.length === 0;
     if (!loadedFromApi && formationsEmpty) {
         const loadedFromJson = await loadFormationsFromJson();
-        if (!loadedFromJson) {
-            initSampleData();
-        }
-    } else {
-        initSampleData();
+        // ❌ SUPPRIMÉ: if (!loadedFromJson) { initSampleData(); }
+        // Plus aucune donnée d'exemple générée
     }
+    // ❌ SUPPRIMÉ: else { initSampleData(); }
 
     window.appData = appData;
     updateAllDisplays();
@@ -734,52 +849,45 @@ async function loadTopFollowers() {
     const endpoint = `${CONTENT_API}/stats/organization/top-followers${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     console.log('[TopFollowers] endpoint:', endpoint);
 
-    try {
-        const headers = {
-            'Content-Type': 'application/json',
-        };
+    const headers = {
+        'Content-Type': 'application/json',
+    };
 
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
 
-        const res = await fetch(endpoint, {
-            headers,
-        });
+    const result = await safeFetch(endpoint, { headers });
 
-        console.log('[TopFollowers] fetch response status:', res.status);
-        const json = await res.json().catch(() => null);
-        console.log('[TopFollowers] fetch response payload:', json);
-
-        if (!res.ok) {
-            console.warn('Failed to load top followers:', res.status);
-            return false;
-        }
-        if (!json || !json.success || !Array.isArray(json.data)) {
-            console.warn('Unexpected top followers payload:', json);
-            return false;
-        }
-
-        if (json.data.length > 0) {
-            appData.followers = json.data.map((item) => ({
-                id: item.user_id,
-                display_name: item.display_name,
-                likes: item.likes,
-                comments: item.comments,
-                views: item.views,
-                score: item.score,
-                last_interaction_at: item.last_interaction_at,
-                platform: item.display_name,
-                handle: item.user_id,
-            }));
-            return true;
-        }
-
-        return false;
-    } catch (error) {
-        console.warn('Error loading top followers:', error);
+    if (!result.ok) {
+        console.warn('Impossible de charger les top followers:', result.error);
         return false;
     }
+
+    const json = result.data;
+    console.log('[TopFollowers] fetch response payload:', json);
+
+    if (!json || !json.success || !Array.isArray(json.data)) {
+        console.warn('Payload inattendu pour top followers:', json);
+        return false;
+    }
+
+    if (json.data.length > 0) {
+        appData.followers = json.data.map((item) => ({
+            id: item.user_id,
+            display_name: item.display_name,
+            likes: item.likes,
+            comments: item.comments,
+            views: item.views,
+            score: item.score,
+            last_interaction_at: item.last_interaction_at,
+            platform: item.display_name,
+            handle: item.user_id,
+        }));
+        return true;
+    }
+
+    return false;
 }
 
 // Update all UI components
@@ -815,11 +923,7 @@ function updateUniversityInfo() {
     if (uniDescription) uniDescription.value = appData.university.description;
     
     const descCount = document.getElementById('descCount');
-    if (descCount) descCount.textContent = `${appData.university.description.length}/200`;
-    
-    const uniEmail = document.getElementById('uniEmail');
-    if (uniEmail) uniEmail.value = appData.university.email;
-    
+    if (descCount) descCount.textContent = `${appData.university.description.length}/2000`;
     const uniPhone = document.getElementById('uniPhone');
     if (uniPhone) uniPhone.value = appData.university.phone;
     
@@ -869,23 +973,34 @@ function updateCounters() {
 function updateDashboardStats() {
     const statShorts = document.getElementById('statShorts');
     if (statShorts) statShorts.textContent = appData.shorts.length;
+    const statTrendShorts = document.getElementById('statTrendShorts');
+    setTrendText(statTrendShorts, computeRecentItemGrowth(appData.shorts));
     
     const statFlyers = document.getElementById('statFlyers');
     if (statFlyers) statFlyers.textContent = appData.flyers.length;
+    const statTrendFlyers = document.getElementById('statTrendFlyers');
+    setTrendText(statTrendFlyers, computeRecentItemGrowth(appData.flyers));
     
     const totalViews = appData.shorts.reduce((s, c) => s + getContentViews(c), 0) + 
                        appData.flyers.reduce((s, c) => s + getContentViews(c), 0);
     const statViews = document.getElementById('statViews');
     if (statViews) statViews.textContent = formatNumber(totalViews);
+    const statTrendViews = document.getElementById('statTrendViews');
+    setTrendText(statTrendViews, computeHistoryGrowth('views'));
     
     const totalFollowers = (typeof appData.server_followers_count === 'number')
         ? appData.server_followers_count
         : 0;
     const statFollowers = document.getElementById('statFollowers');
     if (statFollowers) statFollowers.textContent = formatNumber(totalFollowers);
+    const statTrendFollowers = document.getElementById('statTrendFollowers');
+    setTrendText(statTrendFollowers, computeHistoryGrowth('followers'));
     
+    const totalMessages = getTotalContentComments();
     const statMessages = document.getElementById('statMessages');
-    if (statMessages) statMessages.textContent = formatNumber(getTotalContentComments());
+    if (statMessages) statMessages.textContent = formatNumber(totalMessages);
+    const statTrendMessages = document.getElementById('statTrendMessages');
+    setTrendText(statTrendMessages, computeHistoryGrowth('messages'));
 }
 
 // NOUVELLE FONCTION : Formatage des nombres
@@ -893,6 +1008,69 @@ function formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
     return num.toString();
+}
+
+function formatPercentage(value) {
+    if (value === null || Number.isNaN(value)) return 'N/A';
+    const rounded = Math.round(value);
+    const sign = rounded > 0 ? '+' : rounded < 0 ? '' : '';
+    return `${sign}${rounded}%`;
+}
+
+function setTrendText(element, growthValue) {
+    if (!element) return;
+    element.classList.remove('up', 'down');
+    if (growthValue === null || Number.isNaN(growthValue)) {
+        element.innerHTML = `<i class="fas fa-minus"></i> N/A`;
+        return;
+    }
+    const direction = growthValue > 0 ? 'up' : growthValue < 0 ? 'down' : '';
+    if (direction) element.classList.add(direction);
+    const icon = growthValue > 0 ? 'fa-arrow-up' : growthValue < 0 ? 'fa-arrow-down' : 'fa-minus';
+    element.innerHTML = `<i class="fas ${icon}"></i> ${formatPercentage(growthValue)}`;
+}
+
+function computeHistoryGrowth(metricKey) {
+    if (!Array.isArray(appData.analyticsHistory) || appData.analyticsHistory.length < 14) {
+        return null;
+    }
+    const history = appData.analyticsHistory.slice(-14);
+    const previousPeriod = history.slice(0, 7);
+    const recentPeriod = history.slice(7, 14);
+    const previousSum = previousPeriod.reduce((sum, item) => sum + Number(item[metricKey] || 0), 0);
+    const recentSum = recentPeriod.reduce((sum, item) => sum + Number(item[metricKey] || 0), 0);
+    if (previousSum === 0) {
+        return recentSum === 0 ? 0 : null;
+    }
+    return ((recentSum - previousSum) / previousSum) * 100;
+}
+
+function computeRecentItemGrowth(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+        return null;
+    }
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    let recentCount = 0;
+    let previousCount = 0;
+
+    items.forEach(item => {
+        const createdAt = getContentCreatedAt(item);
+        const date = new Date(createdAt);
+        if (isNaN(date.getTime())) return;
+        if (date >= sevenDaysAgo) {
+            recentCount += 1;
+        } else if (date >= fourteenDaysAgo) {
+            previousCount += 1;
+        }
+    });
+
+    if (previousCount === 0) {
+        return recentCount === 0 ? 0 : null;
+    }
+    return ((recentCount - previousCount) / previousCount) * 100;
 }
 
 function getDashboardStatValue(id, fallback = 0) {
@@ -1071,7 +1249,7 @@ function initFollowersChart() {
         };
     });
     
-    const labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const labels = getLastTwelveMonthLabels();
     
     followersChart = new Chart(ctx, {
         type: 'line',
@@ -1355,7 +1533,7 @@ function initAnalyticsFollowersChart() {
     
     if (analyticsFollowersChart) analyticsFollowersChart.destroy();
     
-    const labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const labels = getLastTwelveMonthLabels();
     
     analyticsFollowersChart = new Chart(ctx, {
         type: 'line',
@@ -1527,6 +1705,9 @@ function displayFormations() {
                 <p style="margin:0; font-size:13px;"><i class="fas fa-language" style="color:var(--primary);width:20px;"></i> ${formation.language || 'Français'}</p>
                 ${formation.fees ? `<p style="margin:0; font-size:13px;"><i class="fas fa-euro-sign" style="color:var(--primary);width:20px;"></i> ${formation.fees}</p>` : ''}
             </div>
+            ${formation.mode ? `<p style="margin:0 0 12px 0; font-size:13px;"><i class="fas fa-video" style="color:var(--primary);width:20px;"></i> Mode: ${escapeHtml(formation.mode)}</p>` : ''}
+            ${formation.category ? `<p style="margin:0 0 12px 0; font-size:13px;"><i class="fas fa-tag" style="color:var(--primary);width:20px;"></i> Domaine: ${escapeHtml(formation.category)}</p>` : ''}
+            ${formation.certification ? `<p style="margin:0 0 12px 0; font-size:13px;"><i class="fas fa-certificate" style="color:var(--primary);width:20px;"></i> Certification: ${escapeHtml(formation.certification)}</p>` : ''}
             ${formation.alternance === 'Oui' ? '<span style="display:inline-block;background:rgba(16,185,129,0.1);color:var(--success);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px;"><i class="fas fa-briefcase"></i> Alternance possible</span>' : ''}
             <p style="font-size:14px;margin-bottom:12px;">${escapeHtml(formation.description)}</p>
             ${formation.prerequisites ? `<div class="prerequisites"><strong>Prérequis :</strong> ${escapeHtml(formation.prerequisites)}</div>` : ''}
@@ -1958,10 +2139,20 @@ function openFlyerModal() {
 }
 
 function openFormationModal() {
-    populateFormationDropdown();
-    updateFormationLevelDetail();
-    const modal = document.getElementById('formationModal');
-    if (modal) modal.classList.add('active');
+    const context = getCurrentOrganizationContext();
+    
+    if (context.kind === 'centre') {
+        // Pour les centres de formation: ouvrir le modal de formation professionnelle
+        populateProfessionalFormationDropdown();
+        const modal = document.getElementById('professionalFormationModal');
+        if (modal) modal.classList.add('active');
+    } else {
+        // Pour les universités: ouvrir le modal existant
+        populateFormationDropdown();
+        updateFormationLevelDetail();
+        const modal = document.getElementById('formationModal');
+        if (modal) modal.classList.add('active');
+    }
 }
 
 function updateFormationLevelDetail() {
@@ -2184,54 +2375,48 @@ async function getOrCreateSupportConversation() {
         return null;
     }
 
-    try {
-        const response = await fetch(`${MESSAGING_SERVICE_URL}/conversations?limit=50&offset=0`, {
+    const result = await safeFetch(`${MESSAGING_SERVICE_URL}/conversations?limit=50&offset=0`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!result.ok) {
+        console.error('Erreur getConversations:', result.error);
+        return null;
+    }
+
+    const data = result.data;
+    const conversations = Array.isArray(data?.data) ? data.data : [];
+    const organization = getCurrentOrganizationContext();
+    const institutionId = organization.organizationId;
+
+    let conversation = conversations.find(conv => conv.institution_id === institutionId);
+    if (!conversation) {
+        const name = `Support Universearch - ${organization.kind === 'centre' ? 'Centre' : 'Université'}`;
+        const description = 'Conversation de support entre l\'institution et l\'administration Universearch.';
+        
+        const createResult = await safeFetch(`${MESSAGING_SERVICE_URL}/conversations`, {
+            method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ name, description })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => '');
-            console.error('Erreur getConversations:', response.status, errorText);
+        if (!createResult.ok) {
+            console.error('Erreur createConversation:', createResult.error);
+            showToast('Impossible de créer la conversation de support.', 'error');
             return null;
         }
 
-        const result = await response.json().catch(() => null);
-        const conversations = Array.isArray(result?.data) ? result.data : [];
-        const organization = getCurrentOrganizationContext();
-        const institutionId = organization.organizationId;
-
-        let conversation = conversations.find(conv => conv.institution_id === institutionId);
-        if (!conversation) {
-            const name = `Support Universearch - ${organization.kind === 'centre' ? 'Centre' : 'Université'}`;
-            const description = 'Conversation de support entre l\'institution et l\'administration Universearch.';
-            const createRes = await fetch(`${MESSAGING_SERVICE_URL}/conversations`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, description })
-            });
-
-            if (!createRes.ok) {
-                const errorText = await createRes.text().catch(() => '');
-                console.error('Erreur createConversation:', createRes.status, errorText);
-                showToast('Impossible de créer la conversation de support.', 'error');
-                return null;
-            }
-
-            const created = await createRes.json().catch(() => null);
-            conversation = created?.data || null;
-        }
-
-        return conversation;
-    } catch (error) {
-        console.error('Erreur getOrCreateSupportConversation:', error);
-        return null;
+        const created = createResult.data;
+        conversation = created?.data || null;
     }
+
+    return conversation;
 }
 
 async function loadSupportConversation() {
@@ -2239,6 +2424,7 @@ async function loadSupportConversation() {
 
     const conversation = await getOrCreateSupportConversation();
     if (!conversation) {
+        console.warn('Impossible de charger ou créer la conversation de support');
         return;
     }
 
@@ -2247,34 +2433,29 @@ async function loadSupportConversation() {
     supportConversations.admin.time = 'Maintenant';
     activeSupportConversationId = 'admin';
 
-    try {
-        const token = getJWTToken();
-        const response = await fetch(`${MESSAGING_SERVICE_URL}/conversations/${supportConversationId}/messages?limit=100&offset=0`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const result = await response.json().catch(() => null);
-            const messages = Array.isArray(result?.data) ? result.data : [];
-            supportConversations.admin.messages = messages.map(msg => ({
-                text: msg.text || '',
-                sent: msg.sender_type !== 'admin',
-                time: msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
-            }));
-            supportConversationLoaded = true;
-            updateChatUI();
-            // Update counters after loading messages
-            updateSupportMessageCounts();
-            if (activeSupportConversationId) selectConversation(activeSupportConversationId);
-        } else {
-            const errorText = await response.text().catch(() => '');
-            console.error('Erreur loadSupportConversation messages:', response.status, errorText);
+    const token = getJWTToken();
+    const response = await safeFetch(`${MESSAGING_SERVICE_URL}/conversations/${supportConversationId}/messages?limit=100&offset=0`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
         }
-    } catch (error) {
-        console.error('Erreur loadSupportConversation:', error);
+    });
+
+    if (response.ok) {
+        const result = response.data;
+        const messages = Array.isArray(result?.data) ? result.data : [];
+        supportConversations.admin.messages = messages.map(msg => ({
+            text: msg.text || '',
+            sent: msg.sender_type !== 'admin',
+            time: msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+        }));
+        supportConversationLoaded = true;
+        updateChatUI();
+        // Update counters after loading messages
+        updateSupportMessageCounts();
+        if (activeSupportConversationId) selectConversation(activeSupportConversationId);
+    } else {
+        console.error('Erreur loadSupportConversation messages:', response.error);
     }
 }
 
@@ -2290,42 +2471,36 @@ async function sendSupportChatMessage(messageText) {
         return;
     }
 
-    try {
-        const response = await fetch(`${MESSAGING_SERVICE_URL}/messages`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                conversation_id: supportConversationId,
-                text: messageText
-            })
-        });
+    const response = await safeFetch(`${MESSAGING_SERVICE_URL}/messages`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            conversation_id: supportConversationId,
+            text: messageText
+        })
+    });
 
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => '');
-            console.error('Erreur sendSupportChatMessage:', response.status, errorText);
-            showToast('Impossible d\'envoyer le message.', 'error');
-            return;
-        }
+    if (!response.ok) {
+        console.error('Erreur sendSupportChatMessage:', response.error);
+        showToast('Impossible d\'envoyer le message.', 'error');
+        return;
+    }
 
-        const result = await response.json().catch(() => null);
-        const createdMessage = result?.data;
-        if (createdMessage) {
-            const time = createdMessage.created_at ? new Date(createdMessage.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
-            supportConversations.admin.messages.push({ text: createdMessage.text || messageText, sent: true, time });
-            // Update counters after sending
-            updateSupportMessageCounts();
-            if (activeSupportConversationId) selectConversation(activeSupportConversationId);
-            updateChatUI();
-            showToast('Message envoyé à l\'admin !');
+    const result = response.data;
+    const createdMessage = result?.data;
+    if (createdMessage) {
+        const time = createdMessage.created_at ? new Date(createdMessage.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+        supportConversations.admin.messages.push({ text: createdMessage.text || messageText, sent: true, time });
+        // Update counters after sending
+        updateSupportMessageCounts();
+        if (activeSupportConversationId) selectConversation(activeSupportConversationId);
+        updateChatUI();
+        showToast('Message envoyé à l\'admin !');
 
-            // Real-time notification is handled by the server-side emission; no client emit here to avoid duplicates.
-        }
-    } catch (error) {
-        console.error('Erreur sendSupportChatMessage:', error);
-        showToast('Erreur réseau lors de l\'envoi du message.', 'error');
+        // Real-time notification is handled by the server-side emission; no client emit here to avoid duplicates.
     }
 }
 
@@ -2863,25 +3038,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const json = await res.json().catch(() => null);
                 const postData = json?.data || json || {};
-                const flyer = {
-                    ...postData,
-                    id: postData.id || 'fl_' + Date.now(),
-                    title: postData.titre || title,
-                    titre: postData.titre || title,
-                    category: postData.category || (flyerCategory ? flyerCategory.value : 'all'),
-                    description: postData.description || desc,
-                    media_type: 'image',
-                    media_url: postData.media_url || mediaUrl,
-                    imageUrl: postData.media_url || mediaUrl,
-                    views: postData.views_count ?? 0,
-                    likes: postData.likes_count ?? 0,
-                    shares: postData.shares_count ?? 0,
-                    downloads: 0,
-                    createdAt: postData.date_creation || new Date().toISOString()
-                };
 
-                appData.flyers.unshift(flyer);
-                saveData();
                 closeModal('flyerModal');
                 if (flyerForm) flyerForm.reset();
                 showToast('Flyer publié avec succès !', 'flyer');
@@ -2891,6 +3048,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     'active',
                     true
                 );
+                if (typeof fetchAndDisplayFlyers === 'function') {
+                    await fetchAndDisplayFlyers();
+                }
             } catch (err) {
                 console.error('Error creating image post:', err);
                 showToast('Erreur: ' + (err.message || 'Impossible de publier'), 'error');
@@ -2898,94 +3058,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Publier';
-                }
-            }
-
-            return;
-             
-            try {
-                // Convert image to base64
-                const file = flyerImage.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = async (ev) => {
-                    try {
-                        const base64Data = ev.target.result;
-                        const mediaUrl = base64Data; // Use base64 directly
-                        const token = getJWTToken();
-                        
-                        // API payload
-                        const payload = {
-                            titre: title,
-                            description: desc,
-                            category: flyerCategory ? flyerCategory.value : 'all',
-                            media_url: mediaUrl,
-                            media_type: 'image' // Fixed to 'image' for flyers
-                        };
-                        
-                        // Call API
-                        const res = await fetch(`${CONTENT_API}/posts`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': token ? `Bearer ${token}` : undefined
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        if (!res.ok) {
-                            const errorText = await res.text();
-                            console.warn('API Error:', res.status, errorText);
-                            showToast('Erreur API: ' + res.status, 'error');
-                            return;
-                        }
-                        
-                        const json = await res.json().catch(() => null);
-                        console.log('Flyer created on API:', json);
-                        
-                        // Also store locally for fallback
-                        const flyer = {
-                            id: json?.id || 'fl_' + Date.now(),
-                            title: title,
-                            category: flyerCategory ? flyerCategory.value : 'all',
-                            description: desc,
-                            imageUrl: mediaUrl,
-                            views: 0,
-                            likes: 0,
-                            downloads: 0,
-                            createdAt: json?.createdAt || new Date().toISOString()
-                        };
-                        appData.flyers.unshift(flyer);
-                        saveData();
-                        closeModal('flyerModal');
-                        if (flyerForm) flyerForm.reset();
-                        showToast('Flyer publié avec succès !', 'flyer');
-                    } catch (err) {
-                        console.error('Error processing flyer:', err);
-                        showToast('Erreur: ' + (err.message || 'Impossible de publier'), 'error');
-                    } finally {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = '📤 Publier';
-                        }
-                    }
-                };
-                
-                reader.onerror = () => {
-                    showToast('Erreur de lecture du fichier', 'error');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = '📤 Publier';
-                    }
-                };
-                
-                reader.readAsDataURL(file);
-            } catch (err) {
-                console.error('Error in flyer form:', err);
-                showToast('Erreur: ' + (err.message || 'Impossible de traiter le formulaire'), 'error');
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '📤 Publier';
                 }
             }
         });
@@ -3090,6 +3162,72 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal('formationModal');
             formationForm.reset();
             showToast('Formation ajoutée avec succès !', 'formation');
+        });
+    }
+    
+    // Professional Formation form (for centres)
+    const professionalFormationForm = document.getElementById('professionalFormationForm');
+    if (professionalFormationForm) {
+        professionalFormationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alternanceRadio = document.querySelector('input[name="proFormationAlternance"]:checked');
+            const formationName = document.getElementById('proFormationName')?.value.trim();
+            
+            if (!formationName) {
+                showToast('Entrez un nom de formation', 'error');
+                return;
+            }
+
+            const submitBtn = professionalFormationForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Ajout en cours...';
+            }
+
+            const selectedProfessionalFormation = availableProfessionalFormations.find((item) =>
+                String(item.name || '').trim().toLowerCase() === formationName.toLowerCase()
+            );
+
+            const professionalFormation = {
+                nom_formation: formationName,
+                filiere_id: selectedProfessionalFormation ? selectedProfessionalFormation.id : undefined,
+                categorie_domaine: document.getElementById('proFormationCategory')?.value || '',
+                type_certification: document.getElementById('proFormationCertification')?.value || '',
+                duree: document.getElementById('proFormationDuration')?.value || '',
+                cout_formation: document.getElementById('proFormationCost')?.value || '',
+                lieu: document.getElementById('proFormationLocation')?.value || '',
+                mode_formation: document.getElementById('proFormationMode')?.value || '',
+                langue: document.getElementById('proFormationLanguage')?.value || 'Français',
+                description: document.getElementById('proFormationDescription')?.value || '',
+                prerequis: document.getElementById('proFormationPrerequisites')?.value || '',
+                stage_alternance: alternanceRadio ? alternanceRadio.value === 'Oui' : false,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                // Send to API endpoint for centre professional formations
+                await attachProfessionalFormationToMyCentre([professionalFormation]);
+                
+                closeModal('professionalFormationModal');
+                professionalFormationForm.reset();
+                showToast('Formation professionnelle ajoutée à votre centre !');
+                
+                // Reload formations from API
+                await loadFormationsFromApi();
+                
+                createActivityRecord(
+                    `Formation professionnelle ajoutée : ${formationName}`,
+                    `Nouvelle formation professionnelle ajoutée : ${formationName}`
+                );
+            } catch (error) {
+                console.error('Error adding professional formation:', error);
+                showToast('Erreur: ' + (error.message || 'Impossible d ajouter la formation'), 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Ajouter';
+                }
+            }
         });
     }
     
