@@ -4,6 +4,8 @@
 
 // Runtime registry populated from the PORA API. A small local fallback is used if the API is unavailable.
 let centresRegistry = {};
+let currentNotificationTarget = null;
+const NOTIFICATION_SERVICE_URL = window.NOTIFICATION_SERVICE_URL || 'https://universearch-notification-service.onrender.com';
 
 
 
@@ -176,6 +178,71 @@ function showNotification(message, type = 'info') {
     }, 3500);
 }
 
+function buildInstitutionNotificationMessage(name) {
+    const rawName = (name || '').toString().trim();
+    const tokens = rawName.split(/\s+/).filter(Boolean);
+    const displayName = (tokens[tokens.length - 1] || rawName || 'Cette institution').replace(/[^\w\s-]/g, '').trim();
+    const safeName = displayName || 'Cette institution';
+
+    return {
+        title: `${safeName} a du nouveau pour vous !`,
+        message: `${safeName} a du nouveau pour vous ! Allez découvrir les formations et opportunités que ${safeName} met à votre disposition sur UniverSearch.`
+    };
+}
+
+async function triggerInstitutionNotification(event) {
+    if (!currentNotificationTarget) {
+        showNotification('Aucune institution n\'est actuellement sélectionnée.', 'error');
+        return;
+    }
+
+    const button = event?.currentTarget;
+    if (button) {
+        button.disabled = true;
+        button.classList.add('opacity-70', 'cursor-not-allowed');
+    }
+
+    const { title, message } = buildInstitutionNotificationMessage(currentNotificationTarget.name);
+
+    try {
+        const response = await fetch(`${NOTIFICATION_SERVICE_URL}/api/notifications/broadcast`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                notification: {
+                    type: 'system',
+                    title,
+                    message,
+                    priority: 'high',
+                    campaign_type: 'system',
+                    delivery_types: ['in_app', 'push'],
+                    targeting: {},
+                    data: {
+                        source: 'admin_broadcast',
+                        institution_id: currentNotificationTarget.id,
+                        institution_name: currentNotificationTarget.name
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            throw new Error(body.error || body.errors || `HTTP ${response.status}`);
+        }
+
+        showNotification(`Notification envoyée à tous les utilisateurs pour ${currentNotificationTarget.name}.`, 'success');
+    } catch (error) {
+        console.error('triggerInstitutionNotification error', error);
+        showNotification(`Impossible d'envoyer la notification : ${error.message}`, 'error');
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+    }
+}
+
 /**
  * GESTION DE L'ACCÈS
  */
@@ -305,6 +372,8 @@ function openSettings(univId) {
         statusLabel.className = `mb-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${data.statusColor}`;
     }
 
+    currentNotificationTarget = { id: univId, name: data.name };
+
     // Affichage
     const modal = document.getElementById('centre-modal');
     if (modal) {
@@ -322,6 +391,7 @@ function closeModal() {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
     }
+    currentNotificationTarget = null;
 }
 
 /**

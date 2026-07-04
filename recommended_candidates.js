@@ -653,7 +653,8 @@ function construirePayloadMail(candidat) {
             email: candidatModal.email || null,
             telephone: candidatModal.telephone || null,
             user_type: candidatModal.user_type || null,
-            reason: candidatModal.reason || null
+            reason: candidatModal.reason || null,
+            quartier: candidatModal.quartier || null
         },
         institutions: normaliserRecommandations(candidatModal),
         custom_message: null
@@ -1455,7 +1456,8 @@ async function confirmerEnvoiEmailsGlobal() {
                     email: emailValue,
                     telephone: candidat.telephone?.trim() || null,
                     user_type: candidat.user_type || null,
-                    reason: candidat.reason || null
+                    reason: candidat.reason || null,
+                    quartier: candidat.quartier?.trim() || null
                 },
                 institutions: etablissementsSelectionnés.map(e => {
                     const institution = {

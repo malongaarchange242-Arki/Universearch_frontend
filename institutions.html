@@ -220,24 +220,7 @@
                         </div>
                     </div>
 
-                    <!-- Followers Section -->
-                    <div class="followers-section">
-                        <div class="followers-card">
-                            <div class="card-header">
-                                <h3><i class="fas fa-users"></i> Évolution des followers</h3>
-                                <span style="font-size:13px;color:var(--text-muted);">12 derniers mois</span>
-                            </div>
-                            <div class="followers-chart-container">
-                                <canvas id="followersChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="followers-card">
-                            <div class="card-header">
-                                <h3><i class="fas fa-user-check"></i> Top followers</h3>
-                            </div>
-                            <div class="followers-list" id="followersList"></div>
-                        </div>
-                    </div>
+                    <!-- Followers Section Removed -->
 
                     <!-- Charts Grid -->
                     <div class="charts-grid">
@@ -370,157 +353,73 @@
                         </select>
                     </div>
 
-                    <!-- Section 1: KPI Cards (Candidats recommandés) -->
-                    <div class="analytics-kpi-grid recruitment-kpis" style="margin-bottom:18px; display:flex; gap:12px; flex-wrap:wrap;">
-                        <div class="analytics-kpi-card" style="flex:1; min-width:180px;">
-                            <div class="kpi-icon"><i class="fas fa-user"></i></div>
-                            <div class="kpi-data">
-                                <span class="kpi-value" id="candidatesTotalKpi">0</span>
-                                <span class="kpi-label">Candidats recommandés</span>
-                            </div>
-                        </div>
-                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
+                    <!-- Email Logs Statistics -->
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+                        <div class="analytics-kpi-card" style="flex:1; min-width:150px;">
                             <div class="kpi-icon"><i class="fas fa-envelope"></i></div>
                             <div class="kpi-data">
-                                <span class="kpi-value" id="candidatesMonthKpi">0</span>
-                                <span class="kpi-label">Recommandations ce mois</span>
+                                <span class="kpi-value" id="totalEmailsKpi">0</span>
+                                <span class="kpi-label">Emails envoyés</span>
                             </div>
                         </div>
-                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
-                            <div class="kpi-icon"><i class="fas fa-fire"></i></div>
+                        <div class="analytics-kpi-card" style="flex:1; min-width:150px;">
+                            <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
                             <div class="kpi-data">
-                                <span class="kpi-value" id="candidatesTodayKpi">0</span>
-                                <span class="kpi-label">Nouveaux aujourd'hui</span>
+                                <span class="kpi-value" id="sentEmailsKpi">0</span>
+                                <span class="kpi-label">Envoyés avec succès</span>
                             </div>
                         </div>
-                        <div class="analytics-kpi-card" style="flex:1; min-width:160px;">
-                            <div class="kpi-icon"><i class="fas fa-phone"></i></div>
+                        <div class="analytics-kpi-card" style="flex:1; min-width:150px;">
+                            <div class="kpi-icon"><i class="fas fa-times-circle"></i></div>
                             <div class="kpi-data">
-                                <span class="kpi-value" id="candidatesContactedKpi">0</span>
-                                <span class="kpi-label">Candidats contactés</span>
+                                <span class="kpi-value" id="failedEmailsKpi">0</span>
+                                <span class="kpi-label">Échoués</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 2: Charts (Growth + Type distribution) -->
-                    <div class="charts-grid" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
-                        <div class="chart-card" style="flex:2; min-width:320px;">
-                            <div class="card-header">
-                                <h3><i class="fas fa-chart-line"></i> Croissance des recommandations</h3>
-                                <span style="font-size:12px;color:var(--text-muted);">Sur la période sélectionnée</span>
-                            </div>
-                            <div class="chart-body">
-                                <canvas id="recommendationsGrowthChart" width="400" height="280"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-card" style="flex:1; min-width:260px;">
-                            <div class="card-header">
-                                <h3><i class="fas fa-chart-pie"></i> Répartition par type utilisateur</h3>
-                            </div>
-                            <div class="chart-body">
-                                <canvas id="typeDistributionChart" width="300" height="280"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Conversion Funnel + Profile performance -->
-                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
-                        <div class="card" style="flex:1; min-width:320px;">
-                            <div class="card-header">
-                                <h3><i class="fas fa-stream"></i> Taux de conversion</h3>
-                            </div>
-                            <div class="card-body" style="padding:14px;">
-                                <div id="conversionFunnel" style="display:flex; gap:12px; align-items:flex-end;">
-                                    <div style="flex:1; text-align:center;">
-                                        <div class="funnel-value" id="funnelRecommended" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
-                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Recommandés</div>
-                                    </div>
-                                    <div style="flex:1; text-align:center;">
-                                        <div class="funnel-value" id="funnelContacted" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
-                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Contactés</div>
-                                    </div>
-                                    <div style="flex:1; text-align:center;">
-                                        <div class="funnel-value" id="funnelInterview" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
-                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Entretien</div>
-                                    </div>
-                                    <div style="flex:1; text-align:center;">
-                                        <div class="funnel-value" id="funnelAccepted" style="font-size:24px; font-weight:700; color:var(--primary); margin-bottom:6px;">0</div>
-                                        <div class="funnel-label" style="font-size:12px; color:var(--text-muted);">Acceptés</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card" style="flex:1; min-width:320px;">
-                            <div class="card-header">
-                                <h3><i class="fas fa-university"></i> Performance du profil établissement</h3>
-                            </div>
-                            <div class="card-body" style="padding:14px;">
-                                <div style="display:flex; gap:12px; flex-direction:column;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Vues du profil</span><strong id="profileViews" style="color:var(--primary); font-size:18px;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Clics sur formations</span><strong id="profileClicks" style="color:var(--primary); font-size:18px;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Followers</span><strong id="profileFollowers" style="color:var(--primary); font-size:18px;">0</strong></div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;"><span style="color:var(--text-secondary);">Candidatures</span><strong id="profileApplications" style="color:var(--primary); font-size:18px;">0</strong></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 4: Top raisons de recommandation -->
-                    <div class="card" style="margin-bottom:18px;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-list-ol"></i> Top raisons de recommandation</h3>
-                        </div>
-                        <div class="card-body" style="padding:0; overflow:auto;">
-                            <table class="table" style="width:100%; border-collapse:collapse;">
-                                <thead style="background:var(--bg-secondary);">
-                                    <tr>
-                                        <th style="padding:10px; text-align:left;">Raison</th>
-                                        <th style="padding:10px; text-align:right;">Nombre de candidats</th>
-                                        <th style="padding:10px; text-align:right;">Pourcentage</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="topReasonsTableBody">
-                                    <!-- Rempli dynamiquement -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Section 5: Table of recommendations (détails du mail) -->
-                    <div class="card" style="margin-bottom:18px;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-list"></i> Recommandations reçues</h3>
-                        </div>
-                        <div class="card-body" style="padding:0; overflow:auto;">
-                            <table class="table" style="width:100%; border-collapse:collapse;">
-                                <thead style="background:var(--bg-secondary);">
-                                    <tr>
-                                        <th style="padding:10px; text-align:left;">Nom</th>
-                                        <th style="padding:10px; text-align:left;">Prénom</th>
-                                        <th style="padding:10px; text-align:left;">Téléphone</th>
-                                        <th style="padding:10px; text-align:left;">Type</th>
-                                        <th style="padding:10px; text-align:left;">Email</th>
-                                        <th style="padding:10px; text-align:left;">Raison</th>
-                                        <th style="padding:10px; text-align:left;">Date</th>
-                                        <th style="padding:10px; text-align:center;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recommendationsTableBody">
-                                    <!-- Lignes remplies dynamiquement -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Section 6: Messages personnalisés reçus -->
+                    <!-- Email Logs Table -->
                     <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-envelope-open-text"></i> Messages personnalisés reçus</h3>
-                        </div>
-                        <div class="card-body" style="padding:14px;">
-                            <div id="customMessagesList" style="display:flex; flex-direction:column; gap:12px;">
-                                <!-- Cards with custom_message content filled dynamically -->
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3><i class="fas fa-history"></i> Historique des emails envoyés</h3>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="emailLogsSearchInstitution" placeholder="Chercher par établissement..." style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:12px; width:200px;">
+                                <select id="emailLogsFilterStatus" style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:12px;">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="sent">Envoyé</option>
+                                    <option value="delivered">Livré</option>
+                                    <option value="bounced">Rejeté</option>
+                                    <option value="failed">Échoué</option>
+                                </select>
+                                <button onclick="chargerEmailLogs()" style="padding:8px 12px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer; font-size:12px;">
+                                    <i class="fas fa-sync"></i> Rafraîchir
+                                </button>
                             </div>
+                        </div>
+                        <div class="card-body" style="padding:0; overflow-x:auto;">
+                            <table class="table" style="width:100%; border-collapse:collapse; min-width:1000px;">
+                                <thead style="background:var(--bg-secondary); position:sticky; top:0;">
+                                    <tr>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Candidat</th>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Email</th>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Téléphone</th>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Quartier</th>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Raison</th>
+                                        <th style="padding:12px; text-align:center; font-weight:600;">Statut</th>
+                                        <th style="padding:12px; text-align:left; font-weight:600;">Date d'envoi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emailLogsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                                            <i class="fas fa-spinner fa-spin"></i> Chargement...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="padding:12px; border-top:1px solid var(--border); display:flex; justify-content:center; gap:8px;" id="emailLogsPagination">
+                            <!-- Pagination buttons will be added here -->
                         </div>
                     </div>
                 </div>
@@ -2084,5 +1983,229 @@
         }
     </script>
     <script src="script.js"></script>
+    <script>
+        // Email Logs Configuration
+        const EMAIL_LOGS_CONFIG = {
+            API_BASE: 'https://universearch-mail.onrender.com',
+            LIMIT: 50,
+            CURRENT_PAGE: 1
+        };
+
+        // Load email logs on page load if analytics tab is active
+        document.addEventListener('DOMContentLoaded', function() {
+            chargerEmailLogs();
+            
+            // Reload on filter change
+            const searchInput = document.getElementById('emailLogsSearchInstitution');
+            const statusFilter = document.getElementById('emailLogsFilterStatus');
+            
+            if (searchInput) {
+                searchInput.addEventListener('change', function() {
+                    EMAIL_LOGS_CONFIG.CURRENT_PAGE = 1;
+                    chargerEmailLogs();
+                });
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function() {
+                    EMAIL_LOGS_CONFIG.CURRENT_PAGE = 1;
+                    chargerEmailLogs();
+                });
+            }
+        });
+
+        async function chargerEmailLogs() {
+            const tableBody = document.getElementById('emailLogsTableBody');
+            const pagination = document.getElementById('emailLogsPagination');
+            
+            if (!tableBody) return;
+
+            // Show loading state
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const offset = (EMAIL_LOGS_CONFIG.CURRENT_PAGE - 1) * EMAIL_LOGS_CONFIG.LIMIT;
+                const params = new URLSearchParams({
+                    limit: String(EMAIL_LOGS_CONFIG.LIMIT),
+                    offset: String(offset)
+                });
+
+                const searchInstitution = document.getElementById('emailLogsSearchInstitution')?.value;
+                const statusFilter = document.getElementById('emailLogsFilterStatus')?.value;
+
+                if (searchInstitution) {
+                    params.append('institution', searchInstitution);
+                }
+                if (statusFilter) {
+                    params.append('status', statusFilter);
+                }
+
+                const response = await fetch(`${EMAIL_LOGS_CONFIG.API_BASE}/api/mail/logs?${params}`);
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Erreur lors du chargement des données');
+                }
+
+                // Update statistics
+                await mettreAJourStatsEmailLogs();
+
+                // Render table
+                if (result.data && result.data.length > 0) {
+                    tableBody.innerHTML = result.data.map(log => `
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <td style="padding:12px; text-align:left;">
+                                <strong>${log.prenom || ''} ${log.nom || 'N/D'}</strong>
+                            </td>
+                            <td style="padding:12px; text-align:left;">
+                                <a href="mailto:${log.email}" style="color:var(--primary); text-decoration:none;">
+                                    ${log.email || 'N/D'}
+                                </a>
+                            </td>
+                            <td style="padding:12px; text-align:left;">
+                                ${log.telephone || 'N/D'}
+                            </td>
+                            <td style="padding:12px; text-align:left;">
+                                ${log.quartier || 'N/D'}
+                            </td>
+                            <td style="padding:12px; text-align:left; max-width:200px; white-space:normal; word-break:break-word;">
+                                <span style="font-size:11px; color:var(--text-muted);">
+                                    ${truncateText(log.raison || 'N/D', 50)}
+                                </span>
+                            </td>
+                            <td style="padding:12px; text-align:center;">
+                                <span style="
+                                    display:inline-block;
+                                    padding:4px 8px;
+                                    border-radius:4px;
+                                    font-size:11px;
+                                    font-weight:600;
+                                    background:${getStatusColor(log.status).bg};
+                                    color:${getStatusColor(log.status).text};
+                                ">
+                                    ${getStatusLabel(log.status)}
+                                </span>
+                            </td>
+                            <td style="padding:12px; text-align:left; font-size:12px; color:var(--text-muted);">
+                                ${formatDate(log.created_at)}
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                                <i class="fas fa-inbox"></i> Aucun email trouvé
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                // Update pagination
+                const totalPages = Math.ceil((result.total || 0) / EMAIL_LOGS_CONFIG.LIMIT);
+                if (pagination) {
+                    pagination.innerHTML = '';
+                    
+                    if (EMAIL_LOGS_CONFIG.CURRENT_PAGE > 1) {
+                        pagination.innerHTML += `
+                            <button onclick="changerPageEmailLogs(${EMAIL_LOGS_CONFIG.CURRENT_PAGE - 1})" 
+                                    style="padding:6px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer;">
+                                ← Précédent
+                            </button>
+                        `;
+                    }
+
+                    pagination.innerHTML += `
+                        <span style="padding:6px 12px; color:var(--text-muted); font-size:12px;">
+                            Page ${EMAIL_LOGS_CONFIG.CURRENT_PAGE} / ${totalPages} (${result.total || 0} résultats)
+                        </span>
+                    `;
+
+                    if (EMAIL_LOGS_CONFIG.CURRENT_PAGE < totalPages) {
+                        pagination.innerHTML += `
+                            <button onclick="changerPageEmailLogs(${EMAIL_LOGS_CONFIG.CURRENT_PAGE + 1})" 
+                                    style="padding:6px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer;">
+                                Suivant →
+                            </button>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur chargement emails:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-error);">
+                            <i class="fas fa-exclamation-circle"></i> Erreur: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function mettreAJourStatsEmailLogs() {
+            try {
+                const response = await fetch(`${EMAIL_LOGS_CONFIG.API_BASE}/api/mail/logs/stats`);
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('totalEmailsKpi').textContent = result.total || '0';
+                    document.getElementById('sentEmailsKpi').textContent = result.by_status?.sent || '0';
+                    document.getElementById('failedEmailsKpi').textContent = result.by_status?.failed || '0';
+                }
+            } catch (error) {
+                console.warn('Erreur stats emails:', error);
+            }
+        }
+
+        function changerPageEmailLogs(page) {
+            EMAIL_LOGS_CONFIG.CURRENT_PAGE = page;
+            chargerEmailLogs();
+            document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'sent': { bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e' },
+                'delivered': { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6' },
+                'bounced': { bg: 'rgba(250, 204, 21, 0.1)', text: '#facc15' },
+                'failed': { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444' }
+            };
+            return colors[status] || colors['sent'];
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'sent': 'Envoyé',
+                'delivered': 'Livré',
+                'bounced': 'Rejeté',
+                'failed': 'Échoué'
+            };
+            return labels[status] || status;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/D';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return 'N/D';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+    </script>
 </body>
 </html>
