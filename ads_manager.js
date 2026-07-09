@@ -4,7 +4,7 @@
 
 // API Base URL
 const apiBase = (() => {
-    const remoteBase = 'http://66.70.188.21';
+    const remoteBase = 'https://universearch.com';
 
     if (window.location.protocol === 'file:') {
         return remoteBase;
@@ -12,7 +12,7 @@ const apiBase = (() => {
 
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://66.70.188.21';
+        return 'https://universearch.com';
     }
 
     return remoteBase;

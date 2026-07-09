@@ -1238,7 +1238,7 @@
 
         // Fetch and populate profile for university/centre
         async function fetchMyProfile() {
-            const base = window.API_BASE || 'http://51.79.73.96';
+            const base = window.API_BASE || 'https://api.universearch.com';
             const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
             let session = {};
             try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
@@ -1389,7 +1389,7 @@
 
         // Fetch and display shorts (videos only) for the university
         async function fetchAndDisplayShorts() {
-            const contentBase = 'http://66.70.188.21';
+            const contentBase = 'https://universearch.com';
             const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
             let session = {};
             try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
@@ -1486,7 +1486,7 @@
 
         // Fetch and display flyers (images only) for the university
         async function fetchAndDisplayFlyers() {
-            const contentBase = 'http://66.70.188.21';
+            const contentBase = 'https://universearch.com';
             const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
             let session = {};
             try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
@@ -1875,7 +1875,7 @@
         setTimeout(fetchAndDisplayFollowersCount, 350);
 
         async function fetchAndDisplayFollowersCount() {
-            const base = 'http://51.79.73.96';
+            const base = 'https://api.universearch.com';
             const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
             let session = {};
             try { session = JSON.parse(sessionStr); } catch (e) { session = {}; }
@@ -1986,7 +1986,7 @@
     <script>
         // Email Logs Configuration
         const EMAIL_LOGS_CONFIG = {
-            API_BASE: 'http://51.79.73.96',
+            API_BASE: 'https://api.universearch.com',
             LIMIT: 50,
             CURRENT_PAGE: 1
         };

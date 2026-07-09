@@ -24,8 +24,8 @@ let availableFilieres = [];
 let availableProfessionalFormations = [];
 
 // API Configuration
-const CONTENT_API = window.CONTENT_API || 'http://66.70.188.21';
-const MESSAGING_SERVICE_URL = window.MESSAGING_SERVICE_URL || 'http://51.79.73.96';
+const CONTENT_API = window.CONTENT_API || 'https://universearch.com';
+const MESSAGING_SERVICE_URL = window.MESSAGING_SERVICE_URL || 'https://api.universearch.com';
 const DEFAULT_TIMEOUT = 10000; // 10 secondes
 
 // ========== GESTION DES ERREURS API ==========
@@ -246,7 +246,7 @@ function getUserRole() {
 }
 
 function getIdentityApiBase() {
-    return window.API_BASE || 'http://51.79.73.96';
+    return window.API_BASE || 'https://api.universearch.com';
 }
 
 function getInstitutionKind() {

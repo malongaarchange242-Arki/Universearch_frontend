@@ -5,7 +5,7 @@
 // Runtime registry populated from the PORA API. A small local fallback is used if the API is unavailable.
 let universityRegistry = {};
 let currentNotificationTarget = null;
-const NOTIFICATION_SERVICE_URL = window.NOTIFICATION_SERVICE_URL || 'http://51.79.73.96';
+const NOTIFICATION_SERVICE_URL = window.NOTIFICATION_SERVICE_URL || 'https://api.universearch.com';
 
 
 function initNavigation() {
@@ -48,7 +48,7 @@ function initNavigation() {
     });
 }
 
-const PORA_API = window.PORA_API_BASE || 'http://51.79.73.96';
+const PORA_API = window.PORA_API_BASE || 'https://api.universearch.com';
 
 async function fetchUniversities() {
     try {
@@ -248,7 +248,7 @@ async function triggerInstitutionNotification(event) {
  * GESTION DE L'ACCÈS
  */
 async function toggleAccess(univId, isEnabled) {
-    const IDENTITY_API = window.IDENTITY_API_BASE || 'http://51.79.73.96';
+    const IDENTITY_API = window.IDENTITY_API_BASE || 'https://api.universearch.com';
     const token = localStorage.getItem('softura_token');
 
     // Debug: log current user info

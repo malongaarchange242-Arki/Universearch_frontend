@@ -659,7 +659,7 @@
             btn.disabled = true;
 
             try {
-                const res = await safeFetch('http://51.79.73.96/auth/register', {
+                const res = await safeFetch('https://api.universearch.com/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -768,7 +768,7 @@
             btn.disabled = true;
 
             try {
-                const res = await safeFetch('http://51.79.73.96/auth/login', {
+                const res = await safeFetch('https://api.universearch.com/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password: pass })
@@ -942,7 +942,7 @@
                 }
 
                 try {
-                    const res = await safeFetch('http://51.79.73.96/auth/forgot-password', {
+                    const res = await safeFetch('https://api.universearch.com/auth/forgot-password', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email })

@@ -98,7 +98,7 @@ function animateCards() {
 }
 
 // --- Fetch and display stats from backend ---
-const API_BASE = 'http://51.79.73.96';
+const API_BASE = 'https://api.universearch.com';
 
 function safeCountFromResponse(json) {
     if (Array.isArray(json)) return json.length;
