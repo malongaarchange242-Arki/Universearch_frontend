@@ -3,9 +3,9 @@
  * Shows all universities and training centres with their messages
  */
 
-const MESSAGING_SERVICE_URL = localStorage.getItem('messaging_service_url') || 'https://universearch-messaging.onrender.com';
-const SOCKET_URL = localStorage.getItem('socket_url') || 'https://universearch-messaging.onrender.com';
-const API_BASE = 'https://universearch-pwlf.onrender.com';
+const MESSAGING_SERVICE_URL = localStorage.getItem('messaging_service_url') || 'http://51.79.73.96';
+const SOCKET_URL = localStorage.getItem('socket_url') || 'http://51.79.73.96';
+const API_BASE = 'http://51.79.73.96';
 
 // State management
 const adminState = {

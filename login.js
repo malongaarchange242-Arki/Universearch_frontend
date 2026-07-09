@@ -1,5 +1,5 @@
 (() => {
-	const API_BASE = window.__API_BASE__ || 'https://universearch-pwlf.onrender.com';
+	const API_BASE = window.__API_BASE__ || 'http://51.79.73.96';
 
 	const elEmail = document.getElementById('email');
 	const emailError = document.getElementById('email-error');
