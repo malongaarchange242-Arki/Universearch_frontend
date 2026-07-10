@@ -216,7 +216,8 @@ async function triggerInstitutionNotification(event) {
                     priority: 'high',
                     campaign_type: 'system',
                     delivery_types: ['in_app', 'push'],
-                    targeting: {},
+                    targeting: { scope: 'all' },
+                    target_all: true,
                     data: {
                         source: 'admin_broadcast',
                         institution_id: currentNotificationTarget.id,
