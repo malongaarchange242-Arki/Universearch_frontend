@@ -6,7 +6,7 @@
 const apiBase = (() => {
     // Prefer an explicit override when available (set in pages as `window.API_BASE`).
     // Default to the public API host in production and to localhost for local dev.
-    const remoteBase = window.API_BASE || 'https://api.universearch.com';
+    const remoteBase = window.API_BASE || 'https://universearch.com';
 
     if (window.location.protocol === 'file:') {
         return remoteBase;
