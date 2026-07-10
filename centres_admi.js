@@ -61,6 +61,7 @@ async function fetchCentres() {
             if (status === 'PENDING' || status === 'APPROVED') {
                 centresRegistry[u.ID || u.id] = {
                     name: u.Nom || u.nom || '—',
+                    sigle: u.Sigle || u.sigle || '',
                     id: u.ID || u.id,
                     description: u.Description || u.description || u.Nom || '',
                     presidentBDE: u.BDEID || '',
@@ -373,7 +374,7 @@ function openSettings(univId) {
         statusLabel.className = `mb-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${data.statusColor}`;
     }
 
-    currentNotificationTarget = { id: univId, name: data.name };
+    currentNotificationTarget = { id: univId, name: data.sigle || data.name };
 
     // Affichage
     const modal = document.getElementById('centre-modal');
