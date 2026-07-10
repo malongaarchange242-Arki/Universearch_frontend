@@ -4,7 +4,9 @@
 
 // API Base URL
 const apiBase = (() => {
-    const remoteBase = 'https://universearch.com';
+    // Prefer an explicit override when available (set in pages as `window.API_BASE`).
+    // Default to the public API host in production and to localhost for local dev.
+    const remoteBase = window.API_BASE || 'https://api.universearch.com';
 
     if (window.location.protocol === 'file:') {
         return remoteBase;
@@ -12,7 +14,7 @@ const apiBase = (() => {
 
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'https://universearch.com';
+        return 'http://localhost:3000';
     }
 
     return remoteBase;
