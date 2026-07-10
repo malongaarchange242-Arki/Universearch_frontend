@@ -903,7 +903,19 @@ async function launchCampaign() {
             try {
                 // 1) Upload du média
                 const uploadForm = new FormData();
-                uploadForm.append('file', selectedFile);
+                // Include filename explicitly to ensure server receives it
+                if (selectedFile && selectedFile.name) {
+                    uploadForm.append('file', selectedFile, selectedFile.name);
+                } else {
+                    uploadForm.append('file', selectedFile);
+                }
+
+                // Debug: confirm FormData contains the file entry
+                try {
+                    console.log('FormData file entry:', uploadForm.get('file'));
+                } catch (err) {
+                    console.warn('Unable to inspect FormData contents', err);
+                }
 
                 console.log('Sending upload request to:', `${apiBase}/ads/media/upload`);
                 const uploadResp = await fetch(`${apiBase}/ads/media/upload`, {
