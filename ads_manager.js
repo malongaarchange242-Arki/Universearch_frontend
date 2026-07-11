@@ -14,7 +14,7 @@ const apiBase = (() => {
 
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:3000';
+        return 'https://universearch.com';
     }
 
     return remoteBase;
@@ -895,24 +895,38 @@ async function launchCampaign() {
 
     try {
         let mediaUrl = existingMediaUrl;
-        if (selectedFile) {
+        if (selectedFile || (mediaInput && mediaInput.files && mediaInput.files[0])) {
+            const fileToUpload = selectedFile || mediaInput.files[0];
             console.log('Uploading media...');
-            console.log('File to upload:', selectedFile);
+            console.log('File to upload:', fileToUpload);
             showNotification("Upload du média en cours...", "info");
 
             try {
                 // 1) Upload du média
                 const uploadForm = new FormData();
                 // Include filename explicitly to ensure server receives it
-                if (selectedFile && selectedFile.name) {
-                    uploadForm.append('file', selectedFile, selectedFile.name);
-                } else {
-                    uploadForm.append('file', selectedFile);
+                if (fileToUpload && fileToUpload.name) {
+                    uploadForm.append('file', fileToUpload, fileToUpload.name);
+                } else if (fileToUpload) {
+                    uploadForm.append('file', fileToUpload);
+                }
+
+                if (!uploadForm.get('file')) {
+                    console.error('FormData missing file entry before upload');
+                    throw new Error('Aucun fichier à uploader');
+                }
+
+                if (currentCampaignId) {
+                    uploadForm.append('campaignId', currentCampaignId);
                 }
 
                 // Debug: confirm FormData contains the file entry
                 try {
-                    console.log('FormData file entry:', uploadForm.get('file'));
+                    const formFile = uploadForm.get('file');
+                    console.log('FormData file entry:', formFile);
+                    if (formFile instanceof File) {
+                        console.log('FormData file name:', formFile.name, 'type:', formFile.type, 'size:', formFile.size);
+                    }
                 } catch (err) {
                     console.warn('Unable to inspect FormData contents', err);
                 }

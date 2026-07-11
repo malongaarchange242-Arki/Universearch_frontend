@@ -54,10 +54,10 @@ function afficherMessageSysteme(html) {
 // ============================================================================
 
 const API_CONFIG = {
-    PROA_API: 'https://universearch-proa-service.onrender.com', // Local development
-    PORA_API: 'https://universearch-pora-service.onrender.com',
-    IDENTITY_API: 'https://universearch-pwlf.onrender.com',
-    MAIL_API: 'https://universearch-mail.onrender.com',
+    PROA_API: 'https://universearch.com/proa/', // Local development
+    PORA_API: 'https://universearch.com/pora/',
+    IDENTITY_API: 'https://api.universearch.com',
+    MAIL_API: 'https://api.universearch.com',
 };
 
 // ============================================================================
@@ -262,6 +262,36 @@ function setupEventListeners() {
     document.getElementById('filter-search').addEventListener('input', appliquerFiltres);
 }
 
+function resolveCurrentUserId() {
+    const candidates = [];
+
+    try {
+        const sessionRaw = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
+        const session = JSON.parse(sessionRaw);
+        candidates.push(session.user_id, session.id, session.userId, session.profile_id, session.profileId, session.user?.id, session.user?.user_id);
+    } catch {
+        // Ignore malformed session storage
+    }
+
+    const token = localStorage.getItem('softura_token') || localStorage.getItem('token') || '';
+    if (token) {
+        const parts = token.split('.');
+        if (parts.length >= 2) {
+            try {
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                candidates.push(payload.user_id, payload.id, payload.sub, payload.userId, payload.profile_id, payload.profileId);
+            } catch {
+                // Ignore malformed JWT payload
+            }
+        }
+    }
+
+    candidates.push(sessionStorage.getItem('user-id'), localStorage.getItem('user-id'), localStorage.getItem('softura_user_id'));
+
+    const resolved = candidates.find(value => value && String(value).trim());
+    return resolved ? String(resolved) : 'anonymous';
+}
+
 function afficherCandidatsSimules(message = 'Utilisation des donnees simulees (API indisponible)') {
     console.log('Chargement des donnees simulees...');
     candidats = genererCandidatsSimulés(10);
@@ -280,8 +310,9 @@ async function chargerCandidats() {
     try {
         afficherToast('📥 Chargement des candidats recommandés...', 'info');
         
-        // Paramètres de requête pour l'appel API
-        const params = new URLSearchParams({
+        const normalizedBase = (API_CONFIG.PROA_API || '').replace(/\/+$/, '');
+        const payload = {
+            user_id: resolveCurrentUserId(),
             target_id: filtres.etablissement || '',
             score_min: filtres.scoreMin || 0,
             rank: filtres.classement || '',
@@ -289,24 +320,23 @@ async function chargerCandidats() {
             search: filtres.recherche || '',
             limit: articlesParPage,
             offset: (pageActuelle - 1) * articlesParPage
-        });
+        };
 
-        // Supprimer les paramètres vides
-        for (let [key, value] of params.entries()) {
-            if (!value) params.delete(key);
-        }
-
-        const url = `${API_CONFIG.PROA_API}/api/v1/proa/recommendations/list?${params}`;
+        const url = `${normalizedBase}/recommendations/universites`;
         console.log(`📡 Récupération: ${url}`);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // Délai d'expiration de 30s (augmenté pour les jointures)
 
+        const token = localStorage.getItem('softura_token') || localStorage.getItem('token') || '';
         const response = await fetch(url, {
-            method: 'GET',
-            headers: { 
-                'Accept': 'application/json'
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
+            body: JSON.stringify(payload),
             signal: controller.signal
         });
 
@@ -1905,10 +1935,19 @@ async function debugAPI() {
     
     // Test 3: Liste des recommandations
     try {
-        const recsResponse = await fetch(`${API_CONFIG.PROA_API}/api/v1/proa/recommendations/list?limit=1`);
+        const token = localStorage.getItem('softura_token') || localStorage.getItem('token') || '';
+        const recsResponse = await fetch(`${API_CONFIG.PROA_API.replace(/\/+$/, '')}/recommendations/universites`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ user_id: resolveCurrentUserId(), limit: 1 })
+        });
         const recsData = await recsResponse.json();
         console.log('✅ Recommandations:', recsResponse.status);
-        console.log('   Total disponible:', recsData.total);
+        console.log('   Total disponible:', recsData.total || recsData.candidates?.length || 0);
     } catch (e) {
         console.error('❌ Échec des recommandations:', e.message);
     }
