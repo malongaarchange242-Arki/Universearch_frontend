@@ -187,7 +187,7 @@ function buildInstitutionNotificationMessage(name) {
 
     return {
         
-        message: ` A du nouveau pour vous ! Allez découvrir les formations et opportunités qui sont mises à votre disposition sur UniverSearch.`
+        message: ` A du nouveau pour vous !`
     };
 }
 
