@@ -3,7 +3,7 @@
  */
 
 // Configuration API
-const IDENTITY_API = window.IDENTITY_API_BASE || 'https://universearch-9qle.onrender.com';
+const IDENTITY_API = window.IDENTITY_API_BASE || 'https://api.universearch.com';
 
 // Variables globales
 let allUsers = [];

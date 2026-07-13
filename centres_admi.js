@@ -186,8 +186,8 @@ function buildInstitutionNotificationMessage(name) {
     const safeName = displayName || 'Cette institution';
 
     return {
-        title: `${safeName} a du nouveau pour vous !`,
-        message: `${safeName} a du nouveau pour vous ! Allez découvrir les formations et opportunités que ${safeName} met à votre disposition sur UniverSearch.`
+        
+        message: ` A du nouveau pour vous ! Allez découvrir les formations et opportunités qui sont mises à votre disposition sur UniverSearch.`
     };
 }
 
