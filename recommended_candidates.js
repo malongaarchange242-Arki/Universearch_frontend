@@ -342,7 +342,53 @@ async function chargerCandidats() {
 
         clearTimeout(timeoutId);
 
+        // If server rejects POST with 405, attempt a GET fallback (some deployments expose GET-only)
         if (!response.ok) {
+            if (response.status === 405) {
+                console.warn('POST rejected with 405, attempting GET fallback for recommendations');
+                // Build query string from payload
+                const params = new URLSearchParams();
+                Object.keys(payload).forEach(k => {
+                    const v = payload[k];
+                    if (v === undefined || v === null) return;
+                    if (Array.isArray(v)) {
+                        v.forEach(item => params.append(k, String(item)));
+                    } else {
+                        params.set(k, String(v));
+                    }
+                });
+                const getUrl = `${url}?${params.toString()}`;
+                const getController = new AbortController();
+                const getTimeout = setTimeout(() => getController.abort(), 30000);
+                const getResp = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    signal: getController.signal
+                });
+                clearTimeout(getTimeout);
+                if (!getResp.ok) {
+                    const errBody = await getResp.text();
+                    console.error(`GET fallback failed: ${getResp.status}`, errBody);
+                    throw new Error(`Erreur API (GET fallback): ${getResp.status} ${getResp.statusText}`);
+                }
+                const data = await getResp.json();
+                console.log('✅ Candidats chargés (GET fallback):', data);
+                const candidatsNormalises = normaliserCandidats(data.candidates || []);
+                candidats = candidatsNormalises;
+                totalCandidats = candidatsNormalises.length === (data.candidates || []).length
+                    ? (data.total || candidatsNormalises.length)
+                    : candidatsNormalises.length;
+                statistiquesCourantes = candidatsNormalises.length === (data.candidates || []).length
+                    ? (data.stats || calculerStatistiques(candidatsNormalises))
+                    : calculerStatistiques(candidatsNormalises);
+                mettreAJourStatistiques();
+                afficherCandidats();
+                afficherToast(`✅ ${candidats.length} candidat(s) chargé(s) (GET fallback)`, 'success');
+                return;
+            }
             const errorBody = await response.text();
             console.error(`Erreur API: ${response.status}`, errorBody);
             throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
