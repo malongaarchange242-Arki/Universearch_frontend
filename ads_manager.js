@@ -194,6 +194,37 @@ function resetAgeTargeting() {
     selectAgeTargetingMode('none');
 }
 
+async function loadAvailableQuartiers() {
+    const quartierSelect = document.getElementById('ad-quartier');
+    if (!quartierSelect) return;
+
+    try {
+        const response = await fetch(`${apiBase}/ads/quartiers`);
+        const json = await response.json();
+
+        if (!response.ok) {
+            throw new Error(json?.error || 'Impossible de charger les quartiers');
+        }
+
+        const quartiers = Array.isArray(json?.data) ? json.data : [];
+        const currentValue = quartierSelect.value;
+
+        quartierSelect.innerHTML = '<option value="">Sélectionner un quartier</option>';
+        quartiers.forEach((quartier) => {
+            const option = document.createElement('option');
+            option.value = quartier;
+            option.textContent = quartier;
+            quartierSelect.appendChild(option);
+        });
+
+        if (currentValue) {
+            quartierSelect.value = currentValue;
+        }
+    } catch (err) {
+        console.warn('Unable to load quartiers:', err);
+    }
+}
+
 // 1. SYSTÈME DE NOTIFICATION (Réutilisé pour l'autonomie du fichier)
 function showNotification(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -763,6 +794,7 @@ function enterEditMode(campaign) {
     document.getElementById('ad-title').value = campaign?.title || '';
     document.getElementById('ad-desc').value = campaign?.description || '';
     document.getElementById('ad-location').value = campaign?.location || '';
+    document.getElementById('ad-quartier').value = campaign?.quartier || campaign?.location || '';
     document.getElementById('ad-lien').value = campaign?.lien || campaign?.lien_site || '';
     document.getElementById('ad-contacts').value = campaign?.contacts || '';
 
@@ -870,6 +902,7 @@ async function launchCampaign() {
     // Collect targeting data
     const ageTargeting = getAgeTargetingPayload();
     const location = document.getElementById('ad-location').value.trim() || undefined;
+    const quartier = document.getElementById('ad-quartier').value.trim() || undefined;
     const targetGender = selectedGender === 'all' ? undefined : selectedGender; // undefined for 'all', or 'men'/'women'
     const targetUserType = selectedUserType === 'all' ? undefined : selectedUserType;
 
@@ -878,7 +911,7 @@ async function launchCampaign() {
     console.log('Description:', description);
     console.log('Has media:', hasMedia);
     console.log('Media type:', mediaType);
-    console.log('Targeting - Gender:', targetGender, 'UserType:', targetUserType, 'Users:', selectedUsers, 'Age:', ageTargeting, 'Location:', location);
+    console.log('Targeting - Gender:', targetGender, 'UserType:', targetUserType, 'Users:', selectedUsers, 'Age:', ageTargeting, 'Location:', location, 'Quartier:', quartier);
 
     if (!title) {
         console.log('Error: No title');
@@ -970,7 +1003,8 @@ async function launchCampaign() {
             target_user_type: targetUserType,
             target_users: selectedUsers.length > 0 ? selectedUsers : undefined,
             ...ageTargeting,
-            location: location,
+            location: quartier || location,
+            quartier: quartier,
             contacts,
             lien,
             send_notifications: sendNotifications,
@@ -1012,6 +1046,7 @@ async function launchCampaign() {
         updateSelectedUsersDisplay(); // Update display
         resetAgeTargeting();
         document.getElementById('ad-location').value = '';
+        document.getElementById('ad-quartier').value = '';
         document.getElementById('send-notifications-toggle').checked = true;
         removeMedia();
         resetEditMode();
@@ -1160,6 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     targetAgeInput?.addEventListener('input', updateAgeTargetingSummary);
     ageToleranceInput?.addEventListener('input', updateAgeTargetingSummary);
     selectAgeTargetingMode('none');
+    void loadAvailableQuartiers();
     updateSelectedUsersDisplay();
     document.querySelector('input[type="range"]:not([id])')?.closest('.space-y-3')?.classList.add('hidden');
     ensureCampaignModalLayout();
