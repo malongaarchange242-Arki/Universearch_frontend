@@ -39,6 +39,55 @@
         .welcome-modal-actions button { border: none; border-radius: 999px; padding: 10px 16px; font-weight: 600; cursor: pointer; }
         .welcome-modal-actions .btn-primary { background: var(--primary); color: white; }
         .welcome-modal-actions .btn-secondary { background: rgba(255,255,255,0.12); color: #f8fafc; }
+        /* Stepper styles */
+        .stepper { display: flex; justify-content: space-between; margin-bottom: 24px; position: relative; }
+        .stepper::before { content: ''; position: absolute; top: 14px; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 0; }
+        .stepper-step { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 1; flex: 1; }
+        .stepper-number { width: 30px; height: 30px; border-radius: 50%; background: var(--bg-secondary); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: var(--text-muted); transition: all 0.3s; }
+        .stepper-step.active .stepper-number { background: var(--primary); border-color: var(--primary); color: white; }
+        .stepper-step.completed .stepper-number { background: var(--primary); border-color: var(--primary); color: white; }
+        .stepper-label { font-size: 11px; color: var(--text-muted); text-align: center; }
+        .stepper-step.active .stepper-label { color: var(--primary); font-weight: 600; }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .step-navigation { display: flex; gap: 12px; margin-top: 24px; justify-content: space-between; }
+        
+        /* Empty state centré */
+        .empty-state { 
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state p { margin-bottom: 20px; font-size: 16px; }
+
+        /* Table styles améliorées */
+        .table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); background: var(--bg-secondary); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1; }
+        .table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        .table tr:hover { background: var(--bg-hover); }
+        .table .candidate-info { display: flex; flex-direction: column; gap: 2px; }
+        .table .candidate-name { font-weight: 600; color: var(--text-primary); }
+        .table .candidate-detail { font-size: 12px; color: var(--text-muted); }
+
+        /* Modal detail */
+        .detail-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .detail-modal-card { background: var(--card-bg); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); width: min(560px, 100%); max-height: 90vh; overflow-y: auto; }
+        .detail-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card-bg); z-index: 1; }
+        .detail-modal-header h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .detail-modal-body { padding: 24px; }
+        .detail-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row i { width: 20px; color: var(--primary); margin-top: 2px; }
+        .detail-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+        .detail-value { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+        .detail-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; }
+        .detail-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
     </style>
 </head>
 <body>
@@ -83,11 +132,6 @@
                             <i class="fas fa-images"></i>
                             <span>Flyers & images</span>
                             <span class="nav-badge" id="flyersCount">0</span>
-                        </a>
-                        <a class="nav-item nav-subitem" data-page="templates">
-                            <i class="fas fa-palette"></i>
-                            <span>Templates</span>
-                            <span class="nav-badge new-badge">NEW</span>
                         </a>
                     </div>
                 </div>
@@ -220,8 +264,6 @@
                         </div>
                     </div>
 
-                    <!-- Followers Section Removed -->
-
                     <!-- Charts Grid -->
                     <div class="charts-grid">
                         <div class="chart-card">
@@ -260,7 +302,12 @@
                             <i class="fas fa-plus"></i> Nouveau Short
                         </button>
                     </div>
-                    <div id="shortsList" class="media-grid"></div>
+                    <div id="shortsList" class="media-grid">
+                        <div class="empty-state">
+                            <i class="fas fa-video"></i>
+                            <p>Aucun short vidéo pour le moment</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Flyers Page -->
@@ -271,20 +318,12 @@
                             <i class="fas fa-plus"></i> Nouveau Flyer
                         </button>
                     </div>
-                    <div id="flyersList" class="media-grid"></div>
-                </div>
-
-                <!-- Templates Page -->
-                <div class="page" id="templatesPage">
-                    <div class="page-header">
-                        <h2><i class="fas fa-palette"></i> Galerie de templates</h2>
-                        <div class="template-tabs">
-                            <button class="template-tab active" data-type="all">Tous</button>
-                            <button class="template-tab" data-type="short">Shorts</button>
-                            <button class="template-tab" data-type="flyer">Flyers</button>
+                    <div id="flyersList" class="media-grid">
+                        <div class="empty-state">
+                            <i class="fas fa-images"></i>
+                            <p>Aucun flyer pour le moment</p>
                         </div>
                     </div>
-                    <div id="templatesGallery" class="templates-grid"></div>
                 </div>
 
                 <!-- Formations Page -->
@@ -295,10 +334,14 @@
                             <i class="fas fa-plus"></i> Ajouter formation
                         </button>
                     </div>
-                    <div id="formationsList" class="formations-grid"></div>
+                    <div id="formationsList" class="formations-grid">
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <p>Aucune formation pour le moment</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Events Page -->
                 <!-- Chat Page -->
                 <div class="page" id="chatPage">
                     <div class="page-header">
@@ -346,14 +389,28 @@
                 <div class="page" id="analyticsPage">
                     <div class="page-header">
                         <h2><i class="fas fa-chart-line"></i> Analytiques — Recrutement</h2>
-                        <select id="analyticsPeriod" class="period-select">
-                            <option value="7">7 jours</option>
-                            <option value="30" selected>30 jours</option>
-                            <option value="90">90 jours</option>
-                        </select>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <select id="analyticsPeriod" class="period-select">
+                                <option value="7">7 jours</option>
+                                <option value="30" selected>30 jours</option>
+                                <option value="90">90 jours</option>
+                            </select>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="emailLogsSearchInstitution" placeholder="Recherche établissement..." style="padding:8px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px; width:200px;">
+                                <select id="emailLogsFilterUserType" style="padding:8px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+                                    <option value="">Tous les usertypes</option>
+                                    <option value="parent">Parent</option>
+                                    <option value="etudiant">Étudiant</option>
+                                    <option value="bachelier">Bachelier</option>
+                                </select>
+                                <button onclick="chargerEmailLogs()" class="btn-primary" style="padding:8px 16px; font-size:13px; white-space:nowrap;">
+                                    <i class="fas fa-sync"></i> Actualiser
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Email Logs Statistics -->
+                    <!-- KPI Cards -->
                     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
                         <div class="analytics-kpi-card" style="flex:1; min-width:150px;">
                             <div class="kpi-icon"><i class="fas fa-envelope"></i></div>
@@ -382,36 +439,21 @@
                     <div class="card">
                         <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                             <h3><i class="fas fa-history"></i> Historique des emails envoyés</h3>
-                            <div style="display:flex; gap:8px;">
-                                <input type="text" id="emailLogsSearchInstitution" placeholder="Chercher par établissement..." style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:12px; width:200px;">
-                                <select id="emailLogsFilterStatus" style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:12px;">
-                                    <option value="">Tous les statuts</option>
-                                    <option value="sent">Envoyé</option>
-                                    <option value="delivered">Livré</option>
-                                    <option value="bounced">Rejeté</option>
-                                    <option value="failed">Échoué</option>
-                                </select>
-                                <button onclick="chargerEmailLogs()" style="padding:8px 12px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer; font-size:12px;">
-                                    <i class="fas fa-sync"></i> Rafraîchir
-                                </button>
-                            </div>
                         </div>
                         <div class="card-body" style="padding:0; overflow-x:auto;">
-                            <table class="table" style="width:100%; border-collapse:collapse; min-width:1000px;">
-                                <thead style="background:var(--bg-secondary); position:sticky; top:0;">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Candidat</th>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Email</th>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Téléphone</th>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Quartier</th>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Raison</th>
-                                        <th style="padding:12px; text-align:center; font-weight:600;">Statut</th>
-                                        <th style="padding:12px; text-align:left; font-weight:600;">Date d'envoi</th>
+                                        <th>Candidat</th>
+                                        <th>Email</th>
+                                        <th>Téléphone</th>
+                                        <th>Quartier</th>
+                                        <th style="text-align:center;">Détails</th>
                                     </tr>
                                 </thead>
                                 <tbody id="emailLogsTableBody">
                                     <tr>
-                                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                                        <td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">
                                             <i class="fas fa-spinner fa-spin"></i> Chargement...
                                         </td>
                                     </tr>
@@ -419,7 +461,6 @@
                             </table>
                         </div>
                         <div style="padding:12px; border-top:1px solid var(--border); display:flex; justify-content:center; gap:8px;" id="emailLogsPagination">
-                            <!-- Pagination buttons will be added here -->
                         </div>
                     </div>
                 </div>
@@ -427,7 +468,7 @@
                 <!-- Settings Page -->
                 <div class="page" id="settingsPage">
                     <div class="page-header">
-                        <h2><i class="fas fa-cog"></i> Paramètres</h2>
+                   
                     </div>
                     <div class="settings-container">
                         <div class="card">
@@ -435,55 +476,55 @@
                                 <h3><i class="fas fa-building"></i> Informations de l'université</h3>
                             </div>
                             <form id="settingsForm" class="settings-form">
-                                <div class="form-group">
-                                    <label>Logo</label>
-                                    <div class="logo-upload">
-                                        <input type="file" id="logoInput" accept="image/*" style="display:none;">
-                                        <div id="logoPreview" class="logo-preview" tabindex="0" role="button" aria-label="Sélectionner un logo">
-                                            <i class="fas fa-university"></i>
+                                <div class="settings-grid">
+                                    <div class="settings-panel">
+                                        <h4><i class="fas fa-id-card"></i> Identité de l'établissement</h4>
+                                        <div class="form-group">
+                                            <label>Logo</label>
+                                            <div class="logo-upload">
+                                                <input type="file" id="logoInput" accept="image/*" style="display:none;">
+                                                <div id="logoPreview" class="logo-preview" tabindex="0" role="button" aria-label="Sélectionner un logo">
+                                                    <i class="fas fa-university"></i>
+                                                </div>
+                                                <small id="logoFilename">Aucun fichier choisi</small>
+                                            </div>
                                         </div>
-                                        <small id="logoFilename">Aucun fichier choisi</small>
+                                        <div class="form-row two-col">
+                                            <div class="form-group">
+                                                <label>Nom de l'établissement</label>
+                                                <input type="text" id="uniName">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Sigle</label>
+                                                <input type="text" id="uniSigle">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Ville</label>
+                                            <input type="text" id="uniCity">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Nom de l'établissement</label>
-                                        <input type="text" id="uniName">
-                                    </div>
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Sigle</label>
-                                        <input type="text" id="uniSigle">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Ville</label>
-                                        <input type="text" id="uniCity">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Description</label>
-                                    <textarea id="uniDescription" maxlength="2000" placeholder="Décrivez votre université en quelques mots..."></textarea>
-                                    <small id="descCount" style="color:var(--text-muted);">0/2000</small>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Email</label>
-                                        <input type="email" id="uniEmail">
-                                    </div>
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Numéro à contacter</label>
-                                        <input type="tel" id="uniPhone" inputmode="tel" autocomplete="tel" placeholder="+242 06 123 45 67" title="Utilisez uniquement chiffres, +, -, (), et espaces">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Site web</label>
-                                    <input type="text" id="uniWebsite">
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group" style="flex:1;">
-                                        <label>Couleur principale</label>
-                                        <input type="color" id="primaryColor" style="height: 46px; padding: 4px 8px;">
+
+                                    <div class="settings-panel">
+                                        <h4><i class="fas fa-address-book"></i> Contact & présentation</h4>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            <textarea id="uniDescription" rows="4" placeholder="Décrivez votre université en quelques mots..."></textarea>
+                                        </div>
+                                        <div class="form-row two-col">
+                                            <div class="form-group">
+                                                <label>Email</label>
+                                                <input type="email" id="uniEmail">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Numéro à contacter</label>
+                                                <input type="tel" id="uniPhone" inputmode="tel" autocomplete="tel" placeholder="+242 06 123 45 67" title="Utilisez uniquement chiffres, +, -, (), et espaces">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Site web</label>
+                                            <input type="text" id="uniWebsite">
+                                        </div>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn-primary btn-block">
@@ -498,7 +539,7 @@
     </div>
 
     <!-- Modals -->
-    <!-- Short Modal -->
+    <!-- Short Modal avec 2 étapes -->
     <div class="modal" id="shortModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -506,48 +547,72 @@
                 <button class="modal-close" onclick="window.closeModal('shortModal')">&times;</button>
             </div>
             <form id="shortForm" style="padding: 24px;">
-                <div class="form-group">
-                    <label>Titre du short</label>
-                    <input type="text" id="shortTitle" placeholder="Ex: Découvrez notre campus" required>
-                </div>
-                <div class="form-group">
-                    <label>Catégorie</label>
-                    <select id="shortCategory">
-                        <option value="campus">Campus</option>
-                        <option value="formation">Formation</option>
-                        <option value="evenement">Événement</option>
-                        <option value="temoignage">Témoignage</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="shortDescription" placeholder="Ex: Une visite immersive de notre campus" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Hashtags</label>
-                    <input type="text" id="shortHashtags" placeholder="Ex: #campus #université">
-                </div>
-                <div class="form-group">
-                    <label>Vidéo</label>
-                    <div class="file-upload">
-                        <input type="file" id="shortVideo" accept="video/*" style="display:none;" required>
-                        <div id="shortVideoPreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une vidéo">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <small id="shortVideoFilename">Aucun fichier choisi</small>
+                <div class="stepper" id="shortStepper">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-number">1</div>
+                        <span class="stepper-label">Contenu</span>
+                    </div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-number">2</div>
+                        <span class="stepper-label">Informations</span>
                     </div>
                 </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('shortModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-paper-plane"></i> Publier
-                    </button>
+
+                <div class="step-content active" data-step="1">
+                    <div class="form-group">
+                        <label>Vidéo</label>
+                        <div class="file-upload">
+                            <input type="file" id="shortVideo" accept="video/*" style="display:none;" required>
+                            <div id="shortVideoPreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une vidéo" style="min-height:200px;">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <small id="shortVideoFilename">Aucun fichier choisi</small>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <div></div>
+                        <button type="button" class="btn-primary" onclick="goToShortStep(2)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="step-content" data-step="2">
+                    <div class="form-group">
+                        <label>Titre du short</label>
+                        <input type="text" id="shortTitle" placeholder="Ex: Découvrez notre campus">
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select id="shortCategory">
+                            <option value="campus">Campus</option>
+                            <option value="formation">Formation</option>
+                            <option value="evenement">Événement</option>
+                            <option value="temoignage">Témoignage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="shortDescription" placeholder="Ex: Une visite immersive de notre campus" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Hashtags</label>
+                        <input type="text" id="shortHashtags" placeholder="Ex: #campus #université">
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn-secondary" onclick="goToShortStep(1)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Publier
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Flyer Modal -->
+    <!-- Flyer Modal avec 2 étapes -->
     <div class="modal" id="flyerModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -555,44 +620,68 @@
                 <button class="modal-close" onclick="window.closeModal('flyerModal')">&times;</button>
             </div>
             <form id="flyerForm" style="padding: 24px;">
-                <div class="form-group">
-                    <label>Titre du flyer</label>
-                    <input type="text" id="flyerTitle" placeholder="Ex: Journée portes ouvertes" required>
-                </div>
-                <div class="form-group">
-                    <label>Catégorie</label>
-                    <select id="flyerCategory">
-                        <option value="all">Général</option>
-                        <option value="admission">Admission</option>
-                        <option value="info">Information</option>
-                        <option value="evenement">Événement</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="flyerDescription" placeholder="Description du flyer..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Image</label>
-                    <div class="file-upload">
-                        <input type="file" id="flyerImage" accept="image/*" style="display:none;" required>
-                        <div id="flyerImagePreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une image de flyer">
-                            <i class="fas fa-upload"></i>
-                        </div>
-                        <small id="flyerFilename">Aucun fichier choisi</small>
+                <div class="stepper" id="flyerStepper">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-number">1</div>
+                        <span class="stepper-label">Contenu</span>
+                    </div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-number">2</div>
+                        <span class="stepper-label">Informations</span>
                     </div>
                 </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('flyerModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-cloud-upload-alt"></i> Publier
-                    </button>
+
+                <div class="step-content active" data-step="1">
+                    <div class="form-group">
+                        <label>Image</label>
+                        <div class="file-upload">
+                            <input type="file" id="flyerImage" accept="image/*" style="display:none;" required>
+                            <div id="flyerImagePreview" class="image-preview" tabindex="0" role="button" aria-label="Sélectionner une image de flyer" style="min-height:200px;">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <small id="flyerFilename">Aucun fichier choisi</small>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <div></div>
+                        <button type="button" class="btn-primary" onclick="goToFlyerStep(2)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="step-content" data-step="2">
+                    <div class="form-group">
+                        <label>Titre du flyer</label>
+                        <input type="text" id="flyerTitle" placeholder="Ex: Journée portes ouvertes">
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select id="flyerCategory">
+                            <option value="all">Général</option>
+                            <option value="admission">Admission</option>
+                            <option value="info">Information</option>
+                            <option value="evenement">Événement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="flyerDescription" placeholder="Description du flyer..."></textarea>
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn-secondary" onclick="goToFlyerStep(1)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-cloud-upload-alt"></i> Publier
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Formation Modal -->
+    <!-- Formation Modal avec étapes -->
     <div class="modal" id="formationModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -600,95 +689,125 @@
                 <button class="modal-close" onclick="window.closeModal('formationModal')">&times;</button>
             </div>
             <form id="formationForm" style="padding: 24px;">
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label id="formationNameLabel">Nom de la formation</label>
-                        <input type="text" id="formationName" list="formationOptions" placeholder="Choisir ou saisir une filière" required>
-                        <datalist id="formationOptions"></datalist>
+                <div class="stepper" id="formationStepper">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-number">1</div>
+                        <span class="stepper-label">Informations générales</span>
                     </div>
-                    <div class="form-group" style="flex:1;" id="universityLevelGroup">
-                        <label>Niveau</label>
-                        <div style="display: flex; gap: 12px; align-items: flex-end;">
-                            <select id="formationLevel" style="flex: 1;">
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-number">2</div>
+                        <span class="stepper-label">Détails académiques</span>
+                    </div>
+                    <div class="stepper-step" data-step="3">
+                        <div class="stepper-number">3</div>
+                        <span class="stepper-label">Frais & Localisation</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Informations générales -->
+                <div class="step-content active" data-step="1">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Nom de la formation</label>
+                            <input type="text" id="formationName" list="formationOptions" placeholder="Choisir ou saisir une filière" required>
+                            <datalist id="formationOptions"></datalist>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Niveau</label>
+                            <select id="formationLevel">
                                 <option value="Licence">Licence</option>
                                 <option value="Master">Master</option>
+                                <option value="Formation">Formation</option>
                             </select>
                         </div>
-                        <input type="hidden" id="formationLevelDetail" value="Licence 1">
-                        <div id="formationFeesByYear" style="display: none; margin-top: 12px;">
-                            <div id="licenseFees" style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <input type="text" id="formationFeesL1" placeholder="Frais L1" style="flex: 1;">
-                                <input type="text" id="formationFeesL2" placeholder="Frais L2" style="flex: 1;">
-                                <input type="text" id="formationFeesL3" placeholder="Frais L3" style="flex: 1;">
-                            </div>
-                            <div id="masterFees" style="display: none; flex-direction: row; gap: 8px;">
-                                <input type="text" id="formationFeesM1" placeholder="Frais M1" style="flex: 1;">
-                                <input type="text" id="formationFeesM2" placeholder="Frais M2" style="flex: 1;">
-                                <input type="text" id="formationFeesM3" placeholder="Frais M3" style="flex: 1;">
-                            </div>
+                        <div class="form-group" style="flex:1; display:none;" id="centreDomainGroup">
+                            <label>Catégorie / Domaine</label>
+                            <input type="text" id="formationDomain" list="formationDomainOptions" placeholder="Ex : Informatique, BTP, Santé, Cuisine">
+                            <datalist id="formationDomainOptions"></datalist>
                         </div>
                     </div>
-                    <div class="form-group" style="flex:1; display:none;" id="centreDomainGroup">
-                        <label>CatÃ©gorie / Domaine</label>
-                        <input type="text" id="formationDomain" list="formationDomainOptions" placeholder="Ex : Informatique, BTP, SantÃ©, Cuisine">
-                        <datalist id="formationDomainOptions"></datalist>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="formationDescription" placeholder="Description de la formation..." rows="3"></textarea>
                     </div>
-                    <div class="form-group" style="flex:1; display:none;" id="centreCertificationGroup">
-                        <label>Type de certification</label>
-                        <select id="formationCertificationType">
-                            <option value="CQP">CQP</option>
-                            <option value="CAP">CAP</option>
-                            <option value="BTS">BTS</option>
-                            <option value="Attestation">Attestation</option>
-                            <option value="Certificat professionnel">Certificat professionnel</option>
-                            <option value="Autre">Autre</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex:1;" id="formationFeesContainer">
-                        <label id="formationFeesLabel">Frais d'inscription</label>
-                        <input type="text" id="formationFees" placeholder="Ex: 50000 cfa/mois">
+                    <div class="step-navigation">
+                        <div></div>
+                        <button type="button" class="btn-primary" onclick="window.goToStep(2)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Durée</label>
-                        <input type="text" id="formationDuration" placeholder="Ex: 3 ans">
+
+                <!-- Step 2: Détails académiques -->
+                <div class="step-content" data-step="2">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Durée</label>
+                            <input type="text" id="formationDuration" placeholder="Ex: 3 ans">
+                        </div>
                     </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Lieu</label>
-                        <input type="text" id="formationLocation" placeholder="Ex: Campus principal">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1; display:none;" id="centreCertificationGroup">
+                            <label>Type de certification</label>
+                            <select id="formationCertificationType">
+                                <option value="CQP">CQP</option>
+                                <option value="CAP">CAP</option>
+                                <option value="BTS">BTS</option>
+                                <option value="Attestation">Attestation</option>
+                                <option value="Certificat professionnel">Certificat professionnel</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Prérequis (facultatif)</label>
+                        <textarea id="formationPrerequisites" placeholder="Prérequis..." rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Alternance</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="formationAlternance" value="Oui"> Oui
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="formationAlternance" value="Non" checked> Non
+                            </label>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn-secondary" onclick="window.goToStep(1)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn-primary" onclick="window.goToStep(3)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Langue</label>
-                        <input type="text" id="formationLanguage" value="Français">
+
+                <!-- Step 3: Frais & Localisation -->
+                <div class="step-content" data-step="3">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label id="formationFeesLabel">Frais d'inscription</label>
+                            <input type="text" id="formationFees" placeholder="Ex: 50000 cfa/mois">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="formationDescription" placeholder="Description de la formation..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Prérequis</label>
-                    <textarea id="formationPrerequisites" placeholder="Prérequis..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Alternance</label>
-                    <div style="display: flex; gap: 20px; margin-top: 8px;">
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="formationAlternance" value="Oui"> Oui
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="formationAlternance" value="Non" checked> Non
-                        </label>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Lieu</label>
+                            <input type="text" id="formationLocation" placeholder="Ex: Campus principal">
+                        </div>
                     </div>
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('formationModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
+                    <div class="step-navigation">
+                        <button type="button" class="btn-secondary" onclick="window.goToStep(2)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -756,18 +875,12 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Langue</label>
-                        <input type="text" id="proFormationLanguage" value="Français">
-                    </div>
-                </div>
                 <div class="form-group">
                     <label>Description</label>
                     <textarea id="proFormationDescription" placeholder="Description de la formation..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Prérequis</label>
+                    <label>Prérequis (facultatif)</label>
                     <textarea id="proFormationPrerequisites" placeholder="Prérequis..."></textarea>
                 </div>
                 <div class="form-group">
@@ -791,214 +904,18 @@
         </div>
     </div>
 
-    <!-- Event Modal -->
-    <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-calendar-alt"></i> Créer un événement</h3>
-                <button class="modal-close" onclick="window.closeModal('eventModal')">&times;</button>
+    <!-- Detail Modal pour les emails -->
+    <div id="emailDetailModal" style="display:none;" class="detail-modal-overlay" onclick="if(event.target===this)this.style.display='none'">
+        <div class="detail-modal-card">
+            <div class="detail-modal-header">
+                <h3><i class="fas fa-user-circle"></i> Détails de l'étudiant</h3>
+                <button class="detail-close" onclick="document.getElementById('emailDetailModal').style.display='none'">&times;</button>
             </div>
-            <form id="eventForm" style="padding: 24px;">
-                <div class="form-group">
-                    <label>Titre</label>
-                    <input type="text" id="eventTitle" placeholder="Ex: Journée Portes Ouvertes" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Date de début</label>
-                        <input type="date" id="eventDate" required>
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Date de fin</label>
-                        <input type="date" id="eventEndDate">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Heure de début</label>
-                        <input type="time" id="eventTime">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Heure de fin</label>
-                        <input type="time" id="eventEndTime">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Lieu</label>
-                        <input type="text" id="eventLocation" placeholder="Ex: Amphi A">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Type</label>
-                        <select id="eventType">
-                            <option value="Portes Ouvertes">Portes Ouvertes</option>
-                            <option value="Forum">Forum</option>
-                            <option value="Conférence">Conférence</option>
-                            <option value="Atelier">Atelier</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="eventDescription" placeholder="Description de l'événement..."></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Lien d'inscription</label>
-                        <input type="url" id="eventLink" placeholder="https://...">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Capacité</label>
-                        <input type="number" id="eventCapacity" placeholder="Ex: 500">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('eventModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-plus"></i> Créer
-                    </button>
-                </div>
-            </form>
+            <div class="detail-modal-body" id="emailDetailContent"></div>
         </div>
     </div>
 
-    <!-- Testimonial Modal -->
-    <div class="modal" id="testimonialModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-quote-right"></i> Ajouter un témoignage</h3>
-                <button class="modal-close" onclick="window.closeModal('testimonialModal')">&times;</button>
-            </div>
-            <form id="testimonialForm" style="padding: 24px;">
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Nom de l'étudiant</label>
-                        <input type="text" id="testimonialName" placeholder="Ex: Marie Dubois" required>
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Promotion</label>
-                        <input type="text" id="testimonialPromotion" placeholder="Ex: 2024">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Programme</label>
-                    <input type="text" id="testimonialProgram" placeholder="Ex: Licence Informatique">
-                </div>
-                <div class="form-group">
-                    <label>Note</label>
-                    <div style="display: flex; gap: 20px; margin-top: 8px;">
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
-                            <input type="radio" name="testimonialRating" value="5" checked> ★★★★★
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
-                            <input type="radio" name="testimonialRating" value="4"> ★★★★
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #fbbf24;">
-                            <input type="radio" name="testimonialRating" value="3"> ★★★
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Message</label>
-                    <textarea id="testimonialMessage" placeholder="Témoignage de l'étudiant..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Poste actuel</label>
-                    <input type="text" id="testimonialCurrentJob" placeholder="Ex: Développeuse chez TechCorp">
-                </div>
-                <div class="form-group">
-                    <label>Photo</label>
-                    <input type="file" id="testimonialPhoto" accept="image/*">
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('testimonialModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Template Selector Modal -->
-    <div class="modal" id="templateSelectorModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-palette"></i> Choisir un template</h3>
-                <button class="modal-close" onclick="window.closeModal('templateSelectorModal')">&times;</button>
-            </div>
-            <div id="templateSelectorBody" class="template-selector-body"></div>
-            <div style="padding: 16px; border-top: 1px solid var(--border);">
-                <button class="btn-secondary btn-block" onclick="window.closeModal('templateSelectorModal')">Annuler</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ajouter après le modal templateSelectorModal -->
-<div class="modal" id="postPreviewModal">
-    <div class="modal-content post-preview-content">
-        <div class="post-preview-layout">
-            <!-- Partie gauche : Média -->
-            <div class="post-preview-media">
-                <div class="post-preview-close">
-                    <button class="modal-close" onclick="window.closeModal('postPreviewModal')">&times;</button>
-                </div>
-                <div id="postMediaContainer" class="post-media-container">
-                    <!-- Dynamique -->
-                </div>
-                <div class="post-actions-bar">
-                    <button class="post-action-btn" onclick="window.previewLike()">
-                        <i class="fas fa-heart"></i>
-                        <span id="previewLikeCount">0</span>
-                    </button>
-                    <button class="post-action-btn" onclick="window.previewShare()">
-                        <i class="fas fa-share"></i>
-                        <span id="previewShareCount">0</span>
-                    </button>
-                    <button class="post-action-btn">
-                        <i class="fas fa-eye"></i>
-                        <span id="previewViewCount">0</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Partie droite : Commentaires -->
-            <div class="post-preview-comments">
-                <div class="post-preview-header">
-                    <h3 id="previewPostTitle">Titre du post</h3>
-                    <span id="previewPostDate" style="font-size:12px;color:var(--text-muted);"></span>
-                </div>
-                <div class="post-preview-description" id="previewPostDescription">
-                    Description du post
-                </div>
-                <div class="post-comments-section">
-                    <div class="post-comments-header">
-                        <span>Commentaires</span>
-                        <span id="previewCommentCount">0</span>
-                    </div>
-                    <div id="previewCommentsList" class="post-comments-list">
-                        <!-- Dynamique -->
-                    </div>
-                </div>
-                <div class="post-comment-input-area">
-                    <div id="previewReplyTo" style="display:none;font-size:12px;color:var(--primary);">
-                        Réponse à <strong id="previewReplyToName"></strong>
-                        <button onclick="window.cancelReply()" style="background:none;border:none;color:var(--danger);cursor:pointer;">Annuler</button>
-                    </div>
-                    <div class="post-comment-input-wrapper">
-                        <input type="text" id="previewCommentInput" placeholder="Écrire un commentaire..." />
-                        <button onclick="window.sendPreviewComment()" class="send-comment-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Toast Container -->
-    <!-- Content preview modal (enhanced: media viewer + right pane with comments) -->
+    <!-- Content preview modal -->
     <div class="modal" id="contentPreviewModal">
         <div class="modal-content content-preview-content">
             <div class="modal-left content-preview-media-pane">
@@ -1013,7 +930,6 @@
                 </div>
             </div>
             <div class="modal-right content-preview-details">
-                <!-- Right pane populated by JS -->
             </div>
         </div>
     </div>
@@ -1032,958 +948,70 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // Track fetched views sums so we can show combined views (images + videos)
-        let fetchedShortsViews = 0;
-        let fetchedFlyersViews = 0;
-        // Track fetched followers sums (from content items) so we can combine with appData.followers
-        let fetchedShortsFollowers = 0;
-        let fetchedFlyersFollowers = 0;
-
-        function updateCombinedViewsDisplay() {
-            const total = (fetchedShortsViews || 0) + (fetchedFlyersViews || 0);
-            const statViews = document.getElementById('statViews');
-            if (statViews) statViews.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
-            const totalViewsKpi = document.getElementById('totalViewsKpi');
-            if (totalViewsKpi) totalViewsKpi.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
-        }
-
-        function updateCombinedFollowersDisplay() {
-            // The dashboard KPI must show the institution/centre followers count from the identity API.
-            const total = (window.appData && typeof window.appData.server_followers_count === 'number')
-                ? window.appData.server_followers_count
-                : 0;
-            const statFollowers = document.getElementById('statFollowers');
-            if (statFollowers) statFollowers.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
-            const totalFollowersKpi = document.getElementById('totalFollowersKpi');
-            if (totalFollowersKpi) totalFollowersKpi.textContent = typeof formatNumber === 'function' ? formatNumber(total) : total;
-        }
-
-        function showPage(pageKey) {
-            const pageId = `${pageKey}Page`;
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.toggle('active', page.id === pageId);
+        // Navigation multi-étapes pour Short
+        function goToShortStep(stepNumber) {
+            document.querySelectorAll('#shortStepper .stepper-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === stepNumber) step.classList.add('active');
+                else if (stepNum < stepNumber) step.classList.add('completed');
             });
-            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-                item.classList.toggle('active', item.getAttribute('data-page') === pageKey);
+            document.querySelectorAll('#shortModal .step-content').forEach(content => {
+                content.classList.toggle('active', parseInt(content.dataset.step) === stepNumber);
             });
         }
 
-        function initializeFirstSetupFlow() {
-            const params = new URLSearchParams(window.location.search);
-            const showFlag = localStorage.getItem('universearch_show_welcome_modal') === '1';
-            const seenFlag = localStorage.getItem('universearch_welcome_modal_seen') === '1';
-            const dismissedFlag = localStorage.getItem('universearch_welcome_modal_dismissed') === '1';
-            const shouldShowWelcome = !seenFlag && !dismissedFlag && (params.get('firstTime') === '1' || showFlag);
-
-            if (shouldShowWelcome) {
-                localStorage.setItem('universearch_welcome_modal_seen', '1');
-                localStorage.setItem('universearch_welcome_modal_dismissed', '1');
-                const modal = document.getElementById('welcomeModal');
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    const closeBtn = document.getElementById('welcomeCloseBtn');
-                    const openBtn = document.getElementById('welcomeOpenBtn');
-
-                    const dismissModal = () => {
-                        modal.classList.add('hidden');
-                        localStorage.removeItem('universearch_show_welcome_modal');
-                        localStorage.setItem('universearch_welcome_modal_seen', '1');
-                        localStorage.setItem('universearch_welcome_modal_dismissed', '1');
-                        if (closeBtn) closeBtn.removeEventListener('click', handleClose);
-                        if (openBtn) openBtn.removeEventListener('click', handleOpen);
-                    };
-
-                    const handleClose = () => {
-                        dismissModal();
-                    };
-
-                    const handleOpen = () => {
-                        dismissModal();
-                        showPage('settings');
-                        if (window.location.hash !== '#settings') {
-                            window.location.hash = 'settings';
-                        }
-                    };
-
-                    if (closeBtn) closeBtn.addEventListener('click', handleClose);
-                    if (openBtn) openBtn.addEventListener('click', handleOpen);
-                    modal.addEventListener('click', (event) => {
-                        if (event.target === modal) {
-                            handleClose();
-                        }
-                    });
-                }
-            }
-
-            if (window.history && window.history.replaceState) {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('firstTime');
-                window.history.replaceState({}, '', url.toString());
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-                item.addEventListener('click', () => {
-                    const pageKey = item.getAttribute('data-page');
-                    if (pageKey) {
-                        showPage(pageKey);
-                    }
-                });
+        // Navigation multi-étapes pour Flyer
+        function goToFlyerStep(stepNumber) {
+            document.querySelectorAll('#flyerStepper .stepper-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === stepNumber) step.classList.add('active');
+                else if (stepNum < stepNumber) step.classList.add('completed');
             });
-            initializeFirstSetupFlow();
-        });
-
-        (function(){
-            const input = document.getElementById('logoInput');
-            const preview = document.getElementById('logoPreview');
-            const filename = document.getElementById('logoFilename');
-
-            if (!input || !preview || !filename) return;
-
-            function showPlaceholder(){
-                preview.innerHTML = '<i class="fas fa-university"></i>';
-                filename.textContent = 'Aucun fichier choisi';
-            }
-
-            preview.addEventListener('click', () => input.click());
-            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
-
-            input.addEventListener('change', (e) => {
-                const file = input.files && input.files[0];
-                if (!file) { showPlaceholder(); return; }
-                filename.textContent = file.name;
-                const reader = new FileReader();
-                reader.onload = function(ev){
-                    preview.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = ev.target.result;
-                    img.alt = 'Logo';
-                    preview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
+            document.querySelectorAll('#flyerModal .step-content').forEach(content => {
+                content.classList.toggle('active', parseInt(content.dataset.step) === stepNumber);
             });
+        }
 
-            // initialize
-            showPlaceholder();
-        })();
+        // Réinitialiser les steppers à l'ouverture
+        const origOpenShortModal = window.openShortModal;
+        window.openShortModal = function() {
+            if (origOpenShortModal) origOpenShortModal();
+            setTimeout(() => goToShortStep(1), 100);
+        };
+        if (!window.openShortModal) {
+            window.openShortModal = function() {
+                document.getElementById('shortModal').classList.add('active');
+                setTimeout(() => goToShortStep(1), 100);
+            };
+        }
 
-        (function(){
-            const input = document.getElementById('flyerImage');
-            const preview = document.getElementById('flyerImagePreview');
-            const filename = document.getElementById('flyerFilename');
-            const flyerForm = document.getElementById('flyerForm');
+        const origOpenFlyerModal = window.openFlyerModal;
+        window.openFlyerModal = function() {
+            if (origOpenFlyerModal) origOpenFlyerModal();
+            setTimeout(() => goToFlyerStep(1), 100);
+        };
+        if (!window.openFlyerModal) {
+            window.openFlyerModal = function() {
+                document.getElementById('flyerModal').classList.add('active');
+                setTimeout(() => goToFlyerStep(1), 100);
+            };
+        }
 
-            if (!input || !preview || !filename) return;
-
-            function showFlyerPlaceholder(){
-                preview.innerHTML = '<i class="fas fa-upload"></i>';
-                filename.textContent = 'Aucun fichier choisi';
-            }
-
-            preview.addEventListener('click', () => input.click());
-            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
-
-            input.addEventListener('change', () => {
-                const file = input.files && input.files[0];
-                if (!file) { showFlyerPlaceholder(); return; }
-                filename.textContent = file.name;
-                const reader = new FileReader();
-                reader.onload = function(ev){
-                    preview.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = ev.target.result;
-                    img.alt = 'Prévisualisation du flyer';
-                    preview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
+        // Navigation multi-étapes pour le modal de formation
+        window.goToStep = function(stepNumber) {
+            document.querySelectorAll('#formationStepper .stepper-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === stepNumber) step.classList.add('active');
+                else if (stepNum < stepNumber) step.classList.add('completed');
             });
-
-            if (flyerForm) {
-                flyerForm.addEventListener('reset', () => showFlyerPlaceholder());
-            }
-
-            showFlyerPlaceholder();
-        })();
-
-        (function(){
-            const input = document.getElementById('shortVideo');
-            const preview = document.getElementById('shortVideoPreview');
-            const filename = document.getElementById('shortVideoFilename');
-            const shortForm = document.getElementById('shortForm');
-
-            if (!input || !preview || !filename) return;
-
-            function showShortVideoPlaceholder(){
-                preview.innerHTML = '<i class="fas fa-video"></i>';
-                filename.textContent = 'Aucun fichier choisi';
-            }
-
-            preview.addEventListener('click', () => input.click());
-            preview.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
-
-            input.addEventListener('change', () => {
-                const file = input.files && input.files[0];
-                if (!file) { showShortVideoPlaceholder(); return; }
-                filename.textContent = file.name;
-                preview.innerHTML = '<i class="fas fa-file-video"></i>';
+            document.querySelectorAll('#formationModal .step-content').forEach(content => {
+                content.classList.toggle('active', parseInt(content.dataset.step) === stepNumber);
             });
+        };
 
-            if (shortForm) {
-                shortForm.addEventListener('reset', () => showShortVideoPlaceholder());
-            }
-
-            showShortVideoPlaceholder();
-        })();
-
-        // Fetch and populate profile for university/centre
-        async function fetchMyProfile() {
-            const base = window.API_BASE || 'https://api.universearch.com';
-            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
-            let session = {};
-            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
-
-            const token = session.jwt_token || localStorage.getItem('jwt_token') || localStorage.getItem('softura_token') || localStorage.getItem('token') || null;
-            if (!token) return; // no authenticated user
-
-            const roleRaw = (typeof getUserRole === 'function' ? getUserRole() : '') || (session.role || session.profile_type || session.profileType || session.institution_type || '').toString().toLowerCase();
-            const endpoints = roleRaw.includes('centre') ? ['/centres/me'] : ['/universites/me', '/centres/me'];
-            let lastError = null;
-
-            for (const ep of endpoints) {
-                const result = await safeFetch(base + ep, { headers: { Authorization: `Bearer ${token}` } });
-                if (!result.ok) {
-                    lastError = result;
-                    console.warn(`Impossible de charger ${ep}: ${result.error}`);
-                    continue;
-                }
-                const data = result.data;
-                if (!data) continue;
-                const profile = Array.isArray(data) ? data[0] : (data.data || data || {});
-                profile.__institution_kind = ep.includes('/centres') ? 'centre' : 'universite';
-                window.currentProfile = profile;
-                populateProfile(profile);
-                return;
-            }
-
-            // Afficher une erreur si tous les endpoints ont échoué
-            if (lastError && typeof safeFetch === 'function') {
-                console.warn('Impossible de charger le profil utilisateur');
-                if (typeof window.showToast === 'function' && lastError.isNetworkError) {
-                    window.showToast(lastError.error || 'Impossible de charger le profil', 'error');
-                }
-            }
-        }
-
-        function populateProfile(p) {
-            if (!p) return;
-            const name = p.name || p.nom || p.universiteName || p.label || '';
-            const city = p.city || p.ville || p.cityName || p.location || '';
-            const description = p.description || p.bio || p.about || '';
-            const email = p.email || p.contact_email || '';
-            const phone = p.phone || p.telephone || p.telephone_contact || p.contacts || p.contact || '';
-            // Accept several server-side variants (some backends use 'lien_site' or 'lien' or 'site_web')
-            const website = p.website || p.site || p.site_web || p.website_url || p.lien_site || p.lien || '';
-            const color = p.primaryColor || p.primary_color || p.color || p.themeColor || '';
-            const logoUrl = p.logo || p.logoUrl || p.logo_url || p.image || p.avatar || '';
-
-            const sidebarName = document.getElementById('sidebarUniName');
-            if (sidebarName && name) sidebarName.textContent = name;
-
-            const uniName = document.getElementById('uniName'); if (uniName && name) uniName.value = name;
-            const uniCity = document.getElementById('uniCity'); if (uniCity && city) uniCity.value = city;
-            const uniDescription = document.getElementById('uniDescription'); if (uniDescription && description) uniDescription.value = description;
-            const uniEmail = document.getElementById('uniEmail'); if (uniEmail && email) uniEmail.value = email;
-            const uniPhone = document.getElementById('uniPhone'); if (uniPhone && phone) uniPhone.value = phone;
-            const uniWebsite = document.getElementById('uniWebsite'); if (uniWebsite && website) uniWebsite.value = website;
-            const primaryColor = document.getElementById('primaryColor'); if (primaryColor && color) primaryColor.value = color;
-
-            // update avatar and logo preview
-            const avatar = document.getElementById('uniAvatarPreview');
-            if (avatar && logoUrl) {
-                avatar.innerHTML = '';
-                const img = document.createElement('img'); img.src = logoUrl; img.alt = 'Logo'; img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover'; avatar.appendChild(img);
-            }
-
-            const logoPreview = document.getElementById('logoPreview');
-            const logoFilename = document.getElementById('logoFilename');
-            if (logoPreview && logoUrl) {
-                logoPreview.innerHTML = '';
-                const img = document.createElement('img'); img.src = logoUrl; img.alt = 'Logo'; logoPreview.appendChild(img);
-                if (logoFilename) logoFilename.textContent = 'Logo chargé depuis le serveur';
-            }
-        }
-
-        function getContentAuthorCandidates(context, session = {}) {
-            const profile = window.currentProfile || {};
-            return [
-                context?.contentAuthorId,
-                context?.profileId,
-                profile.profile_id,
-                profile.user_id,
-                session.profile_id,
-                session.userId,
-                session.user_id,
-                session.id,
-                context?.id,
-                profile.id,
-                profile.centre_id,
-                profile.universite_id,
-                session.organization_id,
-                session.entity_id
-            ].filter((value, index, list) => value && list.indexOf(value) === index);
-        }
-
-        function getPostsFromResponse(json) {
-            if (Array.isArray(json)) return json;
-            if (Array.isArray(json?.data)) return json.data;
-            if (Array.isArray(json?.posts)) return json.posts;
-            if (Array.isArray(json?.data?.posts)) return json.data.posts;
-            return [];
-        }
-
-        async function fetchOrganizationPosts(contentBase, authorIds, entityType, preferOrganizationFeed = false) {
-            let lastError = null;
-            for (const authorId of authorIds) {
-                const urls = [];
-                if (preferOrganizationFeed) {
-                    const organizationQuery = new URLSearchParams({
-                        organization_id: authorId,
-                        organization_type: entityType,
-                        page: '1',
-                        limit: '1000',
-                    });
-                    urls.push(`${contentBase}/feed/organization?${organizationQuery.toString()}`);
-                }
-
-                const postsQuery = new URLSearchParams({
-                    entity_id: authorId,
-                    entity_type: entityType,
-                    limit: '1000',
-                });
-                urls.push(`${contentBase}/posts?${postsQuery.toString()}`);
-
-                for (const url of urls) {
-                    const result = await safeFetch(url);
-                    if (!result.ok) {
-                        lastError = result;
-                        console.warn('Impossible de charger les posts:', result.error, url);
-                        continue;
-                    }
-
-                    const json = result.data;
-                    const posts = getPostsFromResponse(json);
-                    if (posts.length > 0) {
-                        console.log('[MEDIA] Posts trouvés avec author_id:', authorId, posts.length);
-                        return posts;
-                    }
-                }
-            }
-
-            // Afficher une erreur de réseau si c'est une erreur d'accès aux données
-            if (lastError && lastError.isNetworkError && typeof window.showToast === 'function') {
-                window.showToast(lastError.error || 'Impossible de charger les posts', 'error');
-            }
-            return [];
-        }
-
-        // Fetch and display shorts (videos only) for the university
-        async function fetchAndDisplayShorts() {
-            const contentBase = 'https://universearch.com';
-            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
-            let session = {};
-            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
-
-            const context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
-            if (!context?.contentAuthorId && !window.currentProfile?.profile_id && typeof fetchMyProfile === 'function') {
-                await fetchMyProfile();
-            }
-            const refreshedContext = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : context;
-            const profileTypeRaw = (context?.kind || session.role || session.profile_type || session.profileType || window.currentProfile?.role || window.currentProfile?.profile_type || window.currentProfile?.profileType || '').toString().toLowerCase();
-            const entityType = refreshedContext?.entityType || (profileTypeRaw.includes('centre') ? 'centre' : 'universite');
-            const authorIds = getContentAuthorCandidates(refreshedContext, session);
-            if (authorIds.length === 0) {
-                console.warn('Impossible de charger les shorts: pas d\'author ID');
-                return;
-            }
-
-            const posts = await fetchOrganizationPosts(contentBase, authorIds, entityType, false);
-            if (!posts || posts.length === 0) {
-                console.warn('Aucun post trouvé pour les shorts');
-                const shortsList = document.getElementById('shortsList');
-                if (shortsList) {
-                    shortsList.innerHTML = '<div class="empty-state"><i class="fas fa-video"></i><p>Aucun short vidéo pour le moment</p><button class="btn-primary" onclick="window.openShortModal()">Créer mon premier short</button></div>';
-                }
-                return;
-            }
-
-            const shorts = posts.filter(p => String(p.media_type || '').toLowerCase() === 'video' && String(p.statut || '').toUpperCase() === 'PUBLISHED');
-            shorts.forEach(short => registerPreviewItem('short', short));
-
-            // normalize and persist fetched shorts so the dashboard charts reflect remote content
-            appData.shorts = shorts.map(short => ({
-                ...short,
-                views: short.views_count ?? short.views ?? 0,
-                likes: short.likes_count ?? short.likes ?? 0,
-                comments: short.comments_count ?? short.comments ?? 0,
-                shares: short.shares_count ?? short.shares ?? 0,
-                createdAt: short.createdAt || short.date_creation || short.date_publication || new Date().toISOString(),
-                videoUrl: short.media_url || short.videoUrl || ''
-            }));
-
-            // compute and store total views for shorts
-            fetchedShortsViews = appData.shorts.reduce((s, c) => s + (c.views || 0), 0);
-            // gather followers-like metric from shorts if present (some posts expose followers_count or author_followers)
-            fetchedShortsFollowers = appData.shorts.reduce((s, c) => s + (c.followers_count ?? c.author_followers ?? 0), 0);
-            updateCombinedViewsDisplay();
-            updateCombinedFollowersDisplay();
-
-            const shortsList = document.getElementById('shortsList');
-            if (!shortsList) return;
-
-            if (appData.shorts.length === 0) {
-                shortsList.innerHTML = '<div class="empty-state"><i class="fas fa-video"></i><p>Aucun short vidéo pour le moment</p><button class="btn-primary" onclick="window.openShortModal()">Créer mon premier short</button></div>';
-                updateShortCounts(0);
-                if (typeof updateDashboardStats === 'function') updateDashboardStats();
-                if (typeof updateAnalytics === 'function') updateAnalytics();
-                if (typeof initEngagementChart === 'function') initEngagementChart();
-                if (typeof initDashboardPerformanceChart === 'function') initDashboardPerformanceChart();
-                return;
-            }
-
-            shortsList.innerHTML = shorts.map(short => {
-                const likes = short.likes_count ?? 0;
-                const shares = short.shares_count ?? short.shares ?? 0;
-                const views = short.views_count ?? 0;
-                return `
-                    <div class="flyer-card" onclick="openPreview('short','${short.id}')">
-                        <div class="flyer-image">
-                            <video src="${short.media_url || ''}" controls muted playsinline preload="metadata" onclick="event.stopPropagation()"></video>
-                        </div>
-                        <div class="flyer-info">
-                            <h4>${short.titre || 'Sans titre'}</h4>
-                            ${short.description ? `<p>${short.description.substring(0, 100)}...</p>` : ''}
-                            <div class="flyer-meta">
-                                <span><i class="fas fa-eye"></i> ${views}</span>
-                                <span><i class="fas fa-heart"></i> ${likes}</span>
-                                <span><i class="fas fa-share"></i> ${shares}</span>
-                                <button class="delete-btn" onclick="event.stopPropagation(); window.deleteContent('short','${short.id}')" aria-label="Supprimer ce short">
-                                    <i class="fas fa-trash"></i> Supprimer
-                                </button>
-                            </div>
-                            <small style="color: var(--text-muted);">Publié le ${new Date(short.date_creation).toLocaleDateString('fr-FR')}</small>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            updateShortCounts(shorts.length);
-            if (typeof updateDashboardStats === 'function') updateDashboardStats();
-            if (typeof updateAnalytics === 'function') updateAnalytics();
-            if (typeof initEngagementChart === 'function') initEngagementChart();
-            if (typeof initDashboardPerformanceChart === 'function') initDashboardPerformanceChart();
-        }
-
-        // Fetch and display flyers (images only) for the university
-        async function fetchAndDisplayFlyers() {
-            const contentBase = 'https://universearch.com';
-            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
-            let session = {};
-            try { session = JSON.parse(sessionStr); } catch(e) { session = {}; }
-
-            const context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
-            if (!context?.contentAuthorId && !window.currentProfile?.profile_id && typeof fetchMyProfile === 'function') {
-                await fetchMyProfile();
-            }
-            const refreshedContext = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : context;
-            const profileTypeRaw = (context?.kind || session.role || session.profile_type || session.profileType || window.currentProfile?.role || window.currentProfile?.profile_type || window.currentProfile?.profileType || '').toString().toLowerCase();
-            const entityType = refreshedContext?.entityType || (profileTypeRaw.includes('centre') ? 'centre' : 'universite');
-            const authorIds = getContentAuthorCandidates(refreshedContext, session);
-            if (authorIds.length === 0) {
-                console.warn('Impossible de charger les flyers: pas d\'author ID');
-                return;
-            }
-
-            const posts = await fetchOrganizationPosts(contentBase, authorIds, entityType, true);
-            if (!posts || posts.length === 0) {
-                console.warn('Aucun post trouvé pour les flyers');
-                const flyersList = document.getElementById('flyersList');
-                if (flyersList) {
-                    flyersList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Aucun flyer disponible</p>';
-                }
-                updateFlyerCounts(0);
-                return;
-            }
-
-            console.log('📦 [DIAGNOSTIC] Posts reçus du serveur:', posts.length, posts);
-            
-            const flyers = posts.filter(p => String(p.media_type || '').toLowerCase() === 'image' && String(p.statut || '').toUpperCase() === 'PUBLISHED');
-            console.log('🖼️ [DIAGNOSTIC] Flyers filtrés (image + PUBLISHED):', flyers.length);
-            
-            flyers.forEach(flyer => registerPreviewItem('flyer', flyer));
-
-            // normalize and persist fetched flyers so the dashboard charts reflect remote content
-            appData.flyers = flyers.map(flyer => ({
-                ...flyer,
-                views: flyer.views_count ?? flyer.views ?? 0,
-                likes: flyer.likes_count ?? flyer.likes ?? 0,
-                comments: flyer.comments_count ?? flyer.comments ?? 0,
-                createdAt: flyer.createdAt || flyer.date_creation || flyer.date_publication || new Date().toISOString(),
-                imageUrl: flyer.media_url || flyer.imageUrl || ''
-            }));
-
-            // compute and store total views for flyers
-            fetchedFlyersViews = appData.flyers.reduce((s, c) => s + (c.views || 0), 0);
-            // gather followers-like metric from flyers if present
-            fetchedFlyersFollowers = appData.flyers.reduce((s, c) => s + (c.followers_count ?? c.author_followers ?? 0), 0);
-            updateCombinedViewsDisplay();
-            updateCombinedFollowersDisplay();
-
-            const flyersList = document.getElementById('flyersList');
-            if (!flyersList) return;
-
-            if (appData.flyers.length === 0) {
-                flyersList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Aucun flyer disponible</p>';
-                updateFlyerCounts(0);
-                if (typeof updateDashboardStats === 'function') updateDashboardStats();
-                if (typeof updateAnalytics === 'function') updateAnalytics();
-                if (typeof initEngagementChart === 'function') initEngagementChart();
-                if (typeof initDashboardPerformanceChart === 'function') initDashboardPerformanceChart();
-                return;
-            }
-
-            console.log('🖼️ [RENDER] Premier flyer:', flyers[0]);
-            console.log('🖼️ [RENDER] Nombre total de flyers à afficher:', flyers.length);
-
-            flyersList.innerHTML = flyers.map((flyer, idx) => {
-                const likes = flyer.likes_count ?? 0;
-                const comments = flyer.comments_count ?? 0;
-                const views = flyer.views_count ?? 0;
-                const imageUrl = flyer.media_url;
-                
-                console.log(`🖼️ [RENDER] Flyer ID=${flyer.id}, URL=${imageUrl}, Title=${flyer.titre}`);
-
-                return `
-                    <div class="flyer-card" onclick="openPreview('flyer','${flyer.id}')">
-                        <div class="flyer-image">
-                            <img src="${imageUrl || ''}" alt="${flyer.titre || 'Flyer'}" loading="lazy" onerror="console.error('Image load failed for:', this.src)">
-                        </div>
-                        <div class="flyer-info">
-                            <h4>${flyer.titre || 'Sans titre'}</h4>
-                            ${flyer.description ? `<p>${flyer.description.substring(0, 100)}...</p>` : ''}
-                            <div class="flyer-meta">
-                                <span><i class="fas fa-comment"></i> ${comments}</span>
-                                <span><i class="fas fa-heart"></i> ${likes}</span>
-                                <span><i class="fas fa-eye"></i> ${views}</span>
-                                <button class="delete-btn" onclick="event.stopPropagation(); window.deleteContent('flyer','${flyer.id}')" aria-label="Supprimer ce flyer">
-                                    <i class="fas fa-trash"></i> Supprimer
-                                </button>
-                            </div>
-                            <small style="color: var(--text-muted);">Publié le ${new Date(flyer.date_creation).toLocaleDateString('fr-FR')}</small>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            updateFlyerCounts(flyers.length);
-            if (typeof updateDashboardStats === 'function') updateDashboardStats();
-            if (typeof updateAnalytics === 'function') updateAnalytics();
-            if (typeof initEngagementChart === 'function') initEngagementChart();
-            if (typeof initDashboardPerformanceChart === 'function') initDashboardPerformanceChart();
-        }
-
-        function updateShortCounts(count) {
-            const shortsCount = document.getElementById('shortsCount');
-            if (shortsCount) shortsCount.textContent = count;
-            const statShorts = document.getElementById('statShorts');
-            if (statShorts) statShorts.textContent = count;
-            const shortsPageCount = document.getElementById('shortsPageCount');
-            if (shortsPageCount) shortsPageCount.textContent = count;
-        }
-
-        function updateFlyerCounts(count) {
-            const flyersCount = document.getElementById('flyersCount');
-            if (flyersCount) flyersCount.textContent = count;
-            const statFlyers = document.getElementById('statFlyers');
-            if (statFlyers) statFlyers.textContent = count;
-            const flyersPageCount = document.getElementById('flyersPageCount');
-            if (flyersPageCount) flyersPageCount.textContent = count;
-        }
-
-        const previewRegistry = { short: {}, flyer: {} };
-
-        function registerPreviewItem(type, item) {
-            if (!previewRegistry[type]) previewRegistry[type] = {};
-            if (item && item.id) {
-                previewRegistry[type][item.id] = item;
-            }
-        }
-
-        async function openPreview(type, id) {
-            let item = previewRegistry[type]?.[id];
-            if (!item) {
-                const source = type === 'short' ? window.appData?.shorts || [] : window.appData?.flyers || [];
-                item = source.find(i => i.id === id);
-            }
-            if (!item) return;
-
-            const modal = document.getElementById('contentPreviewModal');
-            const mediaViewer = document.getElementById('previewMediaViewer');
-            const previewRight = document.querySelector('#contentPreviewModal .modal-right');
-            const prevBtn = document.getElementById('previewPrevButton');
-            const nextBtn = document.getElementById('previewNextButton');
-            const counter = document.getElementById('previewImageCounter');
-            if (!modal || !mediaViewer || !previewRight || !prevBtn || !nextBtn || !counter) return;
-
-            const medias = [];
-            if (Array.isArray(item.medias) && item.medias.length > 0) {
-                item.medias.forEach(m => { if (m && m.url) medias.push({ url: m.url, type: m.type || 'image' }); });
-            }
-            if (medias.length === 0) {
-                const url = item.media_url || item.videoUrl || item.imageUrl || item.image || '';
-                const typeGuess = (item.media_type === 'video' || String(url).toLowerCase().includes('.mp4') || String(url).toLowerCase().includes('/video')) ? 'video' : 'image';
-                if (url) medias.push({ url, type: typeGuess });
-            }
-            if (medias.length === 0) return;
-
-            let currentIndex = 0;
-            const totalMedia = medias.length;
-
-            const previewTitle = item.titre || item.title || 'Prévisualisation';
-            const previewDescription = item.description || item.desc || '';
-            const previewDate = item.date_creation || item.createdAt || item.date || new Date().toISOString();
-            const likes = Number(item.likes_count ?? item.likes ?? 0);
-            const initialComments = Array.isArray(item.comments) ? item.comments : (Array.isArray(item.comments_list) ? item.comments_list : []);
-            let comments = window.normalizeComments ? window.normalizeComments(initialComments) : initialComments;
-            const views = Number(item.views_count ?? item.views ?? 0);
-            const shares = Number(item.shares_count ?? item.shares ?? 0);
-            let liked = Boolean(item.isLiked);
-            let currentLikes = likes;
-            let replyingToId = null;
-
-            const formatDate = (value) => { try { const d = new Date(value); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR'); } catch (e) { return ''; } };
-
-            const countComments = (list) => (list || []).reduce((total, comment) => total + 1 + countComments(comment.replies || []), 0);
-
-            const findCommentById = (list, searchId) => {
-                for (const comment of list) {
-                    if (String(comment.id) === String(searchId)) return comment;
-                    if (Array.isArray(comment.replies)) {
-                        const nested = findCommentById(comment.replies, searchId);
-                        if (nested) return nested;
-                    }
-                }
-                return null;
-            };
-
-            const createCommentHTML = (comment, level = 0) => {
-                const container = document.createElement('div');
-                container.style.marginLeft = `${level * 12}px`;
-                container.style.padding = '10px';
-                container.style.borderRadius = '10px';
-                container.style.border = '1px solid var(--border)';
-                container.style.background = 'var(--bg-secondary)';
-                container.style.display = 'flex';
-                container.style.flexDirection = 'column';
-                container.style.gap = '6px';
-
-                const header = document.createElement('div');
-                header.style.display = 'flex';
-                header.style.justifyContent = 'space-between';
-                header.style.alignItems = 'center';
-
-                const author = document.createElement('strong');
-                author.textContent = comment.author || comment.user?.name || comment.user?.sigle || comment.user || comment.name || 'Anonyme';
-                const time = document.createElement('span');
-                time.style.color = 'var(--text-muted)';
-                time.style.fontSize = '12px';
-                time.textContent = formatDate(comment.createdAt || comment.created_at || comment.date_comment || comment.date || new Date().toISOString());
-                header.appendChild(author);
-                header.appendChild(time);
-
-                const text = document.createElement('div');
-                text.style.color = 'var(--text-primary)';
-                text.style.whiteSpace = 'pre-wrap';
-                text.textContent = comment.text || comment.contenu || comment.body || '';
-
-                const actions = document.createElement('div');
-                actions.style.display = 'flex';
-                actions.style.gap = '8px';
-
-                const replyBtn = document.createElement('button');
-                replyBtn.type = 'button';
-                replyBtn.textContent = 'Répondre';
-                replyBtn.style.background = 'transparent';
-                replyBtn.style.border = 'none';
-                replyBtn.style.cursor = 'pointer';
-                replyBtn.style.color = 'var(--primary)';
-                replyBtn.onclick = () => {
-                    replyingToId = comment.id;
-                    const replyInfo = document.getElementById('previewReplyInfo');
-                    const replyAuthor = document.getElementById('previewReplyToAuthor');
-                    const commentInput = document.getElementById('previewInputComment');
-                    if (replyInfo && replyAuthor) {
-                        replyAuthor.textContent = comment.author || comment.user || comment.name || 'Anonyme';
-                        replyInfo.style.display = 'flex';
-                    }
-                    if (commentInput) { commentInput.placeholder = `Répondre à ${comment.author || comment.user || comment.name || 'Anonyme'}...`; commentInput.focus(); }
-                };
-                actions.appendChild(replyBtn);
-
-                container.appendChild(header);
-                container.appendChild(text);
-                container.appendChild(actions);
-
-                if (Array.isArray(comment.replies) && comment.replies.length > 0) {
-                    comment.replies.forEach(r => container.appendChild(createCommentHTML(r, level + 1)));
-                }
-                return container;
-            };
-
-            const renderComments = () => {
-                const commentsContainer = document.getElementById('previewCommentsContainer');
-                const commentsCount = document.getElementById('previewCommentCount');
-                if (!commentsContainer || !commentsCount) return;
-                commentsContainer.innerHTML = '';
-                if (!comments || comments.length === 0) {
-                    const empty = document.createElement('div'); empty.style.color = 'var(--text-muted)'; empty.textContent = 'Aucun commentaire pour le moment.'; commentsContainer.appendChild(empty);
-                } else {
-                    comments.forEach(c => commentsContainer.appendChild(createCommentHTML(c)));
-                }
-                const total = countComments(comments);
-                commentsCount.textContent = `${total} commentaire${total > 1 ? 's' : ''}`;
-            };
-
-            const addComment = async (text) => {
-                const normalized = String(text || '').trim();
-                if (!normalized) return;
-                const commentInput = document.getElementById('previewInputComment');
-                const sendBtn = document.getElementById('previewSendComment');
-                if (commentInput) commentInput.disabled = true;
-                if (sendBtn) sendBtn.disabled = true;
-
-                let newComment;
-                try {
-                    newComment = window.createPostComment
-                        ? await window.createPostComment(item.id, normalized, replyingToId)
-                        : null;
-                } catch (error) {
-                    console.warn('Comment API failed, keeping comment locally:', error);
-                } finally {
-                    if (commentInput) commentInput.disabled = false;
-                    if (sendBtn) sendBtn.disabled = false;
-                }
-
-                if (!newComment) {
-                    newComment = { id: `local_${Date.now()}`, author: 'Vous', text: normalized, createdAt: new Date().toISOString(), parent_comment_id: replyingToId || null, replies: [] };
-                }
-                if (replyingToId) {
-                    const parent = findCommentById(comments, replyingToId);
-                    if (parent) { parent.replies = parent.replies || []; parent.replies.push(newComment); }
-                    else { comments.push(newComment); }
-                } else { comments.push(newComment); }
-                replyingToId = null;
-                const replyInfo = document.getElementById('previewReplyInfo');
-                if (replyInfo) replyInfo.style.display = 'none';
-                if (commentInput) { commentInput.placeholder = 'Écrivez un commentaire...'; commentInput.value = ''; }
-                renderComments();
-            };
-
-            const renderMedia = () => {
-                mediaViewer.innerHTML = '';
-                const m = medias[currentIndex];
-                if (!m) return;
-                counter.textContent = `${currentIndex + 1}/${totalMedia}`;
-                if (m.type === 'video') {
-                    const v = document.createElement('video'); v.src = m.url || ''; v.controls = true; v.style.width = '100%'; v.style.height = '100%'; v.style.objectFit = 'contain'; mediaViewer.appendChild(v);
-                } else {
-                    const img = document.createElement('img'); img.src = m.url || ''; img.alt = previewTitle; img.style.maxWidth = '100%'; img.style.maxHeight = '100%'; img.style.objectFit = 'contain'; mediaViewer.appendChild(img);
-                }
-            };
-
-            const renderRightPane = () => {
-                previewRight.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <h2 id="previewTitleText" style="margin:0 0 6px; font-size:18px;">${previewTitle}</h2>
-                                <div style="color:var(--text-muted); font-size:13px;"><span><i class='fas fa-calendar'></i> ${formatDate(previewDate)}</span></div>
-                            </div>
-                            <div style="text-align:right; color:var(--text-muted); font-size:13px;">${views} vues</div>
-                        </div>
-                        <div id="previewDetails" style="color:var(--text-muted); line-height:1.5;">${previewDescription}</div>
-                        <div style="display:flex; gap:8px;">
-                            <div id="previewLikeButton" class="action-item" style="cursor:pointer; display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:var(--bg);">
-                                <i class="fas fa-heart" style="color:${liked ? '#ef4444' : 'inherit'}"></i>
-                                <span id="previewLikeCount">${currentLikes}</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:var(--bg);">
-                                <i class="fas fa-share"></i>
-                                <span>${shares}</span>
-                            </div>
-                        </div>
-                        <div id="previewCommentsSection" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-                            <h4 style="margin:0; font-size:1rem;">Commentaires</h4>
-                            <div id="previewCommentsContainer" style="display:flex; flex-direction:column; gap:8px; max-height:240px; overflow:auto; padding-right:6px;"></div>
-                            <div id="previewReplyInfo" style="display:none; align-items:center; gap:8px; color:#2563eb; font-size:0.95rem;">
-                                <span>Répondre à <strong id="previewReplyToAuthor"></strong></span>
-                                <button id="previewCancelReply" type="button" style="border:none; background:none; color:#ef4444; cursor:pointer;">Annuler</button>
-                            </div>
-                            <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
-                                <input id="previewInputComment" type="text" placeholder="Écrivez un commentaire..." style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text-primary);">
-                                <button id="previewSendComment" type="button" class="btn-primary" style="padding:8px 12px; border-radius:10px;">Envoyer</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // wire comment controls
-                const sendBtn = document.getElementById('previewSendComment');
-                const cancelReply = document.getElementById('previewCancelReply');
-                const input = document.getElementById('previewInputComment');
-                if (sendBtn) sendBtn.onclick = () => addComment(input ? input.value : '');
-                if (cancelReply) cancelReply.onclick = () => { replyingToId = null; const ri = document.getElementById('previewReplyInfo'); if (ri) ri.style.display = 'none'; if (input) { input.placeholder = 'Écrivez un commentaire...'; input.value = ''; } };
-                if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { addComment(input.value); } });
-            };
-
-            prevBtn.style.display = totalMedia > 1 ? 'inline-flex' : 'none';
-            nextBtn.style.display = totalMedia > 1 ? 'inline-flex' : 'none';
-
-            prevBtn.onclick = () => { currentIndex = (currentIndex > 0) ? currentIndex - 1 : totalMedia - 1; renderMedia(); };
-            nextBtn.onclick = () => { currentIndex = (currentIndex < totalMedia - 1) ? currentIndex + 1 : 0; renderMedia(); };
-
-            renderRightPane();
-            renderComments();
-            renderMedia();
-            modal.classList.add('active');
-
-            if (window.fetchPostComments && item.id) {
-                try {
-                    comments = await window.fetchPostComments(item.id);
-                    item.comments = comments;
-                    renderComments();
-                } catch (error) {
-                    console.warn('Error loading comments:', error);
-                }
-            }
-        }
-
-        // run after small delay to ensure DOM is ready
-        setTimeout(fetchMyProfile, 200);
-        setTimeout(fetchAndDisplayShorts, 250);
-        setTimeout(fetchAndDisplayFlyers, 300);
-        setTimeout(fetchAndDisplayFollowersCount, 350);
-
-        async function fetchAndDisplayFollowersCount() {
-            const base = 'https://api.universearch.com';
-            const sessionStr = localStorage.getItem('softura_session') || localStorage.getItem('session') || '{}';
-            let session = {};
-            try { session = JSON.parse(sessionStr); } catch (e) { session = {}; }
-
-            const token = session.jwt_token || localStorage.getItem('jwt_token') || localStorage.getItem('softura_token') || localStorage.getItem('token') || null;
-            let profile = window.currentProfile || null;
-
-            if ((!profile || !(profile.id || profile.centre_id || profile.universite_id)) && token && typeof fetchMyProfile === 'function') {
-                await fetchMyProfile();
-                profile = window.currentProfile || profile;
-            }
-
-            let context = typeof getCurrentOrganizationContext === 'function' ? getCurrentOrganizationContext() : null;
-            let profileTypeRaw = [
-                profile?.role,
-                profile?.profile_type,
-                profile?.profileType,
-                profile?.type,
-                profile?.institution_type,
-                profile?.__institution_kind,
-                context?.kind
-            ].filter(Boolean).join(' ').toLowerCase();
-            let entityType = profileTypeRaw.includes('centre') ? 'centres' : 'universites';
-            let entityId = profile?.id || profile?.centre_id || profile?.universite_id || context?.id || session.organization_id || session.entity_id || null;
-
-            if (!entityId && token) {
-                const roleRaw = (typeof getUserRole === 'function' ? getUserRole() : '') || (session.role || session.profile_type || session.profileType || session.institution_type || '').toString().toLowerCase();
-                const meEndpoints = roleRaw.includes('centre') ? ['/centres/me'] : ['/universites/me', '/centres/me'];
-                for (const ep of meEndpoints) {
-                    const result = await safeFetch(base + ep, { headers: { Authorization: `Bearer ${token}` } });
-                    if (!result.ok) {
-                        console.warn(`Impossible de charger ${ep}: ${result.error}`);
-                        continue;
-                    }
-                    const data = result.data;
-                    const meProfile = Array.isArray(data) ? data[0] : (data.data || data || {});
-                    if (meProfile && (meProfile.id || meProfile.centre_id || meProfile.universite_id)) {
-                        meProfile.__institution_kind = ep.includes('/centres') ? 'centre' : 'universite';
-                        window.currentProfile = meProfile;
-                        profile = meProfile;
-                        entityId = meProfile.id || meProfile.centre_id || meProfile.universite_id;
-                        entityType = ep.includes('/centres') ? 'centres' : 'universites';
-                        break;
-                    }
-                }
-            }
-
-            if (!entityId) {
-                console.warn('Impossible de déterminer l\'ID d\'entité pour le décompte des followers');
-                return;
-            }
-
-            const url = `${base}/${entityType}/${encodeURIComponent(entityId)}/followers/count`;
-            console.log('🔍 [FOLLOWERS DEBUG] URL:', url);
-            console.log('🔍 [FOLLOWERS DEBUG] entityId:', entityId);
-            console.log('🔍 [FOLLOWERS DEBUG] entityType:', entityType);
-
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers.Authorization = `Bearer ${token}`;
-
-            const result = await safeFetch(url, { headers });
-
-            if (!result.ok) {
-                const errorMsg = result.error || 'Impossible de charger le décompte des followers';
-                console.warn('Impossible de charger le décompte des followers:', errorMsg);
-                if (typeof window.showToast === 'function' && result.isNetworkError) {
-                    window.showToast(errorMsg, 'error');
-                }
-                return;
-            }
-
-            const json = result.data;
-            console.log('🔍 [FOLLOWERS DEBUG] API response JSON:', json);
-
-            const count = json?.followerCount
-                ?? json?.followersCount
-                ?? json?.followers_count
-                ?? json?.totalFollowers
-                ?? json?.total
-                ?? json?.count
-                ?? json?.data?.followerCount
-                ?? json?.data?.followersCount
-                ?? json?.data?.followers_count
-                ?? json?.data?.totalFollowers
-                ?? json?.data?.total
-                ?? json?.data?.count
-                ?? null;
-
-            if (count == null) {
-                console.warn('Impossible de trouver le nombre de followers dans la réponse');
-                return;
-            }
-
-            if (typeof appData !== 'undefined') {
-                appData.server_followers_count = Number(count);
-                window.appData = appData;
-            } else {
-                window.appData = window.appData || {};
-                window.appData.server_followers_count = Number(count);
-            }
-
-            const statFollowers = document.getElementById('statFollowers');
-            if (statFollowers) statFollowers.textContent = typeof formatNumber === 'function' ? formatNumber(Number(count)) : String(count);
-            if (typeof updateDashboardStats === 'function') updateDashboardStats();
-        }
-    </script>
-    <script src="script.js"></script>
-    <script>
         // Email Logs Configuration
         const EMAIL_LOGS_CONFIG = {
             API_BASE: 'https://api.universearch.com',
@@ -1991,28 +1019,106 @@
             CURRENT_PAGE: 1
         };
 
-        // Load email logs on page load if analytics tab is active
         document.addEventListener('DOMContentLoaded', function() {
             chargerEmailLogs();
             
-            // Reload on filter change
             const searchInput = document.getElementById('emailLogsSearchInstitution');
-            const statusFilter = document.getElementById('emailLogsFilterStatus');
+            const userTypeFilter = document.getElementById('emailLogsFilterUserType');
             
             if (searchInput) {
-                searchInput.addEventListener('change', function() {
+                searchInput.addEventListener('input', function() {
                     EMAIL_LOGS_CONFIG.CURRENT_PAGE = 1;
                     chargerEmailLogs();
                 });
             }
-            
-            if (statusFilter) {
-                statusFilter.addEventListener('change', function() {
+
+            if (userTypeFilter) {
+                userTypeFilter.addEventListener('change', function() {
                     EMAIL_LOGS_CONFIG.CURRENT_PAGE = 1;
                     chargerEmailLogs();
                 });
             }
         });
+
+        function ouvrirDetailCandidat(log) {
+            const modal = document.getElementById('emailDetailModal');
+            const content = document.getElementById('emailDetailContent');
+            
+            const statutLabel = getStatusLabel(log.status);
+            const statutColor = getStatusColor(log.status);
+            
+            content.innerHTML = `
+                <div class="detail-row">
+                    <i class="fas fa-user"></i>
+                    <div>
+                        <div class="detail-label">Candidat</div>
+                        <div class="detail-value">${log.prenom || ''} ${log.nom || 'Non renseigné'}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value"><a href="mailto:${log.email}" style="color:var(--primary);">${log.email || 'Non renseigné'}</a></div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <div class="detail-label">Téléphone</div>
+                        <div class="detail-value">${log.telephone || 'Non renseigné'}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-venus-mars"></i>
+                    <div>
+                        <div class="detail-label">Genre</div>
+                        <div class="detail-value">${log.genre || log.sexe || 'Non renseigné'}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-user-tag"></i>
+                    <div>
+                        <div class="detail-label">Usertype</div>
+                        <div class="detail-value">${formatUserType(log.usertype || log.user_type)}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <div class="detail-label">Quartier</div>
+                        <div class="detail-value">${log.quartier || 'Non renseigné'}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <div class="detail-label">Raison</div>
+                        <div class="detail-value">${log.raison || 'Non renseignée'}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-flag"></i>
+                    <div>
+                        <div class="detail-label">Statut</div>
+                        <div class="detail-value">
+                            <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;background:${statutColor.bg};color:${statutColor.text};">
+                                ${statutLabel}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div>
+                        <div class="detail-label">Date d'envoi</div>
+                        <div class="detail-value">${formatDate(log.created_at)}</div>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
 
         async function chargerEmailLogs() {
             const tableBody = document.getElementById('emailLogsTableBody');
@@ -2020,10 +1126,9 @@
             
             if (!tableBody) return;
 
-            // Show loading state
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                    <td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">
                         <i class="fas fa-spinner fa-spin"></i> Chargement...
                     </td>
                 </tr>
@@ -2037,14 +1142,10 @@
                 });
 
                 const searchInstitution = document.getElementById('emailLogsSearchInstitution')?.value;
-                const statusFilter = document.getElementById('emailLogsFilterStatus')?.value;
+                const userTypeFilter = document.getElementById('emailLogsFilterUserType')?.value;
 
-                if (searchInstitution) {
-                    params.append('institution', searchInstitution);
-                }
-                if (statusFilter) {
-                    params.append('status', statusFilter);
-                }
+                if (searchInstitution) params.append('institution', searchInstitution);
+                if (userTypeFilter) params.append('usertype', userTypeFilter);
 
                 const response = await fetch(`${EMAIL_LOGS_CONFIG.API_BASE}/api/mail/logs?${params}`);
                 const result = await response.json();
@@ -2053,61 +1154,43 @@
                     throw new Error(result.error || 'Erreur lors du chargement des données');
                 }
 
-                // Update statistics
                 await mettreAJourStatsEmailLogs();
 
-                // Render table
                 if (result.data && result.data.length > 0) {
                     tableBody.innerHTML = result.data.map(log => `
-                        <tr style="border-bottom:1px solid var(--border);">
-                            <td style="padding:12px; text-align:left;">
-                                <strong>${log.prenom || ''} ${log.nom || 'N/D'}</strong>
+                        <tr>
+                            <td>
+                                <div class="candidate-info">
+                                    <span class="candidate-name">${log.prenom || ''} ${log.nom || 'N/D'}</span>
+                                </div>
                             </td>
-                            <td style="padding:12px; text-align:left;">
-                                <a href="mailto:${log.email}" style="color:var(--primary); text-decoration:none;">
+                            <td>
+                                <a href="mailto:${log.email}" style="color:var(--primary); text-decoration:none; font-size:13px;">
                                     ${log.email || 'N/D'}
                                 </a>
                             </td>
-                            <td style="padding:12px; text-align:left;">
-                                ${log.telephone || 'N/D'}
-                            </td>
-                            <td style="padding:12px; text-align:left;">
-                                ${log.quartier || 'N/D'}
-                            </td>
-                            <td style="padding:12px; text-align:left; max-width:200px; white-space:normal; word-break:break-word;">
-                                <span style="font-size:11px; color:var(--text-muted);">
-                                    ${truncateText(log.raison || 'N/D', 50)}
-                                </span>
-                            </td>
-                            <td style="padding:12px; text-align:center;">
-                                <span style="
-                                    display:inline-block;
-                                    padding:4px 8px;
-                                    border-radius:4px;
-                                    font-size:11px;
-                                    font-weight:600;
-                                    background:${getStatusColor(log.status).bg};
-                                    color:${getStatusColor(log.status).text};
-                                ">
-                                    ${getStatusLabel(log.status)}
-                                </span>
-                            </td>
-                            <td style="padding:12px; text-align:left; font-size:12px; color:var(--text-muted);">
-                                ${formatDate(log.created_at)}
+                            <td style="font-size:13px;">${log.telephone || 'N/D'}</td>
+                            <td style="font-size:13px;">${log.quartier || 'N/D'}</td>
+                            <td style="text-align:center;">
+                                <button onclick="ouvrirDetailCandidat(${JSON.stringify(log).replace(/"/g, '&quot;')})" 
+                                        style="background:var(--primary); color:white; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; gap:6px; transition: all 0.2s;"
+                                        onmouseover="this.style.opacity='0.9'" 
+                                        onmouseout="this.style.opacity='1'">
+                                    <i class="fas fa-eye"></i> Voir
+                                </button>
                             </td>
                         </tr>
                     `).join('');
                 } else {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                            <td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">
                                 <i class="fas fa-inbox"></i> Aucun email trouvé
                             </td>
                         </tr>
                     `;
                 }
 
-                // Update pagination
                 const totalPages = Math.ceil((result.total || 0) / EMAIL_LOGS_CONFIG.LIMIT);
                 if (pagination) {
                     pagination.innerHTML = '';
@@ -2115,14 +1198,14 @@
                     if (EMAIL_LOGS_CONFIG.CURRENT_PAGE > 1) {
                         pagination.innerHTML += `
                             <button onclick="changerPageEmailLogs(${EMAIL_LOGS_CONFIG.CURRENT_PAGE - 1})" 
-                                    style="padding:6px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer;">
-                                ← Précédent
+                                    style="padding:8px 16px; border:1px solid var(--border); border-radius:8px; cursor:pointer; background:var(--bg); color:var(--text-primary); font-size:13px;">
+                                <i class="fas fa-chevron-left"></i> Précédent
                             </button>
                         `;
                     }
 
                     pagination.innerHTML += `
-                        <span style="padding:6px 12px; color:var(--text-muted); font-size:12px;">
+                        <span style="padding:8px 16px; color:var(--text-muted); font-size:13px;">
                             Page ${EMAIL_LOGS_CONFIG.CURRENT_PAGE} / ${totalPages} (${result.total || 0} résultats)
                         </span>
                     `;
@@ -2130,8 +1213,8 @@
                     if (EMAIL_LOGS_CONFIG.CURRENT_PAGE < totalPages) {
                         pagination.innerHTML += `
                             <button onclick="changerPageEmailLogs(${EMAIL_LOGS_CONFIG.CURRENT_PAGE + 1})" 
-                                    style="padding:6px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer;">
-                                Suivant →
+                                    style="padding:8px 16px; border:1px solid var(--border); border-radius:8px; cursor:pointer; background:var(--bg); color:var(--text-primary); font-size:13px;">
+                                Suivant <i class="fas fa-chevron-right"></i>
                             </button>
                         `;
                     }
@@ -2140,7 +1223,7 @@
                 console.error('Erreur chargement emails:', error);
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-error);">
+                        <td colspan="5" style="text-align:center; padding:24px; color:var(--text-error);">
                             <i class="fas fa-exclamation-circle"></i> Erreur: ${error.message}
                         </td>
                     </tr>
@@ -2166,7 +1249,17 @@
         function changerPageEmailLogs(page) {
             EMAIL_LOGS_CONFIG.CURRENT_PAGE = page;
             chargerEmailLogs();
-            document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+            document.querySelector('#analyticsPage .card')?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatUserType(value) {
+            const normalized = String(value || '').trim().toLowerCase();
+            const labels = {
+                'parent': 'Parent',
+                'etudiant': 'Étudiant',
+                'bachelier': 'Bachelier'
+            };
+            return labels[normalized] || value || 'Non renseigné';
         }
 
         function getStatusColor(status) {
@@ -2207,5 +1300,46 @@
             return text.substring(0, maxLength) + '...';
         }
     </script>
+    <script src="script.js"></script>
+
+    <!-- Preview Modal -->
+    <div id="postPreviewModal" class="modal">
+        <div class="post-preview-content">
+            <div class="post-preview-layout">
+                <div class="post-preview-media">
+                    <div class="post-preview-close">
+                        <button type="button" class="modal-close" onclick="document.getElementById('postPreviewModal').classList.remove('active')">×</button>
+                    </div>
+                    <div id="postMediaContainer" class="post-media-container">
+                        <div style="text-align:center;color:var(--text-muted);">Aucun média disponible</div>
+                    </div>
+                </div>
+                <div class="post-preview-sidebar">
+                    <div>
+                        <h2 id="previewPostTitle"></h2>
+                        <div id="previewPostDate" class="text-muted"></div>
+                        <p id="previewPostDescription"></p>
+                    </div>
+                    <div class="post-preview-meta" style="display:grid;gap:12px;">
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;color:var(--text-secondary);font-size:0.95rem;">
+                            <span><i class="fas fa-heart"></i> <strong id="previewLikeCount">0</strong></span>
+                            <span><i class="fas fa-share"></i> <strong id="previewShareCount">0</strong></span>
+                            <span><i class="fas fa-eye"></i> <strong id="previewViewCount">0</strong></span>
+                            <span><i class="fas fa-comments"></i> <strong id="previewCommentCount">0</strong></span>
+                        </div>
+                        <div id="previewCommentsList" class="post-comments-list"></div>
+                        <div id="previewReplyTo" style="display:none;align-items:center;gap:10px;padding:12px 16px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);border-radius:14px;color:var(--text-primary);">
+                            <span>Répondre à <strong id="previewReplyToName"></strong></span>
+                            <button type="button" onclick="cancelReply()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">Annuler</button>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <input id="previewCommentInput" type="text" placeholder="Écrire un commentaire..." style="flex:1;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);" />
+                            <button type="button" onclick="sendPreviewComment()" class="btn-primary" style="padding:12px 18px;">Envoyer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

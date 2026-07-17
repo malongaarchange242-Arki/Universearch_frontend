@@ -73,12 +73,11 @@
 
         .form-container {
             width: 100%;
-            max-width: 450px;
-            padding: 50px;
+            max-width: 480px;
+            padding: 42px;
             animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            /* Allow vertical scroll when the form is taller than the viewport (registration on small screens) */
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+            overflow: hidden;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -155,7 +154,7 @@
         /* Checkbox "Se souvenir de moi" */
         .remember-forgot-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin: 18px 0 20px 0;
             font-size: 14px;
@@ -183,30 +182,63 @@
             transform: scale(1.1);
         }
 
-        .remember-forgot-row a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.2s;
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0 20px;
         }
 
-        .remember-forgot-row a:hover {
-            text-decoration: underline;
-            color: var(--brand-color);
+        .step-dot {
+            flex: 1;
+            height: 6px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .step-dot.active {
+            background: var(--accent-color);
+        }
+
+        .step-panel {
+            display: none;
+        }
+
+        .step-panel.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .register-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            box-shadow: 0 12px 30px -16px rgba(15, 23, 42, 0.18);
+        }
+
+        .register-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .register-actions button {
+            flex: 1;
         }
 
         /* Modal Forgot Password */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.68);
+            backdrop-filter: blur(10px);
+            z-index: 1200;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
 
         .modal-overlay.active {
@@ -214,19 +246,19 @@
         }
 
         .modal-card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.3s ease-out;
+            width: min(620px, 100%);
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 32px 72px rgba(15, 23, 42, 0.18);
+            overflow: hidden;
+            animation: modalFadeIn 220ms ease-out;
         }
 
-        @keyframes slideIn {
+        @keyframes modalFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(18px);
             }
             to {
                 opacity: 1;
@@ -235,20 +267,52 @@
         }
 
         .modal-header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 28px 28px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
         }
 
         .modal-header h3 {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 22px;
+            line-height: 1.1;
+            margin: 0;
             color: var(--brand-color);
-            margin-bottom: 8px;
         }
 
         .modal-header p {
+            margin: 8px 0 0;
             font-size: 14px;
-            color: var(--text-light);
+            color: #475569;
+            line-height: 1.75;
+            max-width: 520px;
+        }
+
+        .modal-close {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(15, 23, 42, 0.06);
+            color: #0f172a;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(15, 23, 42, 0.14);
+            transform: scale(1.05);
+        }
+
+        .modal-body {
+            padding: 24px 28px 28px;
+            display: grid;
+            gap: 18px;
         }
 
         .modal-form {
@@ -260,64 +324,69 @@
         .modal-form .input-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .modal-form label {
             font-size: 14px;
-            font-weight: 600;
-            color: var(--text-main);
+            font-weight: 700;
+            color: #334155;
         }
 
         .modal-form input {
-            padding: 12px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: 0.2s;
+            width: 100%;
+            padding: 16px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            font-size: 15px;
+            background: #f8fafc;
+            color: #0f172a;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .modal-form input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
             outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .modal-buttons {
             display: flex;
+            justify-content: flex-end;
             gap: 12px;
-            margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .modal-buttons button {
-            flex: 1;
-            padding: 12px;
+            min-width: 140px;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-weight: 700;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: transform 0.2s ease, background 0.2s ease;
             font-size: 14px;
         }
 
         .modal-btn-submit {
-            background: var(--accent-color);
-            color: white;
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 16px 28px rgba(37, 99, 235, 0.18);
         }
 
         .modal-btn-submit:hover {
-            background: #1e40af;
-            transform: translateY(-2px);
+            background: #1d4ed8;
+            transform: translateY(-1px);
         }
 
         .modal-btn-cancel {
-            background: var(--bg-light);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
         }
 
         .modal-btn-cancel:hover {
-            background: #f1f5f9;
+            background: #e2e8f0;
         }
 
         /* Liens */
@@ -390,7 +459,7 @@
             <p>Optimisez l'administration de votre établissement avec une suite d'outils unifiée, sécurisée et performante.</p>
         </div>
         <div class="brand-footer">
-            <span>Product by Softura</span>
+            <span>Product by Softura Group</span>
             <span>© 2026 Universeach.</span>
         </div>
     </div>
@@ -425,7 +494,6 @@
                     <label>
                         <input type="checkbox" id="remember-me"> Se souvenir de moi
                     </label>
-                    <a href="#" id="forgot-password-link">Accès perdu ?</a>
                 </div>
 
                 <button type="submit" class="btn-submit">
@@ -442,55 +510,71 @@
         <div id="register-container" class="form-container hidden">
             <div class="header-text">
                 <h3>Affiliation Établissement</h3>
-                <p>Enregistrez votre université pour déployer la solution Universeach.</p>
+                <p>Créez votre compte en quelques étapes simples et sécurisées.</p>
             </div>
 
-            <form id="register-form">
-                <div class="input-group">
-                    <label>Nom de l'établissement</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="reg-name" placeholder="Nom & Prénom" required>
-                        <i class="fa-solid fa-user-tie"></i>
+            <div class="step-indicator" aria-label="Étapes d'inscription">
+                <div class="step-dot active" data-step-dot="1"></div>
+                <div class="step-dot" data-step-dot="2"></div>
+                <div class="step-dot" data-step-dot="3"></div>
+            </div>
+
+            <form id="register-form" class="register-card">
+                <div class="step-panel active" data-step="1">
+                    <div class="input-group">
+                        <label>Nom de l'établissement</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="reg-name" placeholder="Nom de l'établissement" required>
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Type d'établissement</label>
+                        <div style="display:flex; gap:12px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+                            <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="universite" checked style="margin-right:8px;"> Université</label>
+                            <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="centre_formation" style="margin-right:8px;"> Centre de formation</label>
+                        </div>
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Type d'établissement</label>
-                    <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
-                        <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="universite" checked style="margin-right:8px;"> Université</label>
-                        <label style="font-weight:500; font-size:14px;"><input type="radio" name="orgType" value="centre_formation" style="margin-right:8px;"> Centre de formation</label>
+                <div class="step-panel" data-step="2">
+                    <div class="input-group">
+                        <label>Email Institutionnel</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="reg-email" placeholder="direction@universite.com" required>
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Ligne Directe</label>
+                        <div class="input-wrapper">
+                            <span class="phone-prefix">+242</span>
+                            <input type="tel" id="reg-phone" placeholder="069611047" pattern="^[0-9]{9,11}$" maxlength="11" title="Format attendu : 069611047 sans lettres" required>
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Email Institutionnel</label>
-                    <div class="input-wrapper">
-                        <input type="email" id="reg-email" placeholder="direction@universite.com" required>
-                        <i class="fa-solid fa-envelope"></i>
+                <div class="step-panel" data-step="3">
+                    <div class="input-group">
+                        <label>Définir un mot de passe</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="reg-pass" placeholder="Sécurisé (8 car. min)" required>
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <p style="font-size:13px; color:var(--text-light); line-height:1.5;">Votre accès sera créé immédiatement après validation. Vous pourrez ensuite compléter votre profil dans les paramètres.</p>
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Ligne Directe</label>
-                    <div class="input-wrapper">
-                        <span class="phone-prefix">+242</span>
-                        <input type="tel" id="reg-phone" placeholder="069611047" pattern="^[0-9]{9,11}$" maxlength="11" title="Format attendu : 069611047 sans lettres" required>
-                        <i class="fa-solid fa-phone"></i>
-                    </div>
+                <div class="register-actions">
+                    <button type="button" id="reg-back-btn" class="btn-submit" style="display:none; margin-top:0;">Précédent</button>
+                    <button type="button" id="reg-next-btn" class="btn-submit" style="margin-top:0;">Étape suivante</button>
+                    <button type="submit" id="reg-submit-btn" class="btn-submit" style="display:none; margin-top:0;">Initialiser le compte</button>
                 </div>
-
-                <div class="input-group">
-                    <label>Définir un mot de passe</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="reg-pass" placeholder="Sécurisé (8 car. min)" required>
-                        <button type="button" id="toggle-reg-pass" class="password-toggle" aria-label="Afficher le mot de passe"><i class="fa-regular fa-eye"></i></button>
-                        <i class="fa-solid fa-lock"></i>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit">
-                    Initialiser le compte
-                </button>
             </form>
 
             <div class="toggle-link">
@@ -499,30 +583,36 @@
         </div>
 
     <!-- Modal Réinitialisation Mot de Passe -->
-    <div id="forgot-password-modal" class="modal-overlay">
+    <div id="forgot-password-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="forgot-password-title">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Réinitialiser le mot de passe</h3>
-                <p>Entrez votre adresse email pour recevoir un lien de réinitialisation</p>
+                <div>
+                    <h3 id="forgot-password-title">Réinitialiser le mot de passe</h3>
+                    <p>Entrez votre adresse email pour recevoir un lien de réinitialisation sécurisé.</p>
+                </div>
+                <button type="button" class="modal-close" aria-label="Fermer" onclick="closeForgotPasswordModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <form id="forgot-password-form" class="modal-form">
-                <div class="input-group">
-                    <label for="forgot-email">Adresse email</label>
-                    <input type="email" id="forgot-email" placeholder="votre@email.com" required>
-                </div>
+            <div class="modal-body">
+                <form id="forgot-password-form" class="modal-form">
+                    <div class="input-group">
+                        <label for="forgot-email">Adresse email</label>
+                        <input type="email" id="forgot-email" placeholder="votre@email.com" required>
+                    </div>
 
-                <div class="modal-buttons">
-                    <button type="submit" class="modal-btn-submit">
-                        Envoyer le lien
-                    </button>
-                    <button type="button" class="modal-btn-cancel" onclick="closeForgotPasswordModal()">
-                        Annuler
-                    </button>
-                </div>
-            </form>
+                    <div class="modal-buttons">
+                        <button type="button" class="modal-btn-cancel" onclick="closeForgotPasswordModal()">
+                            Annuler
+                        </button>
+                        <button type="submit" class="modal-btn-submit">
+                            Envoyer le lien
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     </div>
 
     <!-- Success modal inserted at end of body -->
@@ -627,8 +717,58 @@
             });
         }
 
+        const registerForm = document.getElementById('register-form');
+        const regSteps = Array.from(document.querySelectorAll('.step-panel'));
+        const regDots = Array.from(document.querySelectorAll('.step-dot'));
+        const regNextBtn = document.getElementById('reg-next-btn');
+        const regBackBtn = document.getElementById('reg-back-btn');
+        const regSubmitBtn = document.getElementById('reg-submit-btn');
+        let regStep = 1;
+
+        function updateRegisterStep() {
+            regSteps.forEach((panel, index) => {
+                const isActive = index + 1 === regStep;
+                panel.classList.toggle('active', isActive);
+            });
+            regDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 <= regStep);
+            });
+
+            if (regBackBtn) regBackBtn.style.display = regStep === 1 ? 'none' : 'inline-flex';
+            if (regNextBtn) regNextBtn.style.display = regStep === regSteps.length ? 'none' : 'inline-flex';
+            if (regSubmitBtn) regSubmitBtn.style.display = regStep === regSteps.length ? 'inline-flex' : 'none';
+        }
+
+        if (regNextBtn) {
+            regNextBtn.addEventListener('click', () => {
+                const currentPanel = regSteps[regStep - 1];
+                const requiredInput = currentPanel?.querySelector('input[required]');
+                if (requiredInput && !requiredInput.value.trim()) {
+                    showToast('Veuillez remplir ce champ avant de continuer.', 'error');
+                    requiredInput.focus();
+                    return;
+                }
+                if (regStep < regSteps.length) {
+                    regStep += 1;
+                    updateRegisterStep();
+                }
+            });
+        }
+
+        if (regBackBtn) {
+            regBackBtn.addEventListener('click', () => {
+                if (regStep > 1) {
+                    regStep -= 1;
+                    updateRegisterStep();
+                }
+            });
+        }
+
+        updateRegisterStep();
+
         // --- INSCRIPTION : utiliser exclusivement /auth/register ---
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
+        if (registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
@@ -653,10 +793,12 @@
                 return;
             }
 
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enregistrement...';
-            btn.disabled = true;
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enregistrement...';
+                btn.disabled = true;
+            }
 
             try {
                 const res = await safeFetch('https://api.universearch.com/auth/register', {
@@ -745,10 +887,13 @@
                 console.error('Registration error:', err);
                 showToast(err.message || 'Erreur lors de l\'enregistrement', 'error');
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
             }
-        });
+            });
+        }
 
         // --- CONNEXION RÉELLE ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -874,24 +1019,12 @@
             });
         }
 
-        // Password visibility toggle for registration
-        const regPass = document.getElementById('reg-pass');
-        const toggleRegPass = document.getElementById('toggle-reg-pass');
-        if (regPass && toggleRegPass) {
-            toggleRegPass.addEventListener('click', (ev) => {
-                ev.preventDefault();
-                const isPwd = regPass.type === 'password';
-                regPass.type = isPwd ? 'text' : 'password';
-                const icon = toggleRegPass.querySelector('i');
-                if (icon) icon.className = isPwd ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
-            });
-        }
-        
         // Forgot password modal and submission
         function openForgotPasswordModal() {
             const modal = document.getElementById('forgot-password-modal');
             if (modal) {
                 modal.classList.add('active');
+                document.body.classList.add('modal-open');
                 document.body.style.overflow = 'hidden';
                 const emailInput = document.getElementById('forgot-email');
                 if (emailInput) emailInput.focus();
@@ -902,6 +1035,7 @@
             const modal = document.getElementById('forgot-password-modal');
             if (modal) {
                 modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 const form = document.getElementById('forgot-password-form');
                 if (form) form.reset();

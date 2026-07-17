@@ -795,6 +795,121 @@ function getLastTwelveMonthLabels(referenceDate = new Date()) {
 // ❌ SUPPRIMÉ: Fonction initSampleData() - Plus de données d'exemple
 // L'application démarre désormais avec des données vides
 
+async function fetchAndDisplayShorts() {
+    const token = getJWTToken();
+    const context = getCurrentOrganizationContext();
+    const params = new URLSearchParams();
+
+    if (context.contentAuthorId) {
+        params.set('entity_id', context.contentAuthorId);
+        params.set('entity_type', context.entityType);
+    }
+
+    const endpoint = `${CONTENT_API}/posts${params.toString() ? `?${params.toString()}` : ''}`;
+    const result = await safeFetch(endpoint, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+    });
+
+    if (!result.ok) {
+        console.warn('Impossible de charger les shorts:', result.error);
+        if (appData.shorts.length === 0) {
+            displayShorts();
+        }
+        return false;
+    }
+
+    const payload = result.data || {};
+    const posts = Array.isArray(payload) ? payload : (Array.isArray(payload.data) ? payload.data : []);
+    // Helper to identify common video file extensions in a URL
+    const isVideoUrl = (u) => {
+        if (!u || typeof u !== 'string') return false;
+        return /\.(mp4|mov|webm|m3u8|mkv|ogg|ogv)(\?|$)/i.test(u) || /video\//i.test(u);
+    };
+
+    appData.shorts = posts
+        .filter(post => {
+            const mediaType = String(post.media_type || post.mediaType || '').toLowerCase();
+            // Prefer explicit media_type==='video'
+            if (mediaType === 'video') return true;
+            // Otherwise, accept only if the media URL looks like a video
+            const candidateUrl = post.videoUrl || post.media_url || post.url || '';
+            return isVideoUrl(candidateUrl);
+        })
+        .map(post => ({
+            id: post.id || post.post_id || `short_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+            title: post.titre || post.title || 'Short',
+            description: post.description || '',
+            category: post.category || 'campus',
+            hashtags: Array.isArray(post.hashtags)
+                ? post.hashtags
+                : (post.hashtags ? String(post.hashtags).split(/\s+/).filter(Boolean) : []),
+            videoUrl: post.media_url || post.videoUrl || post.url || '',
+            thumbnailUrl: post.thumbnail_url || post.thumbnailUrl || null,
+            views: post.views_count ?? post.views ?? post.vues ?? 0,
+            likes: post.likes_count ?? post.likes ?? 0,
+            shares: post.shares_count ?? post.shares ?? 0,
+            createdAt: post.date_creation || post.created_at || post.createdAt || new Date().toISOString()
+        }));
+
+    displayShorts();
+    updateAllDisplays();
+    return true;
+}
+
+async function fetchAndDisplayFlyers() {
+    const token = getJWTToken();
+    const context = getCurrentOrganizationContext();
+    const params = new URLSearchParams();
+
+    if (context.contentAuthorId) {
+        params.set('entity_id', context.contentAuthorId);
+        params.set('entity_type', context.entityType);
+    }
+
+    const endpoint = `${CONTENT_API}/posts${params.toString() ? `?${params.toString()}` : ''}`;
+    const result = await safeFetch(endpoint, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+    });
+
+    if (!result.ok) {
+        console.warn('Impossible de charger les flyers:', result.error);
+        if (appData.flyers.length === 0) {
+            displayFlyers();
+        }
+        return false;
+    }
+
+    const payload = result.data || {};
+    const posts = Array.isArray(payload) ? payload : (Array.isArray(payload.data) ? payload.data : []);
+
+    appData.flyers = posts
+        .filter(post => {
+            const mediaType = String(post.media_type || post.mediaType || '').toLowerCase();
+            return mediaType === 'image' || !!(post.imageUrl || post.media_url || post.url);
+        })
+        .map(post => ({
+            id: post.id || post.post_id || `flyer_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+            title: post.titre || post.title || 'Flyer',
+            description: post.description || '',
+            category: post.category || 'all',
+            imageUrl: post.media_url || post.imageUrl || post.url || '',
+            views: post.views_count ?? post.views ?? post.vues ?? 0,
+            likes: post.likes_count ?? post.likes ?? 0,
+            downloads: post.downloads_count ?? post.downloads ?? 0,
+            createdAt: post.date_creation || post.created_at || post.createdAt || new Date().toISOString()
+        }));
+
+    displayFlyers();
+    updateAllDisplays();
+    return true;
+}
+
 // Load data without using localStorage persistence
 async function loadData() {
     localStorage.removeItem('uniflow_data');
@@ -808,21 +923,14 @@ async function loadData() {
     }
     const formationsEmpty = !Array.isArray(appData.formations) || appData.formations.length === 0;
     if (!loadedFromApi && formationsEmpty) {
-        const loadedFromJson = await loadFormationsFromJson();
-        // ❌ SUPPRIMÉ: if (!loadedFromJson) { initSampleData(); }
-        // Plus aucune donnée d'exemple générée
+        await loadFormationsFromJson();
     }
-    // ❌ SUPPRIMÉ: else { initSampleData(); }
 
     window.appData = appData;
     updateAllDisplays();
     populateFormationDropdown();
-    if (typeof fetchAndDisplayShorts === 'function') {
-        setTimeout(fetchAndDisplayShorts, 50);
-    }
-    if (typeof fetchAndDisplayFlyers === 'function') {
-        setTimeout(fetchAndDisplayFlyers, 100);
-    }
+    await fetchAndDisplayShorts();
+    await fetchAndDisplayFlyers();
 }
 
 // Save data in memory only; do not persist appData to localStorage
@@ -923,7 +1031,7 @@ function updateUniversityInfo() {
     if (uniDescription) uniDescription.value = appData.university.description;
     
     const descCount = document.getElementById('descCount');
-    if (descCount) descCount.textContent = `${appData.university.description.length}/2000`;
+    if (descCount) descCount.textContent = `${appData.university.description.length}/200`;
     const uniPhone = document.getElementById('uniPhone');
     if (uniPhone) uniPhone.value = appData.university.phone;
     
@@ -1626,7 +1734,7 @@ function displayShorts() {
     container.innerHTML = appData.shorts.map(short => `
         <div class="media-card" onclick="openPreview('short','${short.id}')">
             <div class="media-preview">
-                <video src="${short.videoUrl}" preload="metadata" onclick="event.stopPropagation()"></video>
+                <video src="${short.videoUrl}" preload="metadata"></video>
                 <div class="media-overlay">
                     <button onclick="event.stopPropagation(); window.playVideo(this)"><i class="fas fa-play"></i> Lire</button>
                     <button onclick="event.stopPropagation(); window.shareContent('short', '${short.id}')"><i class="fas fa-share"></i></button>
@@ -1636,6 +1744,7 @@ function displayShorts() {
                 <div class="media-title">${escapeHtml(short.title)}</div>
                 <div class="media-meta">
                     <span><i class="fas fa-eye"></i> ${formatNumber(short.views || 0)} vues</span>
+                    <span><i class="fas fa-comments"></i> ${short.commentCount ?? short.comments_count ?? short.comment_count ?? (Array.isArray(short.comments) ? short.comments.length : 0)} commentaires</span>
                     <div class="media-stats">
                         <button onclick="event.stopPropagation(); window.likeContent('short', '${short.id}')">
                             <i class="fas fa-heart"></i> ${short.likes || 0}
@@ -1649,9 +1758,6 @@ function displayShorts() {
                     </div>
                 </div>
                 ${short.hashtags ? `<div style="margin-top: 8px; font-size: 12px; color: var(--primary);">${escapeHtml(Array.isArray(short.hashtags) ? short.hashtags.join(' ') : short.hashtags)}</div>` : ''}
-                <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
-                    <i class="fas fa-tag"></i> ${short.category}
-                </div>
             </div>
         </div>
     `).join('');
@@ -1678,12 +1784,10 @@ function displayFlyers() {
                 <div class="media-title">${escapeHtml(flyer.title)}</div>
                 <div class="media-meta">
                     <span><i class="fas fa-eye"></i> ${formatNumber(flyer.views || 0)} vues</span>
+                    <span><i class="fas fa-comments"></i> ${flyer.commentCount ?? flyer.comments_count ?? flyer.comment_count ?? (Array.isArray(flyer.comments) ? flyer.comments.length : 0)} commentaires</span>
                     <div class="media-stats">
                         <button onclick="event.stopPropagation(); window.likeContent('flyer', '${flyer.id}')">
                             <i class="fas fa-heart"></i> ${flyer.likes || 0}
-                        </button>
-                        <button onclick="event.stopPropagation(); window.downloadFlyer('${flyer.id}')">
-                            <i class="fas fa-download"></i> ${flyer.downloads || 0}
                         </button>
                         <button class="delete-btn" onclick="event.stopPropagation(); window.deleteContent('flyer', '${flyer.id}')">
                             <i class="fas fa-trash"></i>
@@ -1691,9 +1795,6 @@ function displayFlyers() {
                     </div>
                 </div>
                 ${flyer.description ? `<div class="media-description">${escapeHtml(flyer.description)}</div>` : ''}
-                <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
-                    <i class="fas fa-tag"></i> ${flyer.category}
-                </div>
             </div>
         </div>
     `).join('');
@@ -2605,6 +2706,51 @@ function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     const themeToggle = document.getElementById('themeToggle');
     if (savedTheme === 'dark') {
+
+    // File preview click bindings (open hidden file inputs when preview box clicked)
+    try {
+        const bindPreviewToInput = (previewId, inputId, filenameId, isImage = true) => {
+            const preview = document.getElementById(previewId);
+            const input = document.getElementById(inputId);
+            const filenameElem = filenameId ? document.getElementById(filenameId) : null;
+            if (!preview || !input) return;
+
+            // clicking the preview opens file selector
+            preview.addEventListener('click', () => input.click());
+            preview.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    input.click();
+                }
+            });
+
+            // when file selected, show preview and filename
+            input.addEventListener('change', (e) => {
+                const file = input.files && input.files[0];
+                if (!file) {
+                    if (filenameElem) filenameElem.textContent = 'Aucun fichier choisi';
+                    return;
+                }
+                if (filenameElem) filenameElem.textContent = file.name;
+                if (isImage) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        preview.innerHTML = `<img src="${ev.target.result}" alt="preview" />`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // for videos just show filename and a simple poster text
+                    preview.innerHTML = `<div style="padding:12px;text-align:center;color:var(--text-muted);">${file.name}</div>`;
+                }
+            });
+        };
+
+        bindPreviewToInput('flyerImagePreview', 'flyerImage', 'flyerFilename', true);
+        bindPreviewToInput('shortVideoPreview', 'shortVideo', 'shortVideoFilename', false);
+        bindPreviewToInput('logoPreview', 'logoInput', 'logoFilename', true);
+    } catch (err) {
+        console.warn('Error binding file previews:', err);
+    }
         document.documentElement.setAttribute('data-theme', 'dark');
         if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Mode clair</span>';
     }
@@ -2681,6 +2827,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const primaryColor = document.getElementById('primaryColor');
             const submitBtn = settingsForm.querySelector('button[type="submit"]');
             const phoneValue = uniPhone ? uniPhone.value.trim() : '';
+            const descriptionValue = uniDescription ? uniDescription.value.trim() : '';
+            
+            if (descriptionValue.length > 200) {
+                showToast('La description ne doit pas dépasser 200 caractères.', 'error');
+                return;
+            }
             
             if (phoneValue && !validatePhoneNumber(phoneValue)) {
                 showToast('Numéro de téléphone invalide. Utilisez uniquement chiffres, +, espaces, tirets et parenthèses.', 'error');
@@ -2723,7 +2875,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uniDescription) {
         uniDescription.addEventListener('input', (e) => {
             const descCount = document.getElementById('descCount');
-            if (descCount) descCount.textContent = `${e.target.value.length}/2000`;
+            if (descCount) descCount.textContent = `${e.target.value.length}/200`;
         });
     }
 
@@ -3054,8 +3206,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const json = await res.json().catch(() => null);
                 const postData = json?.data || json || {};
 
+                const flyer = {
+                    id: postData.id || `flyer_${Date.now()}`,
+                    title,
+                    description: desc,
+                    category: flyerCategory ? flyerCategory.value : 'all',
+                    imageUrl: mediaUrl,
+                    views: 0,
+                    likes: 0,
+                    downloads: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                appData.flyers.unshift(flyer);
                 closeModal('flyerModal');
                 if (flyerForm) flyerForm.reset();
+                saveData();
                 showToast('Flyer publié avec succès !', 'flyer');
                 createActivityRecord(
                     `Flyer ajouté : ${title}`,
@@ -3541,14 +3707,16 @@ async function createPostComment(postId, text, parentCommentId = null) {
 
 // Ouvrir le preview d'un post
 function openPostPreview(type, id) {
+    const normalizedId = id == null ? null : String(id);
     let item;
     if (type === 'short') {
-        item = appData.shorts.find(s => s.id === id);
+        item = appData.shorts.find(s => String(s.id) === normalizedId);
     } else if (type === 'flyer') {
-        item = appData.flyers.find(f => f.id === id);
+        item = appData.flyers.find(f => String(f.id) === normalizedId);
     }
     
     if (!item) {
+        console.warn('Preview item not found for', type, id, normalizedId);
         showToast('Contenu introuvable', 'error');
         return;
     }
