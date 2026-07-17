@@ -885,30 +885,37 @@
                     document.body.classList.add('modal-open');
                     document.body.style.overflow = 'hidden';
                     const closeBtn = document.getElementById('success-close');
-                    
+                    let isModalClosed = false;
+
                     const handleClose = () => {
+                        if (isModalClosed) return;
+                        isModalClosed = true;
                         modal.classList.add('hidden');
                         document.body.classList.remove('modal-open');
                         document.body.style.overflow = '';
                         if (closeBtn) {
                             closeBtn.removeEventListener('click', handleClose);
                         }
+                        modal.removeEventListener('click', overlayClickHandler);
                         window.location.href = 'institutions.html';
                     };
-                    
-                    if (closeBtn) {
-                        closeBtn.addEventListener('click', handleClose);
+
+                    const overlayClickHandler = (e) => {
+                    if (e.target === modal) {
+                        handleClose();
                     }
-                    
-                    // Also close when clicking outside the card
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            handleClose();
-                        }
-                    });
-                } else {
-                    window.location.href = 'institutions.html';
+                };
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', handleClose, { once: true });
                 }
+                modal.addEventListener('click', overlayClickHandler);
+
+                // Auto-close after a short delay to avoid the page staying blocked
+                setTimeout(handleClose, 2200);
+            } else {
+                window.location.href = 'institutions.html';
+            }
             } catch (err) {
                 console.error('Registration error:', err);
                 showToast(err.message || 'Erreur lors de l\'enregistrement', 'error');
