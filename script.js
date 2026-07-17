@@ -1032,6 +1032,8 @@ function updateUniversityInfo() {
     
     const descCount = document.getElementById('descCount');
     if (descCount) descCount.textContent = `${appData.university.description.length}/200`;
+    const uniEmail = document.getElementById('uniEmail');
+    if (uniEmail) uniEmail.value = appData.university.email;
     const uniPhone = document.getElementById('uniPhone');
     if (uniPhone) uniPhone.value = appData.university.phone;
     
@@ -1203,11 +1205,18 @@ function getDashboardStatValue(id, fallback = 0) {
 
 function buildSyntheticHistory(days, values = {}) {
     const now = new Date();
-    const totalViews = values.views || 0;
+    const contentCount = values.contentCount ?? 0;
+    const rawViews = values.views ?? 0;
+    const totalViews = rawViews > 0 ? rawViews : (contentCount > 0 ? contentCount : 0);
     const totalLikes = values.likes ?? Math.round(totalViews * 0.15);
     const totalShares = values.shares ?? Math.round(totalViews * 0.08);
     const totalMessages = values.messages ?? values.messages_count ?? 0;
     const totalFollowers = values.followers ?? values.followers_count ?? 0;
+    const effectiveViews = totalViews > 0 ? totalViews : (contentCount > 0 ? Math.max(1, contentCount) : 0);
+    const effectiveLikes = totalLikes > 0 ? totalLikes : (effectiveViews > 0 ? Math.max(1, Math.round(effectiveViews * 0.1)) : 0);
+    const effectiveShares = totalShares > 0 ? totalShares : (effectiveViews > 0 ? Math.max(1, Math.round(effectiveViews * 0.05)) : 0);
+    const effectiveMessages = totalMessages > 0 ? totalMessages : (contentCount > 0 ? Math.max(1, Math.floor(contentCount / 2)) : 0);
+    const effectiveFollowers = totalFollowers > 0 ? totalFollowers : (contentCount > 0 ? Math.max(1, Math.round(contentCount * 0.25)) : 0);
     const stepViews = days > 0 ? Math.max(1, Math.round(totalViews / days)) : 0;
     const stepLikes = days > 0 ? Math.max(0, Math.round(totalLikes / days)) : 0;
     const stepShares = days > 0 ? Math.max(0, Math.round(totalShares / days)) : 0;
@@ -1219,15 +1228,42 @@ function buildSyntheticHistory(days, values = {}) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         history.push({
             date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-            views: Math.min(totalViews, stepViews * (days - i)),
-            likes: Math.min(totalLikes, stepLikes * (days - i)),
-            shares: Math.min(totalShares, stepShares * (days - i)),
-            messages: Math.min(totalMessages, stepMessages * (days - i)),
-            followers: Math.min(totalFollowers, stepFollowers * (days - i))
+            views: effectiveViews > 0 ? Math.min(effectiveViews, stepViews * (days - i)) : 0,
+            likes: effectiveLikes > 0 ? Math.min(effectiveLikes, stepLikes * (days - i)) : 0,
+            shares: effectiveShares > 0 ? Math.min(effectiveShares, stepShares * (days - i)) : 0,
+            messages: effectiveMessages > 0 ? Math.min(effectiveMessages, stepMessages * (days - i)) : 0,
+            followers: effectiveFollowers > 0 ? Math.min(effectiveFollowers, stepFollowers * (days - i)) : 0
         });
     }
 
     return history;
+}
+
+function ensureAnalyticsHistory() {
+    if (Array.isArray(appData.analyticsHistory) && appData.analyticsHistory.length > 0) {
+        return;
+    }
+
+    const totalViews = appData.shorts.reduce((sum, item) => sum + getContentViews(item), 0) +
+        appData.flyers.reduce((sum, item) => sum + getContentViews(item), 0);
+    const totalLikes = appData.shorts.reduce((sum, item) => sum + getContentLikes(item), 0) +
+        appData.flyers.reduce((sum, item) => sum + getContentLikes(item), 0);
+    const totalShares = appData.shorts.reduce((sum, item) => sum + getContentShares(item), 0) +
+        appData.flyers.reduce((sum, item) => sum + getContentShares(item), 0);
+    const totalMessages = getTotalContentComments();
+    const totalFollowers = (typeof appData.server_followers_count === 'number')
+        ? appData.server_followers_count
+        : getDashboardStatValue('statFollowers', 0);
+    const contentCount = appData.shorts.length + appData.flyers.length;
+
+    appData.analyticsHistory = buildSyntheticHistory(14, {
+        views: totalViews,
+        likes: totalLikes,
+        shares: totalShares,
+        messages: totalMessages,
+        followers: totalFollowers,
+        contentCount
+    });
 }
 
 function getContentViews(item) {
@@ -1433,12 +1469,14 @@ function initDashboardPerformanceChart() {
     
     if (dashboardPerformanceChart) dashboardPerformanceChart.destroy();
     
+    ensureAnalyticsHistory();
     let history = Array.isArray(appData.analyticsHistory) ? appData.analyticsHistory.slice(-14) : [];
     if (history.length === 0) {
         const totalViews = appData.shorts.reduce((sum, item) => sum + getContentViews(item), 0) + appData.flyers.reduce((sum, item) => sum + getContentViews(item), 0);
-        const totalMessages = getDashboardStatValue('statMessages', getTotalContentComments());
-        const totalFollowers = getDashboardStatValue('statFollowers', (typeof appData.server_followers_count === 'number') ? appData.server_followers_count : 0);
-        history = buildSyntheticHistory(14, { views: totalViews, messages: totalMessages, followers: totalFollowers });
+        const totalMessages = getTotalContentComments();
+        const totalFollowers = (typeof appData.server_followers_count === 'number') ? appData.server_followers_count : getDashboardStatValue('statFollowers', 0);
+        const contentCount = appData.shorts.length + appData.flyers.length;
+        history = buildSyntheticHistory(14, { views: totalViews, messages: totalMessages, followers: totalFollowers, contentCount });
     }
     
     dashboardPerformanceChart = new Chart(ctx, {
@@ -1569,18 +1607,23 @@ function initEngagementChart() {
 function initPerformanceChart() {
     const ctx = document.getElementById('performanceChart');
     if (!ctx) return;
-    
+
     if (performanceChart) performanceChart.destroy();
-    
-    const period = parseInt(document.getElementById('analyticsPeriod')?.value || 30);
+
+    const period = parseInt(document.getElementById('analyticsPeriod')?.value || '30', 10) || 30;
     let history = Array.isArray(appData.analyticsHistory) ? appData.analyticsHistory.slice(-period) : [];
+    if (history.length === 0) {
+        ensureAnalyticsHistory();
+        history = Array.isArray(appData.analyticsHistory) ? appData.analyticsHistory.slice(-period) : [];
+    }
     if (history.length === 0) {
         const totalViews = appData.shorts.reduce((sum, item) => sum + getContentViews(item), 0) + appData.flyers.reduce((sum, item) => sum + getContentViews(item), 0);
         const totalLikes = appData.shorts.reduce((sum, item) => sum + getContentLikes(item), 0) + appData.flyers.reduce((sum, item) => sum + getContentLikes(item), 0);
         const totalShares = appData.shorts.reduce((sum, item) => sum + getContentShares(item), 0) + appData.flyers.reduce((sum, item) => sum + getContentShares(item), 0);
-        history = buildSyntheticHistory(period, { views: totalViews, likes: totalLikes, shares: totalShares });
+        const contentCount = appData.shorts.length + appData.flyers.length;
+        history = buildSyntheticHistory(period, { views: totalViews, likes: totalLikes, shares: totalShares, contentCount });
     }
-    
+
     performanceChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -1819,7 +1862,7 @@ function displayFormations() {
                 <p style="margin:0; font-size:13px;"><i class="fas fa-clock" style="color:var(--primary);width:20px;"></i> ${formation.duration || '3 ans'}</p>
                 <p style="margin:0; font-size:13px;"><i class="fas fa-map-marker-alt" style="color:var(--primary);width:20px;"></i> ${escapeHtml(formation.location || 'Campus principal')}</p>
                 <p style="margin:0; font-size:13px;"><i class="fas fa-language" style="color:var(--primary);width:20px;"></i> ${formation.language || 'Français'}</p>
-                ${formation.fees ? `<p style="margin:0; font-size:13px;"><i class="fas fa-euro-sign" style="color:var(--primary);width:20px;"></i> ${formation.fees}</p>` : ''}
+                ${formation.fees ? `<p style="margin:0; font-size:13px;"><span style="color:var(--primary);font-weight:600;display:inline-block;padding-right:8px;">CFA</span>${formation.fees}</p>` : ''}
             </div>
             ${formation.mode ? `<p style="margin:0 0 12px 0; font-size:13px;"><i class="fas fa-video" style="color:var(--primary);width:20px;"></i> Mode: ${escapeHtml(formation.mode)}</p>` : ''}
             ${formation.category ? `<p style="margin:0 0 12px 0; font-size:13px;"><i class="fas fa-tag" style="color:var(--primary);width:20px;"></i> Domaine: ${escapeHtml(formation.category)}</p>` : ''}
@@ -1845,9 +1888,12 @@ function updateAnalytics() {
         return;
     }
 
+    // Ensure analytics history exists for dashboard rendering
+    ensureAnalyticsHistory();
+
     // Original social media analytics
     const periodSelect = document.getElementById('analyticsPeriod');
-    const period = periodSelect ? parseInt(periodSelect.value) : 30;
+    const period = periodSelect ? (parseInt(periodSelect.value, 10) || 30) : 30;
     const now = Date.now();
     const periodMs = period * 24 * 60 * 60 * 1000;
     
@@ -3250,7 +3296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const alternanceRadio = document.querySelector('input[name="formationAlternance"]:checked');
-            const formationName = document.getElementById('formationName').value.trim();
+            const formationName = document.getElementById('formationName')?.value?.trim() || '';
             const selectedFiliere = findAvailableFiliereByName(formationName);
             const submitBtn = formationForm.querySelector('button[type="submit"]');
             if (!selectedFiliere) {
@@ -3276,11 +3322,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: selectedFiliere.id,
                 name: formationName,
                 level: levelValue,
-                duration: document.getElementById('formationDuration').value,
-                location: document.getElementById('formationLocation').value,
-                language: document.getElementById('formationLanguage').value,
-                description: document.getElementById('formationDescription').value,
-                prerequisites: document.getElementById('formationPrerequisites').value,
+                duration: document.getElementById('formationDuration')?.value || '',
+                location: document.getElementById('formationLocation')?.value || '',
+                language: document.getElementById('formationLanguage')?.value || '',
+                description: document.getElementById('formationDescription')?.value || '',
+                prerequisites: document.getElementById('formationPrerequisites')?.value || '',
                 fees: feesValue,
                 feesL1,
                 feesL2,
@@ -3295,9 +3341,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 nom_affiche: formationName,
                 niveau: levelValue,
                 niveau_detail: document.getElementById('formationLevelDetail')?.value || null,
-                duree: document.getElementById('formationDuration').value,
-                lieu: document.getElementById('formationLocation').value,
-                langue: document.getElementById('formationLanguage').value,
+                duree: document.getElementById('formationDuration')?.value || '',
+                lieu: document.getElementById('formationLocation')?.value || '',
+                langue: document.getElementById('formationLanguage')?.value || '',
                 frais_inscription: feesValue,
                 frais_l1: feesL1,
                 frais_l2: feesL2,
@@ -3745,7 +3791,26 @@ function openPostPreview(type, id) {
         month: 'long',
         year: 'numeric'
     }) : '';
-    descEl.textContent = item.description || '';
+
+    const fullDescription = item.description || '';
+    const toggleBtn = document.getElementById('previewDescriptionToggle');
+    descEl.dataset.full = fullDescription;
+
+    if (fullDescription.length > 220) {
+        descEl.textContent = fullDescription.slice(0, 220) + '...';
+        descEl.classList.add('collapsed');
+        if (toggleBtn) {
+            toggleBtn.style.display = 'inline-flex';
+            toggleBtn.textContent = 'Voir plus';
+            toggleBtn.dataset.expanded = 'false';
+        }
+    } else {
+        descEl.textContent = fullDescription;
+        descEl.classList.remove('collapsed');
+        if (toggleBtn) {
+            toggleBtn.style.display = 'none';
+        }
+    }
 
     // Mettre à jour les compteurs
     likeCount.textContent = item.likes || 0;
@@ -3794,6 +3859,27 @@ function openPostPreview(type, id) {
 }
 
 // Rendre les commentaires
+function togglePreviewDescription() {
+    const descEl = document.getElementById('previewPostDescription');
+    const toggleBtn = document.getElementById('previewDescriptionToggle');
+    if (!descEl || !toggleBtn) return;
+
+    const expanded = toggleBtn.dataset.expanded === 'true';
+    const fullText = descEl.dataset.full || descEl.textContent || '';
+
+    if (expanded) {
+        descEl.textContent = fullText.slice(0, 220) + '...';
+        descEl.classList.add('collapsed');
+        toggleBtn.textContent = 'Voir plus';
+        toggleBtn.dataset.expanded = 'false';
+    } else {
+        descEl.textContent = fullText;
+        descEl.classList.remove('collapsed');
+        toggleBtn.textContent = 'Voir moins';
+        toggleBtn.dataset.expanded = 'true';
+    }
+}
+
 function renderComments(comments, container, countEl) {
     if (!container) return;
     comments = normalizeComments(comments);

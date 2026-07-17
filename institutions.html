@@ -800,6 +800,12 @@
                             <input type="text" id="formationLocation" placeholder="Ex: Campus principal">
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Langue</label>
+                            <input type="text" id="formationLanguage" placeholder="Ex: Français">
+                        </div>
+                    </div>
                     <div class="step-navigation">
                         <button type="button" class="btn-secondary" onclick="window.goToStep(2)">
                             <i class="fas fa-arrow-left"></i> Précédent
@@ -1308,7 +1314,7 @@
             <div class="post-preview-layout">
                 <div class="post-preview-media">
                     <div class="post-preview-close">
-                        <button type="button" class="modal-close" onclick="document.getElementById('postPreviewModal').classList.remove('active')">×</button>
+                        <button type="button" class="modal-close" onclick="closeModal('postPreviewModal')">×</button>
                     </div>
                     <div id="postMediaContainer" class="post-media-container">
                         <div style="text-align:center;color:var(--text-muted);">Aucun média disponible</div>
@@ -1318,7 +1324,10 @@
                     <div>
                         <h2 id="previewPostTitle"></h2>
                         <div id="previewPostDate" class="text-muted"></div>
-                        <p id="previewPostDescription"></p>
+                        <div class="post-preview-description-wrapper">
+                            <p id="previewPostDescription" class="post-preview-description"></p>
+                            <button id="previewDescriptionToggle" type="button" class="description-toggle-btn" onclick="togglePreviewDescription()" style="display:none;">Voir plus</button>
+                        </div>
                     </div>
                     <div class="post-preview-meta" style="display:grid;gap:12px;">
                         <div style="display:flex;flex-wrap:wrap;gap:12px;color:var(--text-secondary);font-size:0.95rem;">
@@ -1334,7 +1343,9 @@
                         </div>
                         <div style="display:flex;gap:10px;">
                             <input id="previewCommentInput" type="text" placeholder="Écrire un commentaire..." style="flex:1;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);" />
-                            <button type="button" onclick="sendPreviewComment()" class="btn-primary" style="padding:12px 18px;">Envoyer</button>
+                            <button type="button" onclick="sendPreviewComment()" class="btn-primary" style="padding:12px 18px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
                         </div>
                     </div>
                 </div>

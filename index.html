@@ -21,26 +21,49 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
+        html { scroll-behavior: smooth; }
+
         body {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             background-color: white;
-            overflow: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* --- COLONNE GAUCHE : IDENTITÉ VISUELLE --- */
         .brand-section {
             flex: 1;
-            /* Image de fond "Architecture/Campus moderne" */
-            background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 58, 138, 0.9)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
-            background-size: cover;
-            background-position: center;
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 80px;
             color: white;
-            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Gradient overlay above the video but below content */
+        .brand-section::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 58, 138, 0.9));
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .brand-section .video-embed iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            z-index: 0;
+            pointer-events: none;
+            transform: translateY(0);
+            will-change: transform;
         }
 
         .brand-logo { 
@@ -450,7 +473,10 @@
 </head>
 <body>
 
-    <div class="brand-section">
+        <div class="brand-section">
+            <div class="video-embed">
+                <iframe src="https://www.youtube.com/embed/R_gnup8mtss?autoplay=1&mute=1&controls=0&rel=0&loop=1&playlist=R_gnup8mtss&modestbranding=1&showinfo=0" title="Graduation video" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" allowfullscreen></iframe>
+            </div>
         <div class="brand-logo">
             <img src="unee-removebg-preview.png" alt="Universeach logo" style="width:110px; height: 110px; object-fit:contain;" /> Universeach<span>.</span>
         </div>
@@ -1103,6 +1129,33 @@
                 }
             });
         }
+    </script>
+    <script>
+        // Parallax effect for the background iframe
+        (function(){
+            function initParallax(){
+                const iframe = document.querySelector('.video-embed iframe');
+                const brand = document.querySelector('.brand-section');
+                if(!iframe || !brand) return;
+
+                const maxTranslate = 80; // px
+
+                function onScroll(){
+                    const rect = brand.getBoundingClientRect();
+                    const vh = window.innerHeight || document.documentElement.clientHeight;
+                    const progress = Math.max(0, Math.min(1, -rect.top / vh));
+                    const translate = progress * maxTranslate;
+                    iframe.style.transform = `translateY(${translate}px)`;
+                }
+
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('resize', onScroll);
+                onScroll();
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initParallax);
+            else initParallax();
+        })();
     </script>
 </body>
 </html>
