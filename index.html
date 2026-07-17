@@ -588,6 +588,7 @@
                         <label>Définir un mot de passe</label>
                         <div class="input-wrapper">
                             <input type="password" id="reg-pass" placeholder="Sécurisé (8 car. min)" required>
+                            <button type="button" id="toggle-reg-pass" class="password-toggle" aria-label="Afficher le mot de passe"><i class="fa-regular fa-eye"></i></button>
                             <i class="fa-solid fa-lock"></i>
                         </div>
                     </div>
@@ -1048,6 +1049,19 @@
                 const isPwd = loginPass.type === 'password';
                 loginPass.type = isPwd ? 'text' : 'password';
                 const icon = toggleLoginPass.querySelector('i');
+                if (icon) icon.className = isPwd ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+            });
+        }
+
+        // Password visibility toggle for registration
+        const regPass = document.getElementById('reg-pass');
+        const toggleRegPass = document.getElementById('toggle-reg-pass');
+        if (regPass && toggleRegPass) {
+            toggleRegPass.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const isPwd = regPass.type === 'password';
+                regPass.type = isPwd ? 'text' : 'password';
+                const icon = toggleRegPass.querySelector('i');
                 if (icon) icon.className = isPwd ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
             });
         }
