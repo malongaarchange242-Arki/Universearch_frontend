@@ -1135,7 +1135,8 @@ body {
 /* ============ CHAT ============ */
 .chat-container {
     display: flex;
-    height: 600px;
+    height: calc(100vh - 180px);
+    max-height: calc(100vh - 180px);
     background: var(--card-bg);
     border-radius: var(--radius-xl);
     overflow: hidden;
@@ -1145,10 +1146,12 @@ body {
 
 .chat-sidebar {
     width: 320px;
+    min-width: 240px;
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     background: var(--bg-secondary);
+    min-height: 0;
 }
 
 .chat-search {
@@ -1249,14 +1252,7 @@ body {
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
-}
-
-.chat-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    min-height: 0;
 }
 
 .chat-user-info {
@@ -1284,14 +1280,7 @@ body {
     flex-direction: column;
     gap: 16px;
     background: var(--bg-secondary);
-}
-
-.message {
-    display: flex;
-    max-width: 70%;
-}
-
-.message.sent {
+    min-height: 0;
     align-self: flex-end;
 }
 
