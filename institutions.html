@@ -830,84 +830,124 @@
                 <button class="modal-close" onclick="window.closeModal('professionalFormationModal')">&times;</button>
             </div>
             <form id="professionalFormationForm" style="padding: 24px;">
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Nom de la formation</label>
-                        <input type="text" id="proFormationName" list="proFormationOptions" placeholder="Ex: Développement Web Full Stack" required>
-                        <datalist id="proFormationOptions"></datalist>
+                <div class="stepper" id="professionalFormationStepper">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-number">1</div>
+                        <span class="stepper-label">Informations</span>
+                    </div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-number">2</div>
+                        <span class="stepper-label">Détails</span>
+                    </div>
+                    <div class="stepper-step" data-step="3">
+                        <div class="stepper-number">3</div>
+                        <span class="stepper-label">Finaliser</span>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Catégorie / Domaine</label>
-                        <input type="text" id="proFormationCategory" placeholder="Ex: Informatique, BTP, Santé, Cuisine" required>
+
+                <!-- Step 1 -->
+                <div class="step-content active" data-step="1">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Nom de la formation</label>
+                            <input type="text" id="proFormationName" list="proFormationOptions" placeholder="Ex: Développement Web Full Stack" required>
+                            <datalist id="proFormationOptions"></datalist>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Catégorie / Domaine</label>
+                            <input type="text" id="proFormationCategory" placeholder="Ex: Informatique, BTP, Santé, Cuisine" required>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <div></div>
+                        <button type="button" class="btn-primary" onclick="goToProfessionalFormationStep(2)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Type de certification</label>
-                        <select id="proFormationCertification" required>
-                            <option value="">-- Sélectionner --</option>
-                            <option value="CQP">CQP</option>
-                            <option value="CAP">CAP</option>
-                            <option value="BTS">BTS</option>
-                            <option value="Attestation">Attestation</option>
-                            <option value="Certificat professionnel">Certificat professionnel</option>
-                            <option value="Autre">Autre</option>
-                        </select>
+
+                <!-- Step 2 -->
+                <div class="step-content" data-step="2">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Type de certification</label>
+                            <select id="proFormationCertification" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="CQP">CQP</option>
+                                <option value="CAP">CAP</option>
+                                <option value="BTS">BTS</option>
+                                <option value="Attestation">Attestation</option>
+                                <option value="Certificat professionnel">Certificat professionnel</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Durée</label>
+                            <input type="text" id="proFormationDuration" placeholder="Ex: 6 mois">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Coût de la formation</label>
+                            <input type="text" id="proFormationCost" placeholder="Ex: 150 000 FCFA">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Lieu</label>
+                            <input type="text" id="proFormationLocation" placeholder="Ex: Pointe-Noire / En ligne">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Mode de formation</label>
+                            <select id="proFormationMode" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="Présentiel">Présentiel</option>
+                                <option value="En ligne">En ligne</option>
+                                <option value="Hybride">Hybride</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn-secondary" onclick="goToProfessionalFormationStep(1)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn-primary" onclick="goToProfessionalFormationStep(3)">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Durée</label>
-                        <input type="text" id="proFormationDuration" placeholder="Ex: 6 mois">
+
+                <!-- Step 3 -->
+                <div class="step-content" data-step="3">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="proFormationDescription" placeholder="Description de la formation..."></textarea>
                     </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Coût de la formation</label>
-                        <input type="text" id="proFormationCost" placeholder="Ex: 150 000 FCFA">
+                    <div class="form-group">
+                        <label>Prérequis (facultatif)</label>
+                        <textarea id="proFormationPrerequisites" placeholder="Prérequis..."></textarea>
                     </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Lieu</label>
-                        <input type="text" id="proFormationLocation" placeholder="Ex: Pointe-Noire / En ligne">
+                    <div class="form-group">
+                        <label>Stage / Alternance</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="proFormationAlternance" value="Oui"> Oui
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="proFormationAlternance" value="Non" checked> Non
+                            </label>
+                        </div>
                     </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group" style="flex:1;">
-                        <label>Mode de formation</label>
-                        <select id="proFormationMode" required>
-                            <option value="">-- Sélectionner --</option>
-                            <option value="Présentiel">Présentiel</option>
-                            <option value="En ligne">En ligne</option>
-                            <option value="Hybride">Hybride</option>
-                        </select>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="button" class="btn-secondary" onclick="window.closeModal('professionalFormationModal')" style="flex:1;">Annuler</button>
+                        <button type="submit" class="btn-primary" style="flex:1;">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </button>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="proFormationDescription" placeholder="Description de la formation..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Prérequis (facultatif)</label>
-                    <textarea id="proFormationPrerequisites" placeholder="Prérequis..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Stage / Alternance</label>
-                    <div style="display: flex; gap: 20px; margin-top: 8px;">
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="proFormationAlternance" value="Oui"> Oui
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="proFormationAlternance" value="Non" checked> Non
-                        </label>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn-secondary" onclick="window.closeModal('professionalFormationModal')" style="flex:1;">Annuler</button>
-                    <button type="submit" class="btn-primary" style="flex:1;">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
                 </div>
             </form>
         </div>
@@ -1020,6 +1060,31 @@
                 content.classList.toggle('active', parseInt(content.dataset.step) === stepNumber);
             });
         };
+
+        // Navigation pour Professional Formation modal
+        function goToProfessionalFormationStep(stepNumber) {
+            document.querySelectorAll('#professionalFormationStepper .stepper-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === stepNumber) step.classList.add('active');
+                else if (stepNum < stepNumber) step.classList.add('completed');
+            });
+            document.querySelectorAll('#professionalFormationModal .step-content').forEach(content => {
+                content.classList.toggle('active', parseInt(content.dataset.step) === stepNumber);
+            });
+        }
+
+        const origOpenProfessionalFormationModal = window.openProfessionalFormationModal;
+        window.openProfessionalFormationModal = function() {
+            if (origOpenProfessionalFormationModal) origOpenProfessionalFormationModal();
+            setTimeout(() => goToProfessionalFormationStep(1), 100);
+        };
+        if (!window.openProfessionalFormationModal) {
+            window.openProfessionalFormationModal = function() {
+                document.getElementById('professionalFormationModal').classList.add('active');
+                setTimeout(() => goToProfessionalFormationStep(1), 100);
+            };
+        }
 
         // Email Logs Configuration
         const EMAIL_LOGS_CONFIG = {
