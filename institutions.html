@@ -91,44 +91,6 @@
     </style>
 </head>
 <body>
-    <style>
-        /* App layout: prevent full-page scroll, keep content responsive */
-        html, body { height: 100%; margin: 0; padding: 0; }
-        .app { height: 100vh; display: flex; overflow: hidden; }
-        main.main { flex: 1 1 auto; display: flex; overflow: hidden; }
-        .pages-container { flex: 1 1 auto; height: calc(100vh - 68px); overflow: hidden; }
-        .page { height: 100%; overflow: hidden; box-sizing: border-box; }
-
-        /* Chat layout (WhatsApp-like): sidebar scrollable, messages scrollable, input fixed */
-        .chat-container { display: flex; height: 100%; gap: 12px; }
-        .chat-sidebar { width: 320px; max-width: 40%; min-width: 220px; overflow: auto; }
-        .chat-main { flex: 1 1 auto; display: flex; flex-direction: column; height: 100%; }
-        .chat-header { flex: 0 0 auto; padding: 12px 16px; border-bottom: 1px solid var(--border); display:flex; align-items:center; }
-        .chat-messages { flex: 1 1 auto; overflow: auto; padding: 12px 16px; }
-        .chat-input-area { flex: 0 0 auto; border-top: 1px solid var(--border); padding: 12px; background: var(--card-bg); }
-
-        /* Short modal responsiveness: keep video visible and comments scrollable */
-        .modal { display: none; }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
-        #shortModal .modal-content { width: min(980px, 96%); max-width: 980px; max-height: calc(100vh - 48px); overflow: hidden; display: flex; flex-direction: column; }
-        #shortModal .step-content { overflow: auto; padding: 12px; box-sizing: border-box; }
-        #shortModal .image-preview { width: 100%; max-height: 420px; display:flex; align-items:center; justify-content:center; }
-
-        /* For large screens: show video and comments side-by-side */
-        @media (min-width: 900px) {
-            #shortModal .step-content { display: flex; gap: 16px; }
-            #shortModal .image-preview { flex: 2 1 0; max-height: none; }
-            #shortModal .step-content > .form-group { flex: 1 1 0; overflow: auto; }
-        }
-
-        /* Small screens: stack elements and ensure chat is usable */
-        @media (max-width: 900px) {
-            .chat-container { flex-direction: column; }
-            .chat-sidebar { width: 100%; max-height: 180px; order: 2; }
-            .chat-main { order: 1; }
-            #shortModal .modal-content { width: 96%; height: auto; max-height: calc(100vh - 24px); }
-        }
-    </style>
     <div class="app">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
@@ -383,7 +345,7 @@
                 <!-- Chat Page -->
                 <div class="page" id="chatPage">
                     <div class="page-header">
-                        <h2><i class="fas fa-comments"></i></h2>
+                        <h2><i class="fas fa-comments"></i> Support admin</h2>
                     </div>
                     <div class="chat-container">
                         <div class="chat-sidebar">
