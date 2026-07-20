@@ -91,6 +91,27 @@
     </style>
 </head>
 <body>
+    <style>
+        /* Make app full-height and prevent body scrolling (WhatsApp-like) */
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        .app { height: 100vh; display: flex; }
+        main.main { display: flex; flex: 1 1 auto; overflow: hidden; }
+        .pages-container { flex: 1 1 auto; height: calc(100vh - 68px); overflow: hidden; }
+        .page { height: 100%; overflow: hidden; }
+
+        /* Chat: sidebar fixed, messages scrollable, input fixed bottom */
+        .chat-container { display: flex; height: 100%; gap: 12px; }
+        .chat-sidebar { width: 320px; max-width: 35%; overflow: auto; }
+        .chat-main { flex: 1 1 auto; display: flex; flex-direction: column; height: 100%; }
+        .chat-messages { flex: 1 1 auto; overflow: auto; padding: 16px; }
+        .chat-input-area { flex: 0 0 auto; border-top: 1px solid var(--border); padding: 12px; background: var(--surface); }
+
+        /* Modal sizing: keep modal within viewport and allow inner scrolling */
+        .modal .modal-content { max-height: calc(100vh - 80px); overflow: hidden; }
+        /* For short modal, allow step content to scroll but keep video visible */
+        #shortModal .step-content { overflow: auto; max-height: calc(100vh - 260px); }
+        #shortModal .image-preview { max-height: 360px; display:flex; align-items:center; justify-content:center; }
+    </style>
     <div class="app">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
@@ -345,7 +366,7 @@
                 <!-- Chat Page -->
                 <div class="page" id="chatPage">
                     <div class="page-header">
-                        <h2><i class="fas fa-comments"></i> Support admin</h2>
+                        <h2><i class="fas fa-comments"></i></h2>
                     </div>
                     <div class="chat-container">
                         <div class="chat-sidebar">
