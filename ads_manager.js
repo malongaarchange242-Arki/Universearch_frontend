@@ -794,7 +794,7 @@ async function deleteCampaignVideo(campaign) {
         return;
     }
 
-    if (campaign && campaign.media_type !== 'video' && currentMediaType !== 'video') {
+    if (!isVideoCampaign(campaign) && currentMediaType !== 'video') {
         showNotification('Cette campagne ne contient pas de vidéo.', 'error');
         return;
     }
@@ -802,16 +802,31 @@ async function deleteCampaignVideo(campaign) {
     const confirmation = confirm('Voulez-vous vraiment supprimer la vidéo de cette campagne ?');
     if (!confirmation) return;
 
+    const payload = {
+        title: campaign?.title || campaign?.name || 'Annonce sans titre',
+        description: campaign?.description || undefined,
+        destination: campaign?.destination || undefined,
+        lien: campaign?.lien || campaign?.click_url || undefined,
+        contacts: campaign?.contacts || undefined,
+        location: campaign?.location || undefined,
+        quartier: campaign?.quartier || undefined,
+        target_gender: campaign?.target_gender || campaign?.targetGender || undefined,
+        target_user_type: campaign?.target_user_type || campaign?.targetUserType || undefined,
+        target_users: campaign?.target_users || campaign?.targetUsers || undefined,
+        send_notifications: campaign?.send_notifications ?? campaign?.sendNotifications ?? false,
+        status: campaign?.status || 'active',
+        media_url: '',
+        media_type: '',
+        ...(campaign?.destination === 'carousel' && campaign?.carousel_slot !== undefined ? { carousel_slot: campaign.carousel_slot } : {})
+    };
+
     try {
         const resp = await fetch(`${apiBase}/ads/campaign/${encodeURIComponent(campaignId)}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                media_url: null,
-                media_type: null
-            })
+            body: JSON.stringify(payload)
         });
 
         const json = await resp.json().catch(() => ({}));
