@@ -1031,7 +1031,7 @@ function updateUniversityInfo() {
     if (uniDescription) uniDescription.value = appData.university.description;
     
     const descCount = document.getElementById('descCount');
-    if (descCount) descCount.textContent = `${appData.university.description.length}/200`;
+    if (descCount) descCount.textContent = `${appData.university.description.length}`;
     const uniEmail = document.getElementById('uniEmail');
     if (uniEmail) uniEmail.value = appData.university.email;
     const uniPhone = document.getElementById('uniPhone');
@@ -2875,11 +2875,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const phoneValue = uniPhone ? uniPhone.value.trim() : '';
             const descriptionValue = uniDescription ? uniDescription.value.trim() : '';
             
-            if (descriptionValue.length > 200) {
-                showToast('La description ne doit pas dépasser 200 caractères.', 'error');
-                return;
-            }
-            
             if (phoneValue && !validatePhoneNumber(phoneValue)) {
                 showToast('Numéro de téléphone invalide. Utilisez uniquement chiffres, +, espaces, tirets et parenthèses.', 'error');
                 return;
@@ -2921,7 +2916,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uniDescription) {
         uniDescription.addEventListener('input', (e) => {
             const descCount = document.getElementById('descCount');
-            if (descCount) descCount.textContent = `${e.target.value.length}/200`;
+            if (descCount) descCount.textContent = `${e.target.value.length}`;
         });
     }
 
