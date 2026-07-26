@@ -1144,9 +1144,13 @@ async function loadCampaigns() {
             ? data.data
             : (Array.isArray(data) ? data : []);
 
-        const carouselCampaigns = campaigns
-            .filter(c => c.destination === 'carousel')
-            .sort((a, b) => (Number(a.carousel_slot) || 999) - (Number(b.carousel_slot) || 999));
+        const recentCampaigns = campaigns
+            .slice()
+            .sort((a, b) => {
+                const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
+                const dateB = new Date(b.created_at || b.createdAt || 0).getTime();
+                return dateB - dateA;
+            });
 
         const tbody = document.getElementById('campaigns-table-body') || document.querySelector('tbody');
         if (!tbody) {
@@ -1154,19 +1158,19 @@ async function loadCampaigns() {
         }
         tbody.innerHTML = ''; // Clear existing rows
 
-        if (carouselCampaigns.length === 0) {
+        if (recentCampaigns.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="px-8 py-8 text-center text-slate-500">
-                        Aucune campagne carousel disponible pour le moment.
+                        Aucune campagne disponible pour le moment.
                     </td>
                 </tr>
             `;
-            console.log('No carousel campaigns returned by API');
+            console.log('No campaigns returned by API');
             return;
         }
 
-        carouselCampaigns.forEach(campaign => {
+        recentCampaigns.forEach(campaign => {
             const impressions = getCampaignMetric(campaign, ['impressions', 'views', 'view_count', 'reach']);
             const clicks = getCampaignMetric(campaign, ['clicks', 'click_count']);
             const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(1) : '0.0';
