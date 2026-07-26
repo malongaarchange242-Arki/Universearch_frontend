@@ -717,14 +717,19 @@ function openCampaignModal(campaign) {
     viewsElem.innerText = formatCount(impressions);
     ctrElem.innerText = `${ctr}%`;
     clicksElem.innerText = formatCount(clicks);
-    if (formatBadge) formatBadge.innerText = campaign?.media_type === 'video' ? 'Video' : 'Image';
+    if (formatBadge) formatBadge.innerText = isVideoCampaign(campaign) ? 'Video' : 'Image';
     if (summaryTitle) summaryTitle.innerText = campaign?.title || 'Annonce sans titre';
     if (summaryDate) summaryDate.innerText = formatCampaignDate(campaign?.created_at);
-    formatElem.innerText = campaign?.media_type === 'video' ? 'Video' : 'Image';
+    formatElem.innerText = isVideoCampaign(campaign) ? 'Video' : 'Image';
+
+    const deleteVideoHeaderBtn = document.getElementById('campaign-modal-delete-video-header');
+    if (deleteVideoHeaderBtn) {
+        deleteVideoHeaderBtn.classList.toggle('hidden', !isVideoCampaign(campaign));
+    }
 
     const mediaUrl = campaign?.media_url || campaign?.mediaUrl || campaign?.image_url || campaign?.video_url || '';
     if (mediaUrl) {
-        if (campaign?.media_type === 'video') {
+        if (isVideoCampaign(campaign)) {
             mediaContainer.innerHTML = `
                 <video src="${escapeHTML(mediaUrl)}" class="w-full h-full object-cover bg-black cursor-zoom-in" controls autoplay muted playsinline></video>
             `;
@@ -1175,7 +1180,7 @@ async function loadCampaigns() {
                 <td class="px-8 py-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                            ${campaign.media_type === 'image' ? '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>' : '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>'}
+                            ${isVideoCampaign(campaign) ? '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>' : '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'}
                         </div>
                         <div>
                             <p class="font-bold text-slate-900 text-sm">${campaign.title}</p>
