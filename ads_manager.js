@@ -488,6 +488,12 @@ function escapeHTML(value) {
         .replace(/'/g, '&#39;');
 }
 
+function isVideoCampaign(campaign) {
+    const mediaType = String(campaign?.media_type || campaign?.mediaType || '').toLowerCase();
+    const mediaUrl = String(campaign?.media_url || campaign?.mediaUrl || campaign?.video_url || campaign?.videoUrl || '');
+    return mediaType === 'video' || mediaUrl.toLowerCase().endsWith('.mp4');
+}
+
 function getCampaignMetric(campaign, keys) {
     for (const key of keys) {
         const topLevelValue = campaign?.[key];
@@ -773,6 +779,53 @@ async function deleteCampaign() {
     } catch (err) {
         console.error('Erreur suppression campagne :', err);
         showNotification(err.message || 'Erreur lors de la suppression de la campagne.', 'error');
+    }
+}
+
+async function deleteCampaignVideo(campaign) {
+    const campaignId = campaign?.id || campaign?.campaign_id || campaign?._id || currentCampaignId;
+    if (!campaignId) {
+        showNotification('Impossible de supprimer la vidéo : identifiant de campagne manquant.', 'error');
+        return;
+    }
+
+    if (campaign && campaign.media_type !== 'video' && currentMediaType !== 'video') {
+        showNotification('Cette campagne ne contient pas de vidéo.', 'error');
+        return;
+    }
+
+    const confirmation = confirm('Voulez-vous vraiment supprimer la vidéo de cette campagne ?');
+    if (!confirmation) return;
+
+    try {
+        const resp = await fetch(`${apiBase}/ads/campaign/${encodeURIComponent(campaignId)}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                media_url: null,
+                media_type: null
+            })
+        });
+
+        const json = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+            const errorMsg = json?.error || json?.message || `Échec de la suppression de la vidéo (HTTP ${resp.status})`;
+            throw new Error(errorMsg);
+        }
+
+        showNotification('Vidéo supprimée de la campagne.', 'success');
+        if (campaignId === currentCampaignId) {
+            currentMediaUrl = null;
+            currentMediaType = null;
+        }
+        closeCampaignModal();
+        resetEditMode();
+        loadCampaigns();
+    } catch (err) {
+        console.error('Erreur suppression vidéo de campagne :', err);
+        showNotification(err.message || 'Erreur lors de la suppression de la vidéo de la campagne.', 'error');
     }
 }
 
@@ -1139,9 +1192,12 @@ async function loadCampaigns() {
                 <td class="px-6 py-4 text-center">
                     <span class="font-bold text-slate-900">${ctr}%</span>
                 </td>
-                <td class="px-8 py-4 text-right">
+                <td class="px-8 py-4 text-right space-x-2">
                     <button class="campaign-edit-btn inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors" type="button" aria-label="Modifier la campagne">
                         Modifier
+                    </button>
+                    <button class="campaign-remove-video-btn inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 transition-colors" type="button" ${campaign.media_type === 'video' ? '' : 'hidden'} aria-label="Supprimer la vidéo">
+                        Supprimer vidéo
                     </button>
                 </td>
             `;
@@ -1159,6 +1215,17 @@ async function loadCampaigns() {
                 editBtn.addEventListener('click', (event) => {
                     event.stopPropagation();
                     enterEditMode(campaign);
+                });
+            }
+
+            const removeVideoBtn = row.querySelector('.campaign-remove-video-btn');
+            if (removeVideoBtn) {
+                if (!isVideoCampaign(campaign)) {
+                    removeVideoBtn.classList.add('hidden');
+                }
+                removeVideoBtn.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    await deleteCampaignVideo(campaign);
                 });
             }
 
@@ -1203,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('campaign-modal-close-footer')?.addEventListener('click', closeCampaignModal);
     document.getElementById('campaign-modal-delete')?.addEventListener('click', deleteCampaign);
     document.getElementById('campaign-modal-delete-header')?.addEventListener('click', deleteCampaign);
+    document.getElementById('campaign-modal-delete-video-header')?.addEventListener('click', () => deleteCampaignVideo(campaignBeingEdited));
     document.getElementById('campaign-modal-edit-header')?.addEventListener('click', () => enterEditMode(campaignBeingEdited));
     document.querySelector('[data-close-campaign-modal="true"]')?.addEventListener('click', closeCampaignModal);
     document.getElementById('campaign-modal')?.addEventListener('click', (event) => {
