@@ -1240,7 +1240,7 @@ async function loadCampaigns() {
 
             tbody.appendChild(row);
         });
-        console.log('Carousel campaigns loaded successfully, count:', carouselCampaigns.length);
+        console.log('Recent campaigns loaded successfully, count:', recentCampaigns.length);
     } catch (err) {
         console.error('Error loading campaigns:', err);
         showNotification(err.message || 'Erreur lors du chargement des campagnes', 'error');
