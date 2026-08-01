@@ -757,8 +757,8 @@ function openCampaignModal(campaign) {
     document.body.classList.add('overflow-hidden');
 }
 
-async function deleteCampaign() {
-    if (!currentCampaignId) {
+async function deleteCampaign(campaignId = currentCampaignId) {
+    if (!campaignId) {
         showNotification('Impossible de supprimer : identifiant de campagne manquant.', 'error');
         return;
     }
@@ -767,7 +767,7 @@ async function deleteCampaign() {
     if (!confirmation) return;
 
     try {
-        const resp = await fetch(`${apiBase}/ads/campaign/${encodeURIComponent(currentCampaignId)}`, {
+        const resp = await fetch(`${apiBase}/ads/campaign/${encodeURIComponent(campaignId)}`, {
             method: 'DELETE'
         });
 
@@ -1265,6 +1265,9 @@ function renderCampaignsTable() {
                     <button class="campaign-remove-video-btn inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 transition-colors" type="button" ${campaign.media_type === 'video' ? '' : 'hidden'} aria-label="Supprimer la vidéo">
                         Supprimer vidéo
                     </button>
+                    <button class="campaign-delete-btn inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 transition-colors" type="button" ${isVideoCampaign(campaign) ? 'hidden' : ''} aria-label="Supprimer la campagne">
+                        Supprimer
+                    </button>
                 </td>
             `;
 
@@ -1292,6 +1295,18 @@ function renderCampaignsTable() {
                 removeVideoBtn.addEventListener('click', async (event) => {
                     event.stopPropagation();
                     await deleteCampaignVideo(campaign);
+                });
+            }
+
+            const deleteBtn = row.querySelector('.campaign-delete-btn');
+            if (deleteBtn) {
+                if (isVideoCampaign(campaign)) {
+                    deleteBtn.classList.add('hidden');
+                }
+                deleteBtn.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    const campaignId = campaign?.id || campaign?.campaign_id || campaign?._id;
+                    await deleteCampaign(campaignId);
                 });
             }
 
