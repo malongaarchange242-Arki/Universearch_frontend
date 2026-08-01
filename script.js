@@ -780,6 +780,11 @@ let engagementChart = null;
 let performanceChart = null;
 let analyticsFollowersChart = null;
 
+function isVideoUrl(value) {
+    if (!value || typeof value !== 'string') return false;
+    return /\.(mp4|mov|webm|m3u8|mkv|ogg|ogv)(\?|$)/i.test(value) || /video\//i.test(value);
+}
+
 function getLastTwelveMonthLabels(referenceDate = new Date()) {
     const formatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
 
@@ -823,11 +828,6 @@ async function fetchAndDisplayShorts() {
 
     const payload = result.data || {};
     const posts = Array.isArray(payload) ? payload : (Array.isArray(payload.data) ? payload.data : []);
-    // Helper to identify common video file extensions in a URL
-    const isVideoUrl = (u) => {
-        if (!u || typeof u !== 'string') return false;
-        return /\.(mp4|mov|webm|m3u8|mkv|ogg|ogv)(\?|$)/i.test(u) || /video\//i.test(u);
-    };
 
     appData.shorts = posts
         .filter(post => {
@@ -891,19 +891,31 @@ async function fetchAndDisplayFlyers() {
     appData.flyers = posts
         .filter(post => {
             const mediaType = String(post.media_type || post.mediaType || '').toLowerCase();
-            return mediaType === 'image' || !!(post.imageUrl || post.media_url || post.url);
+            const mediaUrl = post.media_url || post.videoUrl || post.imageUrl || post.url || '';
+            const looksLikeVideo = isVideoUrl(mediaUrl);
+            const looksLikeImage = !!(post.imageUrl || post.media_url || post.url) && !looksLikeVideo;
+            return mediaType === 'video' || mediaType === 'image' || looksLikeVideo || looksLikeImage;
         })
-        .map(post => ({
-            id: post.id || post.post_id || `flyer_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-            title: post.titre || post.title || 'Flyer',
-            description: post.description || '',
-            category: post.category || 'all',
-            imageUrl: post.media_url || post.imageUrl || post.url || '',
-            views: post.views_count ?? post.views ?? post.vues ?? 0,
-            likes: post.likes_count ?? post.likes ?? 0,
-            downloads: post.downloads_count ?? post.downloads ?? 0,
-            createdAt: post.date_creation || post.created_at || post.createdAt || new Date().toISOString()
-        }));
+        .map(post => {
+            const mediaType = String(post.media_type || post.mediaType || '').toLowerCase();
+            const mediaUrl = post.media_url || post.videoUrl || post.imageUrl || post.url || '';
+            const isVideo = mediaType === 'video' || isVideoUrl(mediaUrl);
+
+            return {
+                id: post.id || post.post_id || `flyer_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+                title: post.titre || post.title || 'Flyer',
+                description: post.description || '',
+                category: post.category || 'all',
+                mediaType: isVideo ? 'video' : 'image',
+                mediaUrl,
+                imageUrl: isVideo ? '' : mediaUrl,
+                videoUrl: isVideo ? mediaUrl : '',
+                views: post.views_count ?? post.views ?? post.vues ?? 0,
+                likes: post.likes_count ?? post.likes ?? 0,
+                downloads: post.downloads_count ?? post.downloads ?? 0,
+                createdAt: post.date_creation || post.created_at || post.createdAt || new Date().toISOString()
+            };
+        });
 
     displayFlyers();
     updateAllDisplays();
@@ -1818,7 +1830,11 @@ function displayFlyers() {
     container.innerHTML = appData.flyers.map(flyer => `
         <div class="media-card" onclick="openPreview('flyer','${flyer.id}')">
             <div class="media-preview">
-                <img src="${flyer.imageUrl}" alt="${escapeHtml(flyer.title)}">
+                ${flyer.mediaType === 'video' || flyer.videoUrl ? `
+                    <video src="${flyer.videoUrl || flyer.mediaUrl}" preload="metadata" playsinline controls muted loop></video>
+                ` : `
+                    <img src="${flyer.imageUrl || flyer.mediaUrl}" alt="${escapeHtml(flyer.title)}">
+                `}
                 <div class="media-overlay">
                     <button onclick="event.stopPropagation(); window.downloadFlyer('${flyer.id}')"><i class="fas fa-download"></i> Télécharger</button>
                 </div>
@@ -3813,13 +3829,16 @@ function openPostPreview(type, id) {
     viewCount.textContent = item.views || 0;
 
     // Afficher le média
-    if (type === 'short' && item.videoUrl) {
+    const mediaUrl = item.videoUrl || item.mediaUrl || item.imageUrl || '';
+    const isVideoContent = type === 'short' || item.mediaType === 'video' || isVideoUrl(mediaUrl);
+
+    if (isVideoContent && mediaUrl) {
         mediaContainer.innerHTML = `
-            <video src="${item.videoUrl}" controls autoplay muted loop playsinline style="max-width:100%;max-height:100%;border-radius:var(--radius);"></video>
+            <video src="${mediaUrl}" controls autoplay muted loop playsinline style="max-width:100%;max-height:100%;border-radius:var(--radius);"></video>
         `;
-    } else if (type === 'flyer' && item.imageUrl) {
+    } else if (mediaUrl) {
         mediaContainer.innerHTML = `
-            <img src="${item.imageUrl}" alt="${item.title}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--radius);">
+            <img src="${mediaUrl}" alt="${item.title}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--radius);">
         `;
     } else {
         mediaContainer.innerHTML = `
@@ -3874,6 +3893,8 @@ function togglePreviewDescription() {
         toggleBtn.dataset.expanded = 'true';
     }
 }
+
+window.togglePreviewDescription = togglePreviewDescription;
 
 function renderComments(comments, container, countEl) {
     if (!container) return;
