@@ -155,27 +155,38 @@ function selectAgeTargetingMode(mode) {
 function getAgeTargetingPayload() {
     syncAgeRangeInputs();
 
+    // Toujours renvoyer les 4 clés explicitement (null pour celles inutilisées) : un payload
+    // partiel avec des clés simplement absentes ne permet pas d'effacer un ciblage précédent,
+    // car JSON.stringify supprime les valeurs undefined et le backend ne touche que les
+    // colonnes présentes dans la requête.
     if (selectedAgeMode === 'min') {
         return {
-            min_age: getAgeInputValue('ad-min-age', ageTargetingDefaults.minAge)
+            min_age: getAgeInputValue('ad-min-age', ageTargetingDefaults.minAge),
+            max_age: null,
+            target_age: null,
+            age_tolerance: null
         };
     }
 
     if (selectedAgeMode === 'range') {
         return {
             min_age: getAgeInputValue('ad-range-min-age', ageTargetingDefaults.rangeMinAge),
-            max_age: getAgeInputValue('ad-range-max-age', ageTargetingDefaults.rangeMaxAge)
+            max_age: getAgeInputValue('ad-range-max-age', ageTargetingDefaults.rangeMaxAge),
+            target_age: null,
+            age_tolerance: null
         };
     }
 
     if (selectedAgeMode === 'target') {
         return {
             target_age: getAgeInputValue('ad-target-age', ageTargetingDefaults.targetAge),
-            age_tolerance: getAgeInputValue('ad-age-tolerance', ageTargetingDefaults.ageTolerance)
+            age_tolerance: getAgeInputValue('ad-age-tolerance', ageTargetingDefaults.ageTolerance),
+            min_age: null,
+            max_age: null
         };
     }
 
-    return {};
+    return { min_age: null, max_age: null, target_age: null, age_tolerance: null };
 }
 
 function resetAgeTargeting() {
@@ -866,10 +877,23 @@ function enterEditMode(campaign) {
 
     document.getElementById('ad-title').value = campaign?.title || '';
     document.getElementById('ad-desc').value = campaign?.description || '';
-    document.getElementById('ad-location').value = campaign?.location || '';
-    document.getElementById('ad-quartier').value = campaign?.quartier || campaign?.location || '';
     document.getElementById('ad-lien').value = campaign?.lien || campaign?.lien_site || '';
     document.getElementById('ad-contacts').value = campaign?.contacts || '';
+
+    // Réinitialiser le ciblage de l'audience avant d'appliquer les valeurs de la campagne éditée,
+    // sinon les critères d'une édition précédente (ou saisis avant de cliquer "Modifier") persistent.
+    document.getElementById('ad-location').value = '';
+    document.getElementById('ad-quartier').value = '';
+    selectedGender = 'all';
+    selectGender('all');
+    selectedUserType = 'all';
+    selectUserType('all');
+    selectedUsers = [];
+    updateSelectedUsersDisplay();
+    resetAgeTargeting();
+
+    document.getElementById('ad-location').value = campaign?.location || '';
+    document.getElementById('ad-quartier').value = campaign?.quartier || campaign?.location || '';
 
     selectedGender = campaign?.target_gender || 'all';
     selectGender(selectedGender);
@@ -973,11 +997,14 @@ async function launchCampaign() {
     const existingMediaUrl = currentMediaUrl;
 
     // Collect targeting data
+    // Utiliser `null` (et non `undefined`) pour les critères désactivés : JSON.stringify
+    // supprime les clés undefined, donc un payload avec une clé absente ne peut jamais
+    // effacer un ciblage déjà enregistré en base lors d'une modification.
     const ageTargeting = getAgeTargetingPayload();
-    const location = document.getElementById('ad-location').value.trim() || undefined;
-    const quartier = document.getElementById('ad-quartier').value.trim() || undefined;
-    const targetGender = selectedGender === 'all' ? undefined : selectedGender; // undefined for 'all', or 'men'/'women'
-    const targetUserType = selectedUserType === 'all' ? undefined : selectedUserType;
+    const location = document.getElementById('ad-location').value.trim() || null;
+    const quartier = document.getElementById('ad-quartier').value.trim() || null;
+    const targetGender = selectedGender === 'all' ? null : selectedGender; // null pour 'all', ou 'men'/'women'
+    const targetUserType = selectedUserType === 'all' ? null : selectedUserType;
 
     console.log('Starting campaign launch...');
     console.log('Title:', title);
@@ -1074,7 +1101,7 @@ async function launchCampaign() {
             destination,
             target_gender: targetGender,
             target_user_type: targetUserType,
-            target_users: selectedUsers.length > 0 ? selectedUsers : undefined,
+            target_users: selectedUsers.length > 0 ? selectedUsers : null,
             ...ageTargeting,
             location: quartier || location,
             quartier: quartier,
