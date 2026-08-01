@@ -894,7 +894,7 @@ async function fetchAndDisplayFlyers() {
             const mediaUrl = post.media_url || post.videoUrl || post.imageUrl || post.url || '';
             const looksLikeVideo = isVideoUrl(mediaUrl);
             const looksLikeImage = !!(post.imageUrl || post.media_url || post.url) && !looksLikeVideo;
-            return mediaType === 'video' || mediaType === 'image' || looksLikeVideo || looksLikeImage;
+            return mediaType === 'image' || looksLikeImage;
         })
         .map(post => {
             const mediaType = String(post.media_type || post.mediaType || '').toLowerCase();
