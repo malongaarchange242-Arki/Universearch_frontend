@@ -306,8 +306,13 @@
                 </div>
 
                 <div class="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden mt-8">
-                    <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+                    <div class="p-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <h3 class="font-bold text-slate-800">Campagnes Récentes</h3>
+                        <div class="flex p-1 bg-slate-50 rounded-2xl border border-slate-100 w-fit" id="campaigns-media-filter">
+                            <button data-filter="all" class="campaign-filter-btn flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white shadow-sm text-indigo-600">Tous</button>
+                            <button data-filter="image" class="campaign-filter-btn flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700">Image</button>
+                            <button data-filter="video" class="campaign-filter-btn flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700">Vidéo</button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -323,10 +328,22 @@
                             </thead>
                             <tbody id="campaigns-table-body">
                                 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all cursor-pointer">
-                                    
+
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="p-6 border-t border-slate-50 flex items-center justify-between gap-4">
+                        <p class="text-xs text-slate-500" id="campaigns-pagination-info">0 campagne</p>
+                        <div class="flex items-center gap-2">
+                            <button id="campaigns-prev-page" type="button" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all" aria-label="Page précédente">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                            <span class="text-xs font-bold text-slate-600 px-2" id="campaigns-page-indicator">Page 1 / 1</span>
+                            <button id="campaigns-next-page" type="button" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all" aria-label="Page suivante">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

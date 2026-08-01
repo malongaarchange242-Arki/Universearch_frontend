@@ -1132,6 +1132,11 @@ async function launchCampaign() {
 }
 
 // 6. CHARGER LES CAMPAGNES RÉCENTES
+const CAMPAIGNS_PAGE_SIZE = 5;
+let allCampaigns = [];
+let campaignMediaFilter = 'all';
+let campaignCurrentPage = 1;
+
 async function loadCampaigns() {
     console.log('Loading campaigns...');
     try {
@@ -1159,7 +1164,7 @@ async function loadCampaigns() {
             ? data.data
             : (Array.isArray(data) ? data : []);
 
-        const recentCampaigns = campaigns
+        allCampaigns = campaigns
             .slice()
             .sort((a, b) => {
                 const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
@@ -1167,25 +1172,62 @@ async function loadCampaigns() {
                 return dateB - dateA;
             });
 
-        const tbody = document.getElementById('campaigns-table-body') || document.querySelector('tbody');
-        if (!tbody) {
-            throw new Error('Table des campagnes introuvable');
-        }
-        tbody.innerHTML = ''; // Clear existing rows
+        campaignCurrentPage = 1;
+        renderCampaignsTable();
+        console.log('Recent campaigns loaded successfully, count:', allCampaigns.length);
+    } catch (err) {
+        console.error('Error loading campaigns:', err);
+        showNotification(err.message || 'Erreur lors du chargement des campagnes', 'error');
+    }
+}
 
-        if (recentCampaigns.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="px-8 py-8 text-center text-slate-500">
-                        Aucune campagne disponible pour le moment.
-                    </td>
-                </tr>
-            `;
-            console.log('No campaigns returned by API');
-            return;
-        }
+function renderCampaignsTable() {
+    const tbody = document.getElementById('campaigns-table-body') || document.querySelector('tbody');
+    if (!tbody) {
+        throw new Error('Table des campagnes introuvable');
+    }
+    tbody.innerHTML = ''; // Clear existing rows
 
-        recentCampaigns.forEach(campaign => {
+    const filteredCampaigns = allCampaigns.filter(campaign => {
+        if (campaignMediaFilter === 'image') return !isVideoCampaign(campaign);
+        if (campaignMediaFilter === 'video') return isVideoCampaign(campaign);
+        return true;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / CAMPAIGNS_PAGE_SIZE));
+    if (campaignCurrentPage > totalPages) campaignCurrentPage = totalPages;
+    if (campaignCurrentPage < 1) campaignCurrentPage = 1;
+
+    const pageStart = (campaignCurrentPage - 1) * CAMPAIGNS_PAGE_SIZE;
+    const pageCampaigns = filteredCampaigns.slice(pageStart, pageStart + CAMPAIGNS_PAGE_SIZE);
+
+    const paginationInfo = document.getElementById('campaigns-pagination-info');
+    const pageIndicator = document.getElementById('campaigns-page-indicator');
+    const prevBtn = document.getElementById('campaigns-prev-page');
+    const nextBtn = document.getElementById('campaigns-next-page');
+
+    if (paginationInfo) {
+        paginationInfo.textContent = `${filteredCampaigns.length} campagne${filteredCampaigns.length > 1 ? 's' : ''}`;
+    }
+    if (pageIndicator) {
+        pageIndicator.textContent = `Page ${campaignCurrentPage} / ${totalPages}`;
+    }
+    if (prevBtn) prevBtn.disabled = campaignCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = campaignCurrentPage >= totalPages;
+
+    if (filteredCampaigns.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-8 py-8 text-center text-slate-500">
+                    Aucune campagne disponible pour le moment.
+                </td>
+            </tr>
+        `;
+        console.log('No campaigns to display for current filter');
+        return;
+    }
+
+        pageCampaigns.forEach(campaign => {
             const impressions = getCampaignMetric(campaign, ['impressions', 'views', 'view_count', 'reach']);
             const clicks = getCampaignMetric(campaign, ['clicks', 'click_count']);
             const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(1) : '0.0';
@@ -1255,15 +1297,33 @@ async function loadCampaigns() {
 
             tbody.appendChild(row);
         });
-        console.log('Recent campaigns loaded successfully, count:', recentCampaigns.length);
-    } catch (err) {
-        console.error('Error loading campaigns:', err);
-        showNotification(err.message || 'Erreur lors du chargement des campagnes', 'error');
-    }
 }
 
 // Charger les campagnes au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#campaigns-media-filter .campaign-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            campaignMediaFilter = btn.dataset.filter;
+            campaignCurrentPage = 1;
+            document.querySelectorAll('#campaigns-media-filter .campaign-filter-btn').forEach(b => {
+                b.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+                b.classList.add('text-slate-500');
+            });
+            btn.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+            btn.classList.remove('text-slate-500');
+            renderCampaignsTable();
+        });
+    });
+
+    document.getElementById('campaigns-prev-page')?.addEventListener('click', () => {
+        campaignCurrentPage -= 1;
+        renderCampaignsTable();
+    });
+    document.getElementById('campaigns-next-page')?.addEventListener('click', () => {
+        campaignCurrentPage += 1;
+        renderCampaignsTable();
+    });
+
     const minAgeInput = document.getElementById('ad-min-age');
     const rangeMinInput = document.getElementById('ad-range-min-age');
     const rangeMaxInput = document.getElementById('ad-range-max-age');
